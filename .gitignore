@@ -79,3 +79,8 @@
   !docs/.gitkeep                                                                                    
   !server/.gitkeep                                                                                  
   !client/.gitkeep
+
+# Temp dirs
+.tmp/
+*.bak/
+fix.py

@@ -125,14 +125,14 @@ constituir la asociación
                                                                                                     
   ## 📜 Licencia                                                                                    
                                                                                                     
-  **MIT License** — código abierto,任何人 puede auditar y contribuir.                               
+  **MIT License** — código abierto: cualquier persona puede auditar y contribuir.                               
                                                                                                     
   Eco'clock apuesta por la transparencia total: el código es público, las cuentas serán públicas,   
 las verificaciones de ONGs serán públicas. Confianza mediante apertura.                             
                                                                                                     
   ## 🤝 Contribuir                                                                                  
                                                                                                     
-  Por ahora el proyecto está en fase早期 (sólo el fundador + asistente AI). Cuando llegue a beta    
+  Por ahora el proyecto está en fase temprana (sólo el fundador + asistente AI). Cuando llegue a beta    
 pública (Fase 3-4), abriremos issues y PRs.                                                         
                                                                                                     
   ---                                                                                               
