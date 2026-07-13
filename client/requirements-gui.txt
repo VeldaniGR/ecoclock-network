@@ -1,0 +1,3 @@
+  # Dependencias opcionales para la GUI (Fase 2).                                                                                                                                                                   
+  # Instalar con: pip install -r client/requirements-gui.txt                                                                                                                                                        
+  PyQt6>=6.5                                                                                                                                                                                                        

@@ -25,6 +25,11 @@ from pathlib import Path
 from typing import Any, Callable
 
 import requests
+# --- Sub-comando opcional: gui (PyQt6) -------------------------------------
+try:
+	from .gui import app as _gui_app
+except ImportError:  # PyQt6 no instalado: el sub-comando gui fallara bonito
+	_gui_app = None
 
 # --- Constants ---------------------------------------------------------------
 
@@ -201,6 +206,15 @@ def cmd_run(args: argparse.Namespace) -> dict[str, Any]:
     return result
 
 
+def cmd_gui(args: argparse.Namespace) -> dict[str, Any]:
+	"""Lanza la GUI PyQt6 (Fase 2). PyQt6 debe estar instalado."""
+	if _gui_app is None:
+		raise CLIError(
+	"PyQt6 no esta instalado. Instala con: pip install -r client/requirements-gui.txt"
+		)
+	rc = _gui_app.main()
+	return {"ok": True, "returncode": rc}
+
 def cmd_logout(args: argparse.Namespace) -> dict[str, Any]:
     clear_token()
     return {"ok": True, "path": str(_token_path())}
@@ -251,7 +265,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Ignorar token guardado y registrar de nuevo")
     s.add_argument("--token", help="Token (si no, usa el guardado)")
     s.set_defaults(func=cmd_run)
-
+    s = sub.add_parser("gui", help="Lanzar la GUI (Fase 2, requiere PyQt6)")
+    s.set_defaults(func=cmd_gui)
     s = sub.add_parser("logout", help="Borrar el token guardado")
     s.set_defaults(func=cmd_logout)
 
