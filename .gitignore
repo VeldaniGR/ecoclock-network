@@ -84,3 +84,6 @@
 .tmp/
 *.bak/
 fix.py
+
+# Workspace memory files (Octo local notes)
+MEMORY.md
