@@ -67,3 +67,17 @@ ECOCLOCK_RUN_INTEGRATION=1 pytest client/tests/ -m integration
 - El token se guarda en `$XDG_CONFIG_HOME/ecoclock/token.json` con permisos
   `0600` (best-effort; en FS sin soporte, se omite).
 - `cli.py` no requiere Pydantic. Toda la validación se delega al servidor.
+                                                                                                                                                                                                                    
+  ## GUI (Fase 2, opcional)                                                                                                                                                                                         
+                                                                                                                                                                                                                    
+  Scaffold mínimo en `client/gui/`. PyQt6 es **opcional**: el CLI funciona                                                                                                                                          
+  sin él. Para usar la GUI:                                                                                                                                                                                         
+                                                                                                                                                                                                                    
+  ```bash                                                                                                                                                                                                           
+  pip install -r client/requirements-gui.txt                                                                                                                                                                        
+  ecoclock gui                                                                                                                                                                                                      
+```                                                                                                                                                                                                                 
+                                                                                                                                                                                                                    
+Atajos: Ctrl+Q o botón "Salir" cierran la ventana. La lógica real                                                                                                                                                   
+(tareas, NDVI, login) se añade en commits posteriores sin tocar el entry                                                                                                                                            
+point del CLI.                                                                                                                                                                                                      
