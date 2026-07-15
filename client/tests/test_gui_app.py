@@ -39,7 +39,7 @@ def test_window_has_two_pages(window):
 
 
 def test_login_page_has_inputs_and_button(window):
-    assert window.email_input.placeholderText() == "email"
+    assert window.username_input.placeholderText() == "username"
     assert window.password_input.echoMode() == window.password_input.EchoMode.Password
     assert window.login_button.text() == "Entrar"
 
@@ -66,7 +66,7 @@ def test_login_success_jumps_to_task_page(window, monkeypatch):
     monkeypatch.setattr("client.gui.services.login", fake_login)
     monkeypatch.setattr("client.gui.services.next_task", fake_next)
 
-    window.email_input.setText("u@example.com")
+    window.username_input.setText("u@example.com")
     window.password_input.setText("secret")
     window._on_login_clicked()
 
@@ -150,7 +150,7 @@ def test_submit_with_invalid_json_does_not_call_service(window, monkeypatch):
 def test_logout_returns_to_login(window):
     window._token = "tok-123"
     window._current_task = {"id": 7, "name": "x"}
-    window.email_input.setText("u@example.com")
+    window.username_input.setText("u@example.com")
     window.password_input.setText("secret")
     window.stack.setCurrentIndex(window.PAGE_TASK)
 
@@ -158,6 +158,6 @@ def test_logout_returns_to_login(window):
 
     assert window._token is None
     assert window._current_task is None
-    assert window.email_input.text() == ""
+    assert window.username_input.text() == ""
     assert window.password_input.text() == ""
     assert window.stack.currentIndex() == window.PAGE_LOGIN

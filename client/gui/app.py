@@ -90,15 +90,15 @@ class EcoClockWindow(QMainWindow):
 	def _build_login_page(self) -> QWidget:
 		page = QWidget(self)
 		layout = QVBoxLayout(page)
-		self.email_input = QLineEdit(page)
-		self.email_input.setPlaceholderText("email")
+		self.username_input = QLineEdit(page)
+		self.username_input.setPlaceholderText("username")
 		self.password_input = QLineEdit(page)
 		self.password_input.setPlaceholderText("password")
 		self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
 		self.login_button = QPushButton("Entrar", page)
 		self.login_button.clicked.connect(self._on_login_clicked)
 		layout.addWidget(QLabel("Login", page))
-		layout.addWidget(self.email_input)
+		layout.addWidget(self.username_input)
 		layout.addWidget(self.password_input)
 		layout.addWidget(self.login_button)
 		return page
@@ -118,13 +118,13 @@ class EcoClockWindow(QMainWindow):
 
 	def _on_login_clicked(self) -> None:
 		from client.gui import services  # import perezoso
-		email = self.email_input.text().strip()
+		username = self.username_input.text().strip()
 		password = self.password_input.text()
-		if not email or not password:
-			QMessageBox.warning(self, "Login", "Email y password son obligatorios.")
+		if not username or not password:
+			QMessageBox.warning(self, "Login", "Username y password son obligatorios.")
 			return
 		try:
-			data = services.login(self._base_url, email, password)
+			data = services.login(self._base_url, username, password)
 		except Exception as exc:  # noqa: BLE001
 			QMessageBox.critical(self, "Login", f"Fallo de login:\n{exc}")
 			return
@@ -132,7 +132,7 @@ class EcoClockWindow(QMainWindow):
 		if not self._token:
 			QMessageBox.critical(self, "Login", "Respuesta sin access_token.")
 			return
-		self.statusBar().showMessage(f"Sesion iniciada como {email}")
+		self.statusBar().showMessage(f"Sesion iniciada como {username}")
 		self._fetch_next_task()
 
 	def _fetch_next_task(self) -> None:
@@ -176,7 +176,7 @@ class EcoClockWindow(QMainWindow):
 	def _logout(self) -> None:
 		self._token = None
 		self._current_task = None
-		self.email_input.clear()
+		self.username_input.clear()
 		self.password_input.clear()
 		self.stack.setCurrentIndex(self.PAGE_LOGIN)
 		self.statusBar().showMessage("Sesion cerrada")
