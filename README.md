@@ -99,7 +99,7 @@ ambiente y organizaciones que realmente hacen el trabajo, eliminando el riesgo d
   | **Fase 1** | Prototipo funcional: servidor + cliente CLI | 🟢 Hecha |
   | **Fase 2** | GUI básica con PyQt6 | 🟢 Hecha (verificada E2E contra server   
 real con login → next → submit)|
-  | **Fase 3** | Características BOINC: créditos, verificación | ⏳ Pendiente |                     
+  | **Fase 3** | Características BOINC: créditos, verificación | 🟢 Hecha (E2E 3/3 verdes, tag v0.3.0-fase3) |
   | **Fase 4** | Beta pública: instaladores, auto-update | ⏳ Pendiente |                           
                                                                                                     
   ## 🏃 Cómo correr el proyecto en local                                                            

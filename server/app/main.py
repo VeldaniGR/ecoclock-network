@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
 	title="Ecoclock Network API",
 	description="Plataforma de confianza para donaciones verificadas y computo distribuido.",
-	version="0.1.0",
+	version="0.3.0",
 	lifespan=lifespan,
 )
 app.add_middleware(
@@ -31,7 +31,7 @@ app.add_middleware(
 @app.get("/health")
 def health_check():
 	"""Comprueba que el servidor está vivo."""
-	return {"status": "ok", "service": "ecoclock-network", "version": "0.1.0"}
+	return {"status": "ok", "service": "ecoclock-network", "version": "0.3.0"}
 
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
