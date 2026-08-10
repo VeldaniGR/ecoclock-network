@@ -23,7 +23,8 @@
                                                                                                     
   # Virtual environments                                                                            
   venv/                                                                                             
-  .venv/                                                                                            
+  .venv/
+  .venv-build/                                                                                            
   env/                                                                                              
   .env                                                                                              
   ENV/                                                                                              

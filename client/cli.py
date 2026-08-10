@@ -33,7 +33,7 @@ except ImportError:  # PyQt6 no instalado: el sub-comando gui fallara bonito
 
 # --- Constants ---------------------------------------------------------------
 
-DEFAULT_BASE_URL = os.environ.get("ECOCLOCK_BASE_URL", "http://127.0.0.1:8000")
+DEFAULT_BASE_URL = "https://api.ecoclock.org"
 TIMEOUT = float(os.environ.get("ECOCLOCK_TIMEOUT", "10"))
 
 
@@ -224,7 +224,7 @@ def cmd_logout(args: argparse.Namespace) -> dict[str, Any]:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="ecoclock", description="Eco'clock Network CLI (Fase 1)")
-    p.add_argument("--base-url", default=DEFAULT_BASE_URL,
+    p.add_argument("--base-url", default=None,
                    help=f"URL del servidor (default: {DEFAULT_BASE_URL})")
 
     sub = p.add_subparsers(dest="command", required=True)
@@ -276,6 +276,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if not args.base_url:
+        args.base_url = os.environ.get("ECOCLOCK_BASE_URL") or DEFAULT_BASE_URL
     try:
         result = args.func(args)
     except CLIError as e:

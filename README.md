@@ -115,7 +115,24 @@ real con login → next → submit)|
                                                                                                     
   # Correr cliente CLI (descarga y procesa una tarea dummy)                                         
   python client/cli.py                                                                              
-  ```                                                                                               
+  ```
+### Binario autocontenido (PyInstaller)                                                                                                                                                                             
+                                                                                                                                                                                                                    
+Para distribuir la CLI sin necesidad de tener Python instalado:                                                                                                                                                     
+                                                                                                                                                                                                                    
+```bash                                                                                                                                                                                                             
+  ./scripts/build-linux.sh                                                                                                                                                                                          
+```                                                                                                                                                                                                                 
+                                                                                                                                                                                                                    
+Resultado: dist/ecoclock-cli (~13 MB, standalone).                                                                                                                                                                  
+                                                                                                                                                                                                                    
+Uso:                                                                                                                                                                                                                
+                                                                                                                                                                                                                    
+```bash                                                                                                                                                                                                             
+  ./dist/ecoclock-cli --base-url https://api.ecoclock.org login                                                                                                                                                     
+  ./dist/ecoclock-cli --base-url http://127.0.0.1:8000 next   # server local                                                                                                                                        
+  ECOCLOCK_BASE_URL=http://127.0.0.1:8000 ./dist/ecoclock-cli me   # override por env                                                                                                                               
+```                                                                                               
                                                                                                     
   ## 📚 Documentación adicional                                                                     
                                                                                                     
