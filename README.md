@@ -100,8 +100,18 @@ ambiente y organizaciones que realmente hacen el trabajo, eliminando el riesgo d
   | **Fase 2** | GUI básica con PyQt6 | 🟢 Hecha (verificada E2E contra server   
 real con login → next → submit)|
   | **Fase 3** | Características BOINC: créditos, verificación | 🟢 Hecha (E2E 3/3 verdes, tag v0.3.0-fase3) |
-  | **Fase 4** | Beta pública: instaladores, auto-update | ⏳ Pendiente |                           
-                                                                                                    
+  | **Fase 4** | Beta pública: instaladores, auto-update | 🟡 En curso (4.5, 4.6, 4.7, v0.5.0 ✅; 4.4 ⏳) |
+  | **v0.5.0** | Release oficial con binarios Linux + Windows reales | 🟢 [v0.5.0](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.0) |
+
+  ## 📦 Descargas                                                                                                                                                                                                   
+                                                                                                                                                                                                                    
+  Binarios oficiales (auto-construidos en GitHub Actions):                                                                                                                                                          
+                                                                                                                                                                                                                    
+  - [ecoclock-cli v0.5.0 · Linux x86_64](https://github.com/VeldaniGR/ecoclock-network/releases/download/v0.5.0/ecoclock-cli-v0.5.0-linux-x86_64)                                                                   
+  - [ecoclock-cli v0.5.0 · Windows x86_64 (.exe)](https://github.com/VeldaniGR/ecoclock-network/releases/download/v0.5.0/ecoclock-cli-v0.5.0-windows-x86_64.exe)                                                    
+                                                                                                                                                                                                                    
+  Todos los releases: https://github.com/VeldaniGR/ecoclock-network/releases
+                                                                                                  
   ## 🏃 Cómo correr el proyecto en local                                                            
                                                                                                     
   (Se completará en Fase 1)                                                                         
@@ -116,10 +126,11 @@ real con login → next → submit)|
   # Correr cliente CLI (descarga y procesa una tarea dummy)                                         
   python client/cli.py                                                                              
   ```
-### Binario autocontenido (PyInstaller)                                                                                                                                                                             
-                                                                                                                                                                                                                    
-Para distribuir la CLI sin necesidad de tener Python instalado:                                                                                                                                                     
-                                                                                                                                                                                                                    
+### Binario autocontenido (PyInstaller)                                     
+  - [Releases oficiales con binarios Linux + Windows](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.0) 
+ 
+Para distribuir la CLI sin necesidad de tener Python instalado: 
+ 
 ```bash                                                                                                                                                                                                             
   ./scripts/build-linux.sh                                                                                                                                                                                          
 ```                                                                                                                                                                                                                 
@@ -136,10 +147,9 @@ Uso:
                                                                                                     
   ## 📚 Documentación adicional                                                                     
                                                                                                     
-  - [`docs/architecture.md`](docs/architecture.md) — arquitectura detallada                         
-  - [`docs/ideas.md`](docs/ideas.md) — ideas y notas del proyecto                                   
-  - [`docs/legal/checklist-asociacion.md`](docs/legal/checklist-asociacion.md) — pasos para         
-constituir la asociación                                                                            
+  - [`docs/architecture.md`](docs/architecture.md) — arquitectura detallada *(pendiente de escribir)*
+  - [`docs/ideas.md`](docs/ideas.md) — ideas y notas del proyecto *(pendiente de escribir)*
+  - [`docs/legal/checklist-asociacion.md`](docs/legal/checklist-asociacion.md) — pasos para constituir la asociación *(pendiente de escribir)*
                                                                                                     
   ## 📜 Licencia                                                                                    
                                                                                                     
@@ -150,8 +160,7 @@ las verificaciones de ONGs serán públicas. Confianza mediante apertura.
                                                                                                     
   ## 🤝 Contribuir                                                                                  
                                                                                                     
-  Por ahora el proyecto está en fase temprana (sólo el fundador + asistente AI). Cuando llegue a beta    
-pública (Fase 3-4), abriremos issues y PRs.                                                         
+  Por ahora el proyecto está en fase temprana (sólo el fundador + asistente AI). Cuando llegue a beta abierta al público general (post-Fase 4), abriremos issues y PRs.                                                         
                                                                                                     
   ---                                                                                               
                                                                                                     
