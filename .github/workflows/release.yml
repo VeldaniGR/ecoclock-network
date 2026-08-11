@@ -1,0 +1,55 @@
+name: build-binaries
+
+"on":
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install client + PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r client/requirements.txt
+          pip install pyinstaller
+
+      - name: PyInstaller (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: pyinstaller client/cli.spec
+
+      - name: Rename Linux binary
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          version=${GITHUB_REF_NAME#v}
+          mv dist/ecoclock-cli "dist/ecoclock-cli-v${version}-linux-x86_64"
+
+      - name: PyInstaller (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          pyinstaller client/cli.spec
+          mv dist/ecoclock-cli.exe "dist/ecoclock-cli-v${GITHUB_REF_NAME}-windows-x86_64.exe"
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/ecoclock-cli-*
