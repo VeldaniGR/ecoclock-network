@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           pyinstaller client/cli.spec
-          mv dist/ecoclock-cli.exe "dist/ecoclock-cli-v${GITHUB_REF_NAME}-windows-x86_64.exe"
+          mv dist/ecoclock-cli.exe "dist/ecoclock-cli-${GITHUB_REF_NAME}-windows-x86_64.exe"
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
