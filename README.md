@@ -151,7 +151,7 @@ Uso:
   ```bash                                                                                                                                                                                                           
   ecoclock update         # descarga y reemplaza la versión actual                                                                                                                                                  
   ecoclock update --check  # solo informa: ¿hay release más nuevo?
-                                                                                                    
+```                                                                                                    
 ### 📚 Documentación adicional                                                                     
                                                                                                     
   - [`docs/architecture.md`](docs/architecture.md) — arquitectura detallada *(pendiente de escribir)*
