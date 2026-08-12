@@ -152,7 +152,7 @@ Uso:
   ecoclock update         # descarga y reemplaza la versión actual                                                                                                                                                  
   ecoclock update --check  # solo informa: ¿hay release más nuevo?
                                                                                                     
- ### 📚 Documentación adicional                                                                     
+### 📚 Documentación adicional                                                                     
                                                                                                     
   - [`docs/architecture.md`](docs/architecture.md) — arquitectura detallada *(pendiente de escribir)*
   - [`docs/ideas.md`](docs/ideas.md) — ideas y notas del proyecto *(pendiente de escribir)*
