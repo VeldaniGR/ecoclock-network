@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Eco'clock Network — CLI cliente (Fase 1).
-
+"""Eco'clock Network — CLI cliente (Fase 1).
 Sub-comandos:
   register   Crea un usuario nuevo.
   login      Inicia sesión y guarda el token.
@@ -35,6 +33,9 @@ except ImportError:  # PyQt6 no instalado: el sub-comando gui fallara bonito
 
 DEFAULT_BASE_URL = "https://api.ecoclock.org"
 TIMEOUT = float(os.environ.get("ECOCLOCK_TIMEOUT", "10"))
+
+# --- Version ---
+__cli_version__ = "0.5.0"  # Sincronizada con el tag. release.yml la sobreescribe en build.
 
 
 def _token_path() -> Path:
@@ -215,6 +216,87 @@ def cmd_gui(args: argparse.Namespace) -> dict[str, Any]:
 	rc = _gui_app.main()
 	return {"ok": True, "returncode": rc}
 
+def cmd_update(args: argparse.Namespace) -> dict[str, Any]:
+    """Auto-actualiza el binario desde GitHub releases.
+
+    --check -> solo informa, no descarga ni reemplaza nada.
+    """
+    import tempfile
+
+    current = __cli_version__
+    plat_norm = "windows-x86_64.exe" if sys.platform.startswith("win") else "linux-x86_64"
+    repo = "veldanigr/ecoclock-network"
+    api_url = f"https://api.github.com/repos/{repo}/releases/latest"
+
+    # 1) Consultar latest release
+    try:
+        r = requests.get(api_url, timeout=TIMEOUT, headers={"Accept": "application/vnd.github+json"})
+    except requests.RequestException as e:
+        raise CLIError(f"Sin red al consultar GitHub: {e}")
+    _raise_for_status(r)
+    release = r.json()
+    latest_tag = release.get("tag_name") or ""
+    latest_ver = latest_tag.lstrip("v")
+
+    if latest_ver == current:
+        print(f"[i] Ya estas en la ultima version ({current}).")
+        return {"ok": True, "action": "noop", "current": current, "latest": latest_ver}
+
+    # 2) Encontrar asset para nuestra plataforma
+    asset_name = f"ecoclock-cli-{latest_tag}-{plat_norm}"
+    asset = next((a for a in release.get("assets", []) if a.get("name") == asset_name), None)
+    if asset is None:
+        raise CLIError(
+            f"El release {latest_tag} no incluye el asset '{asset_name}'. "
+            f"Assets disponibles: {[a.get('name') for a in release.get('assets', [])]}"
+        )
+    download_url = asset["browser_download_url"]
+    asset_size = asset.get("size", 0)
+
+    # 3) --check: informar y salir
+    if getattr(args, "check", False):
+        print(f"[check] actual={current}  latest={latest_ver}  url={download_url}")
+        return {"ok": True, "action": "check", "current": current, "latest": latest_ver, "url": download_url}
+
+    # 4) Descargar a tempfile junto al binario (mismo dir = os.replace atomico)
+    bin_path = Path(sys.argv[0]).resolve()
+    bin_dir = bin_path.parent
+    tmp_fd, tmp_path = tempfile.mkstemp(prefix=".ecoclock-update-", suffix=".tmp", dir=bin_dir)
+    os.close(tmp_fd)
+    tmp = Path(tmp_path)
+
+    try:
+        print(f"[+] Descargando {asset_name} ({asset_size} bytes)...")
+        with requests.get(download_url, timeout=TIMEOUT, stream=True) as dr:
+            _raise_for_status(dr)
+            with open(tmp, "wb") as f:
+                for chunk in dr.iter_content(chunk_size=64 * 1024):
+                    if chunk:
+                        f.write(chunk)
+
+        # Validacion minima: tamano no nulo
+        if tmp.stat().st_size == 0:
+            raise CLIError("Descarga vacia. Binario original intacto.")
+
+        # Permisos de ejecucion
+        tmp.chmod(0o755)
+
+        # Replace atomico + re-exec
+        os.replace(tmp, bin_path)
+        print(f"[+] Binario actualizado a {latest_ver}. Relanzando...")
+        os.execv(str(bin_path), sys.argv)
+    except BaseException:
+        # Si algo falla, limpiar tempfile y relanzar excepcion
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+        raise
+
+    # Inalcanzable: os.execv no retorna si todo va bien
+    return {"ok": True, "action": "updated", "current": current, "latest": latest_ver}
+
+
 def cmd_logout(args: argparse.Namespace) -> dict[str, Any]:
     clear_token()
     return {"ok": True, "path": str(_token_path())}
@@ -267,6 +349,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_run)
     s = sub.add_parser("gui", help="Lanzar la GUI (Fase 2, requiere PyQt6)")
     s.set_defaults(func=cmd_gui)
+    s = sub.add_parser("update", help="Auto-actualizar el binario desde GitHub releases")
+    s.add_argument("--check", action="store_true", help="Solo informa, no descarga ni reemplaza")
+    s.set_defaults(func=cmd_update)
     s = sub.add_parser("logout", help="Borrar el token guardado")
     s.set_defaults(func=cmd_logout)
 

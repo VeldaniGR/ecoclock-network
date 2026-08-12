@@ -25,6 +25,17 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Inject version into cli.py
+        run: |
+          python - <<'PY'
+          import pathlib, re
+          p = pathlib.Path('client/cli.py')
+          s = p.read_text()
+          tag = '${GITHUB_REF_NAME}'
+          s = re.sub(r'__cli_version__ = ".*?"', f'__cli_version__ = "{tag}"', s)
+          p.write_text(s)
+          PY
+
       - name: Install client + PyInstaller
         run: |
           python -m pip install --upgrade pip
