@@ -100,7 +100,7 @@ ambiente y organizaciones que realmente hacen el trabajo, eliminando el riesgo d
   | **Fase 2** | GUI básica con PyQt6 | 🟢 Hecha (verificada E2E contra server   
 real con login → next → submit)|
   | **Fase 3** | Características BOINC: créditos, verificación | 🟢 Hecha (E2E 3/3 verdes, tag v0.3.0-fase3) |
-  | **Fase 4** | Beta pública: instaladores, auto-update | ✅ Cerrada (4.4, 4.5, 4.6, 4.7, v0.5.0, v0.5.1) |
+  | **Fase 4** | Beta pública: instaladores, auto-update | 🟢 Hecha (4.4, 4.5, 4.6, 4.7, v0.5.0, v0.5.1) |
   | **v0.5.0** | Release oficial con binarios Linux + Windows reales | 🟢 [v0.5.0](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.0) |
 
   ## 📦 Descargas                                                                                                                                                                                                   
@@ -152,7 +152,7 @@ Uso:
   ecoclock update         # descarga y reemplaza la versión actual                                                                                                                                                  
   ecoclock update --check  # solo informa: ¿hay release más nuevo?
                                                                                                     
-  ## 📚 Documentación adicional                                                                     
+ ### 📚 Documentación adicional                                                                     
                                                                                                     
   - [`docs/architecture.md`](docs/architecture.md) — arquitectura detallada *(pendiente de escribir)*
   - [`docs/ideas.md`](docs/ideas.md) — ideas y notas del proyecto *(pendiente de escribir)*
