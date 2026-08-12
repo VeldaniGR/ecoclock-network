@@ -144,6 +144,13 @@ Uso:
   ./dist/ecoclock-cli --base-url http://127.0.0.1:8000 next   # server local                                                                                                                                        
   ECOCLOCK_BASE_URL=http://127.0.0.1:8000 ./dist/ecoclock-cli me   # override por env                                                                                                                               
 ```                                                                                               
+  ### Auto-actualización                                                                                                                                                                                            
+                                                                                                                                                                                                                    
+  El binario puede actualizarse solo:                                                                                                                                                                               
+                                                                                                                                                                                                                    
+  ```bash                                                                                                                                                                                                           
+  ecoclock update         # descarga y reemplaza la versión actual                                                                                                                                                  
+  ecoclock update --check  # solo informa: ¿hay release más nuevo?
                                                                                                     
   ## 📚 Documentación adicional                                                                     
                                                                                                     
