@@ -26,6 +26,7 @@ jobs:
           python-version: '3.12'
 
       - name: Inject version into cli.py
+        shell: bash
         run: |
           python - <<PY
           import os, pathlib, re
