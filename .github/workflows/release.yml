@@ -27,14 +27,16 @@ jobs:
 
       - name: Inject version into cli.py
         run: |
-          python - <<'PY'
-          import pathlib, re
+          python - <<PY
+          import os, pathlib, re
           p = pathlib.Path('client/cli.py')
           s = p.read_text()
-          tag = '${GITHUB_REF_NAME}'
+          tag = os.environ['ECOCLOCK_VERSION']
           s = re.sub(r'__cli_version__ = ".*?"', f'__cli_version__ = "{tag}"', s)
           p.write_text(s)
           PY
+        env:
+          ECOCLOCK_VERSION: ${{ github.ref_name }}
 
       - name: Install client + PyInstaller
         run: |
