@@ -5,7 +5,7 @@ de cómputo distribuido.**
 
 # ecoclock-network                                                                                                                                                                                                
                                                                                                                                                                                                                     
- 🌱 Cliente y servidor del proyecto [Eco'clock 2026](https://ecoclock.org).                                                                                                                                           
+ 🌱 Cliente y servidor del proyecto [Eco'clock 2026](https://ecoclock.org) 🔧​En construcción🔧​                                                                                                                                           
                                                                                                                                                                                                                     
                                                                                                     
   Eco'clock es un proyecto que combina tres pilares:                                                
