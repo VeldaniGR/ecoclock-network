@@ -1,7 +1,12 @@
 # Eco'clock Network 🌿                                                                            
                                                                                                     
   > **Plataforma de confianza para donaciones verificadas a organizaciones ecologistas, con donación
-de cómputo distribuido.**                                                                           
+de cómputo distribuido.**
+
+# ecoclock-network                                                                                                                                                                                                
+                                                                                                                                                                                                                    
+ 🌱 Cliente y servidor del proyecto [Eco'clock 2026](https://ecoclock.org).                                                                                                                                           
+                                                                                                                                                                                                                    
                                                                                                     
   Eco'clock es un proyecto que combina tres pilares:                                                
                                                                                                     
