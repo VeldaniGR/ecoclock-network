@@ -260,6 +260,21 @@ def cmd_update(args: argparse.Namespace) -> dict[str, Any]:
 
     # 4) Descargar a tempfile junto al binario (mismo dir = os.replace atomico)
     bin_path = Path(sys.argv[0]).resolve()
+    # fix 0.5.2: si nos invocan como `python client/cli.py update`, bin_path
+    # cae en un .py. Actualizar un .py con un ELF lo rompe -> usar el
+    # binario `ecoclock-cli` que vive junto al .py o en ~/.local/bin/.
+    if bin_path.suffix in {'.py', '.pyc'}:
+        cand = bin_path.parent / 'ecoclock-cli'
+        alt = Path.home() / '.local' / 'bin' / 'ecoclock-cli'
+    if cand.exists():
+        bin_path = cand
+    elif alt.exists():
+        bin_path = alt
+    else:
+        raise CLIError(
+        'update solo soporta binarios ELF (ecoclock-cli). Bajalo desde '
+        'https://github.com/veldanigr/ecoclock-network/releases'
+        )
     bin_dir = bin_path.parent
     tmp_fd, tmp_path = tempfile.mkstemp(prefix=".ecoclock-update-", suffix=".tmp", dir=bin_dir)
     os.close(tmp_fd)
