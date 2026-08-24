@@ -88,3 +88,7 @@ fix.py
 
 # Workspace memory files (Octo local notes)
 MEMORY.md
+
+# Local PyInstaller output (CI lo recrea)
+build/
+dist/
