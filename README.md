@@ -47,7 +47,7 @@ ambiente y organizaciones que realmente hacen el trabajo, eliminando el riesgo d
   ## 🛠️ Stack tecnológico                                                                           
                                                                                                     
   ### Servidor                                                                                      
-  - **Python 3.13** + **FastAPI** (API REST)                                                        
+  - **Python 3.14** + **FastAPI** (API REST)                                                        
   - **PostgreSQL** (base de datos principal)                                                        
   - **Redis** (cola de tareas)                                                                      
   - **SQLAlchemy** (ORM) + **Pydantic** (validación)                                                
@@ -55,11 +55,11 @@ ambiente y organizaciones que realmente hacen el trabajo, eliminando el riesgo d
   - **Docker** + **docker-compose** (despliegue)                                                    
                                                                                                     
   ### Cliente                                                                                       
-  - **Python 3.13**                                                                                 
+  - **Python 3.14**                                                                                 
   - **PyQt6** (GUI multiplataforma)                                                                 
   - **requests** (HTTP al servidor)                                                                 
   - **NumPy** (cálculo numérico)                                                                    
-  - **PyInstaller** (empaquetado a ejecutable)                                                      
+  - **PyInstaller** (empaquetado **onedir** → carpeta `dist/ecoclock-cli/` con `_internal/`)        
                                                                                                     
   ## 📂 Estructura del repositorio                                                                  
                                                                                                     
@@ -105,15 +105,15 @@ ambiente y organizaciones que realmente hacen el trabajo, eliminando el riesgo d
   | **Fase 2** | GUI básica con PyQt6 | 🟢 Hecha (verificada E2E contra server   
 real con login → next → submit)|
   | **Fase 3** | Características BOINC: créditos, verificación | 🟢 Hecha (E2E 3/3 verdes, tag v0.3.0-fase3) |
-  | **Fase 4** | Beta pública: instaladores, auto-update | 🟢 Hecha (4.4, 4.5, 4.6, 4.7, v0.5.0, v0.5.1) |
-  | **v0.5.0** | Release oficial con binarios Linux + Windows reales | 🟢 [v0.5.0](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.0) |
+  | **Fase 4** | Beta pública: instaladores, auto-update | 🟢 Hecha (4.4–4.7, v0.5.0–v0.5.3) |
+  | **v0.5.3** | Binarios onedir (tar.gz/zip), fix Windows DLL, auto-update | 🟢 [v0.5.3](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.3) |
 
   ## 📦 Descargas                                                                                                                                                                                                   
                                                                                                                                                                                                                     
-  Binarios oficiales (auto-construidos en GitHub Actions):                                                                                                                                                          
+  Binarios oficiales (auto-construidos en GitHub Actions, **formato onedir**):                                                                                                                                      
                                                                                                                                                                                                                     
-  - [ecoclock-cli v0.5.0 · Linux x86_64](https://github.com/VeldaniGR/ecoclock-network/releases/download/v0.5.0/ecoclock-cli-v0.5.0-linux-x86_64)                                                                   
-  - [ecoclock-cli v0.5.0 · Windows x86_64 (.exe)](https://github.com/VeldaniGR/ecoclock-network/releases/download/v0.5.0/ecoclock-cli-v0.5.0-windows-x86_64.exe)                                                    
+  - [ecoclock-cli v0.5.3 · Linux x86_64 (tar.gz)](https://github.com/VeldaniGR/ecoclock-network/releases/download/v0.5.3/ecoclock-cli-v0.5.3-linux-x86_64.tar.gz)                                                                 
+  - [ecoclock-cli v0.5.3 · Windows x86_64 (zip)](https://github.com/VeldaniGR/ecoclock-network/releases/download/v0.5.3/ecoclock-cli-v0.5.3-windows-x86_64.zip)                                                                  
                                                                                                                                                                                                                     
   Todos los releases: https://github.com/VeldaniGR/ecoclock-network/releases
                                                                                                   
@@ -131,8 +131,8 @@ real con login → next → submit)|
   # Correr cliente CLI (descarga y procesa una tarea dummy)                                         
   python client/cli.py                                                                              
   ```
-### Binario autocontenido (PyInstaller)                                     
-  - [Releases oficiales con binarios Linux + Windows](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.0) 
+### Binario autocontenido (PyInstaller — modo **onedir**)                                     
+  - [Releases oficiales: Linux (tar.gz) + Windows (zip)](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.3) 
  
 Para distribuir la CLI sin necesidad de tener Python instalado: 
  
@@ -140,14 +140,23 @@ Para distribuir la CLI sin necesidad de tener Python instalado:
   ./scripts/build-linux.sh                                                                                                                                                                                          
 ```                                                                                                                                                                                                                 
                                                                                                                                                                                                                     
-Resultado: dist/ecoclock-cli (~13 MB, standalone).                                                                                                                                                                  
+Resultado: `dist/ecoclock-cli/` (carpeta con ejecutable + `_internal/`).                                                                                                                                            
                                                                                                                                                                                                                     
-Uso:                                                                                                                                                                                                                
+Uso (Linux):                                                                                                                                                                                                        
                                                                                                                                                                                                                     
 ```bash                                                                                                                                                                                                             
-  ./dist/ecoclock-cli --base-url https://api.ecoclock.org login                                                                                                                                                     
-  ./dist/ecoclock-cli --base-url http://127.0.0.1:8000 next   # server local                                                                                                                                        
-  ECOCLOCK_BASE_URL=http://127.0.0.1:8000 ./dist/ecoclock-cli me   # override por env                                                                                                                               
+  tar -xzf ecoclock-cli-v0.5.3-linux-x86_64.tar.gz                                                                                                                                                                  
+  ./ecoclock-cli/ecoclock-cli --base-url https://api.ecoclock.org login                                                                                                                                             
+  ./ecoclock-cli/ecoclock-cli --base-url http://127.0.0.1:8000 next   # server local                                                                                                                               
+  ECOCLOCK_BASE_URL=http://127.0.0.1:8000 ./ecoclock-cli/ecoclock-cli me   # override por env                                                                                                                       
+```                                                                                               
+                                                                                                                                                                                                                    
+Uso (Windows):                                                                                                                                                                                                      
+                                                                                                                                                                                                                    
+```powershell                                                                                                                                           
+  Expand-Archive ecoclock-cli-v0.5.3-windows-x86_64.zip                                                                                                                                                             
+  .\ecoclock-cli\ecoclock-cli.exe --base-url https://api.ecoclock.org login                                                                                                                                         
+  .\ecoclock-cli\ecoclock-cli.exe --base-url http://127.0.0.1:8000 next                                                                                                                                            
 ```                                                                                               
   ### Auto-actualización                                                                                                                                                                                            
                                                                                                                                                                                                                     
@@ -177,4 +186,4 @@ las verificaciones de ONGs serán públicas. Confianza mediante apertura.
   ---                                                                                               
                                                                                                     
   **Hecho con 💚 para el planeta.**
-# ecoclock-crisis
+
