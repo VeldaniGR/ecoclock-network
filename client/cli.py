@@ -31,7 +31,10 @@ except ImportError:  # PyQt6 no instalado: el sub-comando gui fallara bonito
 
 # --- Constants ---------------------------------------------------------------
 
-DEFAULT_BASE_URL = "https://api.ecoclock.org"
+# Default to ngrok tunnel for local development.
+# Override with --base-url or ECOCLOCK_BASE_URL env var.
+# Production will use https://api.ecoclock.org when available.
+DEFAULT_BASE_URL = "https://barometer-ceramics-shore.ngrok-free.dev"
 TIMEOUT = float(os.environ.get("ECOCLOCK_TIMEOUT", "10"))
 
 # --- Version ---
@@ -322,7 +325,7 @@ def cmd_logout(args: argparse.Namespace) -> dict[str, Any]:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="ecoclock", description="Eco'clock Network CLI (Fase 1)")
     p.add_argument("--base-url", default=None,
-                   help=f"URL del servidor (default: {DEFAULT_BASE_URL})")
+                   help="URL del servidor (default: ngrok tunnel for dev; set ECOCLOCK_BASE_URL or --base-url for production)")
 
     sub = p.add_subparsers(dest="command", required=True)
 
