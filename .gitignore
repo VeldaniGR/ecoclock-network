@@ -92,3 +92,5 @@ MEMORY.md
 # Local PyInstaller output (CI lo recrea)
 build/
 dist/
+server/.env
+.env
