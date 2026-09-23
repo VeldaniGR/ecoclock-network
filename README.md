@@ -17,41 +17,31 @@ Crear un **intermediario de confianza** entre quienes quieren contribuir al cuid
 ## 📐 Arquitectura (resumen)
 
 ```
-┌─────────────────────────────────────┐
-│  Copernicus Data Space (CDSE)       │
-│  Sentinel-2 / -1  ·  STAC / OData   │
-│  (+ Sentinel Hub process, opcional) │
-└──────────────────┬──────────────────┘
-                   │ OAuth / token  (solo servidor)
-                   ▼
-┌─────────────────────────────────────┐
-│  Eco'clock API (FastAPI)            │
-│  1. Busca escenas (bbox, fechas)    │
-│  2. Recorta / prepara unidad        │
-│  3. Crea Task + payload             │
-│  4. /tasks/next → cliente           │
-│  5. /tasks/submit → Result+Credit   │
-└──────────────────┬──────────────────┘
-                   │ JWT
-     ┌─────────────┼─────────────┐
-     ▼             ▼             ▼
-   CLI           GUI          Flutter
-   
-   ```
+┌──────────────────────┐       HTTPS        ┌─────────────────────┐
+│  Clientes            │ ─────────────────▶ │  Servidor API       │
+│  · CLI / GUI PyQt6   │                    │  FastAPI + Postgres │
+│  · App Flutter       │                    └──────────┬──────────┘
+└──────────────────────┘                               │
+                                                       ▼
+                                            ┌─────────────────────┐
+                                            │  Copernicus CDSE    │
+                                            │  Sentinel-2 L2A     │
+                                            │  (STAC / token)     │
+                                            │  → Task.payload     │
+                                            └─────────────────────┘
+```
 
 - **Servidor** (`server/`): API REST, autenticación JWT, asignación de tareas, créditos y resultados.
 - **Cliente de escritorio** (`client/`): CLI y GUI PyQt6; binarios onedir en [Releases](https://github.com/VeldaniGR/ecoclock-network/releases).
 - **App móvil**: repositorio [ecoclock-mobile](https://github.com/VeldaniGR/ecoclock-mobile) (Flutter), misma API.
-- **Tareas de cómputo**: definidas bajo `tasks/` (p. ej. NDVI); la línea de **Posidonia** se orientará a la **superficie de praderas** a partir de datos públicos del [Atlas Posidonia](https://atlasposidonia.com/es) (Illes Balears / Mediterráneo), no al blanqueamiento de arrecifes de coral.
 
-Más detalle (cuando exista): [`docs/architecture.md`](docs/architecture.md).
 
-### Indicadores ambientales (cómputo)
+### Indicadores ambientales
 
-| Indicador | Enfoque | Fuente de referencia |
-|-----------|---------|----------------------|
-| **Deforestación / vegetación** | Índices tipo NDVI sobre teselas satelitales | Datos abiertos / Sentinel (según tarea) |
-| **Posidonia oceanica** | Superficie y evolución de praderas marinas | [Atlas Posidonia](https://atlasposidonia.com/es) |
+| Indicador | Fuente satélite primaria | Notas |
+|-----------|--------------------------|--------|
+| **Vegetación / NDVI** | **Copernicus Sentinel-2** (CDSE) | Independiente de GFW |
+| **Posidonia (superficie)** | **Copernicus Sentinel-2** (CDSE) | Atlas Posidonia = referencia cartográfica opcional, no API obligatoria |
 
 La *Posidonia oceanica* es una planta marina endémica del Mediterráneo (no un alga): genera oxígeno, fija CO₂, estabiliza fondos y playas y sostiene biodiversidad. El Atlas Posidonia documenta su presencia, impactos (fondeo, contaminación, clima) y conservación en Baleares; Eco'clock usará ese tipo de información cartográfica/publicada como base de tareas de cómputo distribuido sobre **extensión de pradera**, de momento, no sobre blanqueo coralino.
 
@@ -111,6 +101,13 @@ ecoclock-network/
 ├── .gitignore
 ├── LICENSE
 └── README.md
+├── scripts/
+│   └── seed_posidonia_tasks.py   # STAC CDSE → tareas posidonia
+├── server/app/services/
+│   └── copernicus.py             # token + search STAC
+├── tasks/
+│   ├── ndvi/
+│   └── posidonia/                # README esquema payload
 ```
 
 ## 🚀 Estado del proyecto
@@ -124,7 +121,9 @@ ecoclock-network/
 | **Fase 4** | Beta: instaladores, auto-update | 🟢 Hecha (v0.5.0–v0.5.3) |
 | **v0.5.3** | Binarios onedir Linux/Windows, fix DLL, auto-update | 🟢 [Release](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.3) |
 | **Móvil** | Cliente Flutter + API ngrok / futura api.ecoclock | 🟡 En curso |
-| **Posidonia** | Tareas de superficie basadas en Atlas Posidonia | 🟡 Planificado |
+| **CDSE / token** | Credenciales servidor + `get_cdse_token` | 🟢 Hecha (local) |
+| **Seed posidonia** | Script STAC → Task pending | 🟡 Fase C |
+
 
 ## 📦 Descargas
 
