@@ -17,23 +17,27 @@ Crear un **intermediario de confianza** entre quienes quieren contribuir al cuid
 ## 📐 Arquitectura (resumen)
 
 ```
-┌──────────────────────┐       HTTPS        ┌─────────────────────┐
-│  Clientes            │ ─────────────────▶ │  Servidor API       │
-│  · CLI (PyInstaller) │                    │  FastAPI            │
-│  · GUI (PyQt6)       │                    │  + PostgreSQL       │
-│  · App móvil Flutter │                    │  + Redis (colas)    │
-│    (repo aparte)     │                    └──────────┬──────────┘
-└──────────────────────┘                               │
-                                                       ▼
-                                            ┌─────────────────────┐
-                                            │  Datasets / tareas  │
-                                            │  · Deforestación    │
-                                            │    (p. ej. NDVI)    │
-                                            │  · Posidonia        │
-                                            │    oceanica         │
-                                            │    (superficie)     │
-                                            └─────────────────────┘
-```
+┌─────────────────────────────────────┐
+│  Copernicus Data Space (CDSE)       │
+│  Sentinel-2 / -1  ·  STAC / OData   │
+│  (+ Sentinel Hub process, opcional) │
+└──────────────────┬──────────────────┘
+                   │ OAuth / token  (solo servidor)
+                   ▼
+┌─────────────────────────────────────┐
+│  Eco'clock API (FastAPI)            │
+│  1. Busca escenas (bbox, fechas)    │
+│  2. Recorta / prepara unidad        │
+│  3. Crea Task + payload             │
+│  4. /tasks/next → cliente           │
+│  5. /tasks/submit → Result+Credit   │
+└──────────────────┬──────────────────┘
+                   │ JWT
+     ┌─────────────┼─────────────┐
+     ▼             ▼             ▼
+   CLI           GUI          Flutter
+   
+   ```
 
 - **Servidor** (`server/`): API REST, autenticación JWT, asignación de tareas, créditos y resultados.
 - **Cliente de escritorio** (`client/`): CLI y GUI PyQt6; binarios onedir en [Releases](https://github.com/VeldaniGR/ecoclock-network/releases).
