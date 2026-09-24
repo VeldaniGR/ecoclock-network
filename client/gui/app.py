@@ -52,7 +52,7 @@ class EcoClockWindow(QMainWindow):
 		self._center_on_screen()
 
 		# Estado de sesion (lo rellena el login).
-		self._base_url: str = "http://127.0.0.1:8000"
+		self._base_url: str = "https://api.ecoclock.org"
 		self._token: str | None = None
 		self._current_task: dict | None = None
 
