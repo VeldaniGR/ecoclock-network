@@ -34,7 +34,7 @@ except ImportError:  # PyQt6 no instalado: el sub-comando gui fallara bonito
 # Default to ngrok tunnel for local development.
 # Override with --base-url or ECOCLOCK_BASE_URL env var.
 # Production will use https://api.ecoclock.org when available.
-DEFAULT_BASE_URL = "https://barometer-ceramics-shore.ngrok-free.dev"
+DEFAULT_BASE_URL = "https://api.ecoclock.org"
 TIMEOUT = float(os.environ.get("ECOCLOCK_TIMEOUT", "10"))
 
 # --- Version ---
