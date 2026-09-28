@@ -122,8 +122,7 @@ ecoclock-network/
 | **v0.5.3** | Binarios onedir Linux/Windows, fix DLL, auto-update | 🟢 [Release](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.3) |
 | **Móvil** | Cliente Flutter + API ngrok / futura api.ecoclock | 🟡 En curso |
 | **CDSE / token** | Credenciales servidor + `get_cdse_token` | 🟢 Hecha (local) |
-| **Seed posidonia** | Script STAC → Task pending | 🟡 Fase C |
-
+| **Seed posidonia / NDVI** | Script STAC CDSE → Task pending | 🟢 Hecha (script manual) |
 
 ## 📦 Descargas
 
@@ -137,6 +136,26 @@ Todos los releases: <https://github.com/VeldaniGR/ecoclock-network/releases>
 ## 🏃 Cómo correr el proyecto en local
 
 ```bash
+### Seed de tareas (Copernicus / Fase C)
+
+Script: `scripts/seed_copernicus_tasks.py`
+
+Consulta el STAC de Copernicus Data Space (Sentinel-2 L2A) y crea tareas
+`pending` de tipo `ndvi` y `posidonia` para que CLI, GUI y APK las consuman
+con `GET /tasks/next`.
+
+```bash
+# Requisitos: .env con DATABASE_URL, CDSE_USERNAME, CDSE_PASSWORD
+source .venv/bin/activate
+docker compose up -d
+
+# Simulación (no escribe en DB)
+python scripts/seed_copernicus_tasks.py --ndvi 5 --posidonia 5 --dry-run
+
+# Inserción real
+python scripts/seed_copernicus_tasks.py --ndvi 5 --posidonia 5
+
+
 # Servidor + Postgres + Redis
 docker compose up -d
 
