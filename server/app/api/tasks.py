@@ -34,24 +34,27 @@ async def _create_dummy_ndvi_task(db: AsyncSession) -> Task:
 
 @router.get("/next", response_model=TaskResponse)
 async def get_next_task(
-	db: AsyncSession = Depends(get_db),
-	current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-	"""Devuelve la siguiente tarea pendiente para el usuario autenticado."""
-	task = result = await db.execute(select(Task).where(Task.status == "pending")); task = result.scalar_one_or_none()
-	if not task:
-		task = await _create_dummy_ndvi_task(db)
+    """Devuelve la siguiente tarea pendiente para el usuario autenticado."""
+    result = await db.execute(
+        select(Task).where(Task.status == "pending").order_by(Task.id).limit(1)
+    )
+    task = result.scalar_one_or_none()
+    if not task:
+        task = await _create_dummy_ndvi_task(db)
 
-	task.status = "assigned"
-	task.user_id = current_user.id
-	task.assigned_at = datetime.now(timezone.utc)
-	await db.commit()
-	await db.refresh(task)
+    task.status = "assigned"
+    task.user_id = current_user.id
+    task.assigned_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    await db.commit()
+    await db.refresh(task)
 
-	if isinstance(task.payload, str):
-		task.payload = json.loads(task.payload)
+    if isinstance(task.payload, str):
+        task.payload = json.loads(task.payload)
 
-	return task
+    return task
 
 
 @router.post("/submit", response_model=ResultResponse, status_code=201)
