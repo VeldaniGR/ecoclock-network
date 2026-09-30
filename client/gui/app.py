@@ -1,11 +1,17 @@
-"""Ventana principal de Eco'clock (Fase 2).Usa QStackedWidget para alternar entre vista de login y vista de tarea.
-La logica vive en client.gui.services; aqui solo conectamos senales."""
+"""Ventana principal de Eco'clock (Fase 2).
+
+Usa QStackedWidget para alternar entre vista de login y vista de tarea.
+Incluye modo automático (ToggleSwitch) y animación tipo sónar.
+La lógica HTTP vive en client.gui.services; el cómputo en client.ndvi.
+"""
 
 from __future__ import annotations
 
+import json
+import os
 import sys
 
-# Import perezoso: si PyQt6 no esta instalado, este modulo aun es
+# Import perezoso: si PyQt6 no está instalado, este módulo aún es
 # importable; el error se lanza solo al ejecutar la GUI.
 try:
 	from PyQt6.QtCore import Qt
@@ -21,8 +27,6 @@ try:
 		QTextEdit,
 		QVBoxLayout,
 		QWidget,
-		QCheckBox,
-		
 	)
 except ImportError:  # pragma: no cover
 	QApplication = None  # type: ignore[assignment]
@@ -34,7 +38,7 @@ except ImportError:  # pragma: no cover
 def main(argv: list[str] | None = None) -> int:
 	if QApplication is None:
 		raise RuntimeError(
-			"PyQt6 no esta instalado. Instala con: "
+			"PyQt6 no está instalado. Instala con: "
 			"pip install -r client/requirements-gui.txt"
 		)
 
@@ -42,6 +46,7 @@ def main(argv: list[str] | None = None) -> int:
 	window = EcoClockWindow()
 	window.show()
 	return app.exec()
+
 
 class EcoClockWindow(QMainWindow):
 	"""Ventana principal con QStackedWidget: login <-> tarea."""
@@ -52,27 +57,31 @@ class EcoClockWindow(QMainWindow):
 	def __init__(self) -> None:
 		super().__init__()
 		self.setWindowTitle("Eco'clock")
-		self.resize(480, 320)
-		self.setMinimumSize(320, 240)
+		self.resize(520, 520)
+		self.setMinimumSize(360, 400)
 		self._center_on_screen()
 
-		# Estado de sesion (lo rellena el login).
-		self._base_url: str = "https://api.ecoclock.org"
+		# Prioridad:
+		# 1) export ECOCLOCK_BASE_URL=https://tu-ngrok...  (recomendado con APK)
+		# 2) si no hay env → misma URL que usabas antes
+		self._base_url: str = (
+			os.environ.get("ECOCLOCK_BASE_URL") or "https://api.ecoclock.org"
+		)
 		self._token: str | None = None
 		self._current_task: dict | None = None
+		self._auto_worker = None
 
-		# Stack de paginas.
+		# Stack de páginas.
 		self.stack = QStackedWidget(self)
 		self.login_page = self._build_login_page()
 		self.task_page = self._build_task_page()
 		self.stack.addWidget(self.login_page)  # index 0
 		self.stack.addWidget(self.task_page)   # index 1
 		self.setCentralWidget(self.stack)
-		self._auto_worker: AutoWorker | None = None
 
-		# Menu basico con logout y salida.
 		self._build_menu()
-		self.statusBar().showMessage("Listo")
+		self.statusBar().showMessage(f"Listo · API {self._base_url}")
+
 
 	def _center_on_screen(self) -> None:
 		screen = QApplication.primaryScreen().availableGeometry()
@@ -82,16 +91,22 @@ class EcoClockWindow(QMainWindow):
 		)
 
 	def _build_menu(self) -> None:
+		self.menuBar().clear()
 		quit_action = QAction("&Salir", self)
 		quit_action.setShortcut("Ctrl+Q")
 		quit_action.triggered.connect(self.close)
-		logout_action = QAction("&Cerrar sesion", self)
+		logout_action = QAction("&Cerrar sesión", self)
 		logout_action.setShortcut("Ctrl+L")
 		logout_action.triggered.connect(self._logout)
 		menu = self.menuBar().addMenu("&Archivo")
+		credits_action = QAction("&Créditos / historial", self)
+		credits_action.triggered.connect(self._show_credits)
+		menu.addAction(credits_action)
+		menu.addSeparator()
 		menu.addAction(logout_action)
 		menu.addSeparator()
 		menu.addAction(quit_action)
+
 
 	def _build_login_page(self) -> QWidget:
 		page = QWidget(self)
@@ -107,29 +122,36 @@ class EcoClockWindow(QMainWindow):
 		layout.addWidget(self.username_input)
 		layout.addWidget(self.password_input)
 		layout.addWidget(self.login_button)
+		layout.addStretch(1)
 		return page
 
 	def _build_task_page(self) -> QWidget:
+		from client.gui.sonar_widget import SonarWidget
+		from client.gui.toggle_switch import ToggleSwitch
+
 		page = QWidget(self)
 		layout = QVBoxLayout(page)
+
 		self.task_label = QLabel("(sin tarea)", page)
 		self.task_output = QTextEdit(page)
 		self.task_output.setPlaceholderText('Output JSON, p.ej. {"ndvi": 0.34}')
 		self.submit_button = QPushButton("Enviar", page)
 		self.submit_button.clicked.connect(self._on_submit_clicked)
+
+		self.sonar = SonarWidget(page)
+		self.auto_switch = ToggleSwitch("Activar", page)
+		self.auto_switch.toggled.connect(self._on_auto_toggled)
+
 		layout.addWidget(self.task_label)
+		layout.addWidget(self.sonar, stretch=1)
 		layout.addWidget(self.task_output)
 		layout.addWidget(self.submit_button)
-		self.auto_switch = QCheckBox("Modo automático", page)
-		self.auto_switch.setToolTip(
-			"Next → compute → submit en bucle. Desmarca para parar."
-		)
-		self.auto_switch.toggled.connect(self._on_auto_toggled)
 		layout.addWidget(self.auto_switch)
 		return page
 
 	def _on_login_clicked(self) -> None:
-		from client.gui import services  # import perezoso
+		from client.gui import services
+
 		username = self.username_input.text().strip()
 		password = self.password_input.text()
 		if not username or not password:
@@ -144,11 +166,12 @@ class EcoClockWindow(QMainWindow):
 		if not self._token:
 			QMessageBox.critical(self, "Login", "Respuesta sin access_token.")
 			return
-		self.statusBar().showMessage(f"Sesion iniciada como {username}")
+		self.statusBar().showMessage(f"Sesión iniciada como {username}")
 		self._fetch_next_task()
 
 	def _fetch_next_task(self) -> None:
 		from client.gui import services
+
 		if not self._token:
 			return
 		try:
@@ -167,12 +190,12 @@ class EcoClockWindow(QMainWindow):
 		if not self._token or not self._current_task:
 			return
 		from client.gui import services
+
 		raw = self.task_output.toPlainText().strip()
 		try:
-			import json
 			output = json.loads(raw) if raw else {}
 		except json.JSONDecodeError as exc:
-			QMessageBox.warning(self, "Enviar", f"Output no es JSON valido:\n{exc}")
+			QMessageBox.warning(self, "Enviar", f"Output no es JSON válido:\n{exc}")
 			return
 		task_id = self._current_task.get("id")
 		try:
@@ -193,13 +216,12 @@ class EcoClockWindow(QMainWindow):
 
 	def _start_auto(self) -> None:
 		if not self._token:
-			self.auto_switch.blockSignals(True)
-			self.auto_switch.setChecked(False)
-			self.auto_switch.blockSignals(False)
+			self.auto_switch.setChecked(False, animate=False)
 			QMessageBox.warning(self, "Auto", "Inicia sesión primero.")
 			return
-		if self._auto_worker and self._auto_worker.isRunning():
+		if self._auto_worker is not None and self._auto_worker.isRunning():
 			return
+
 		from client.gui.auto_worker import AutoWorker
 
 		self.submit_button.setEnabled(False)
@@ -208,47 +230,97 @@ class EcoClockWindow(QMainWindow):
 		self._auto_worker.task_finished.connect(self._on_auto_task_finished)
 		self._auto_worker.error.connect(self._on_auto_error)
 		self._auto_worker.stopped.connect(self._on_auto_stopped)
+
+		self.sonar.start()
+		self.sonar.set_status("Automático", "Buscando tarea…")
 		self.statusBar().showMessage("Modo automático activo…")
 		self._auto_worker.start()
 
 	def _stop_auto(self) -> None:
-		if self._auto_worker and self._auto_worker.isRunning():
+		if self._auto_worker is not None and self._auto_worker.isRunning():
 			self._auto_worker.request_stop()
 			self.statusBar().showMessage("Parando automático…")
+		else:
+			self.sonar.stop()
+			self.submit_button.setEnabled(True)
+
+	def _on_auto_stopped(self, completed: int) -> None:
+		self.submit_button.setEnabled(True)
+		self.sonar.stop()
+		self.statusBar().showMessage(f"Auto detenido. Completadas: {completed}")
+		if self.auto_switch.isChecked():
+			self.auto_switch.setChecked(False, animate=True)
+		# Cargar una tarea nueva para modo manual
+		if self._token:
+			self._fetch_next_task()
 
 	def _on_auto_task_started(self, task: dict) -> None:
 		tid = task.get("id", "?")
 		name = task.get("name", "?")
 		self.task_label.setText(f"[AUTO] Tarea #{tid}: {name}")
 		self._current_task = task
+		self.sonar.set_status("Procesando", f"#{tid} {name}")
 
 	def _on_auto_task_finished(self, result: dict, dt: float) -> None:
 		tid = result.get("task_id", "?")
 		self.statusBar().showMessage(f"Auto: enviada #{tid} ({dt}s)")
 		self.task_output.setPlainText(
-			__import__("json").dumps(result.get("output") or {}, indent=2)
+			json.dumps(result.get("output") or {}, indent=2, ensure_ascii=False)
 		)
+		self.sonar.set_status("Enviada", f"task {tid} · {dt}s")
 
 	def _on_auto_error(self, msg: str) -> None:
-		self.auto_switch.blockSignals(True)
-		self.auto_switch.setChecked(False)
-		self.auto_switch.blockSignals(False)
+		self.auto_switch.setChecked(False, animate=True)
 		self.submit_button.setEnabled(True)
+		self.sonar.stop()
 		QMessageBox.critical(self, "Auto", f"Error en modo automático:\n{msg}")
 
-	def _on_auto_stopped(self, completed: int) -> None:
-		self.submit_button.setEnabled(True)
-		self.statusBar().showMessage(f"Auto detenido. Completadas: {completed}")
-		if self.auto_switch.isChecked():
-			self.auto_switch.blockSignals(True)
-			self.auto_switch.setChecked(False)
-			self.auto_switch.blockSignals(False)
+	def _show_credits(self) -> None:
+		if not self._token:
+			QMessageBox.warning(self, "Créditos", "Inicia sesión primero.")
+			return
+		from client.gui import services
+		import json
+		try:
+			# Si aún no tienes services.credits, usa requests vía cli:
+			import argparse
+			from client import cli
+			data = cli.cmd_me  # mejor endpoint credits
+			import requests
+			r = requests.get(
+				self._base_url.rstrip("/") + "/me/credits",
+				headers={"Authorization": f"Bearer {self._token}"},
+				timeout=10,
+			)
+			r.raise_for_status()
+			data = r.json()
+		except Exception as exc:
+			QMessageBox.critical(self, "Créditos", str(exc))
+			return
+		total = data.get("total", data.get("totalCredits", "?"))
+		lines = [f"Total: {total}", ""]
+		for c in data.get("recent") or []:
+			if isinstance(c, dict):
+				lines.append(
+					f"· {c.get('amount', '?')}  task={c.get('task_id', '?')}  "
+					f"{c.get('granted_at', '')}"
+				)
+			else:
+				lines.append(str(c))
+		QMessageBox.information(self, "Créditos", "\n".join(lines) or "Sin datos")
+
 
 	def _logout(self) -> None:
+		self._stop_auto()
 		self._token = None
 		self._current_task = None
 		self.username_input.clear()
 		self.password_input.clear()
 		self.stack.setCurrentIndex(self.PAGE_LOGIN)
-		self.statusBar().showMessage("Sesion cerrada")
+		self.statusBar().showMessage("Sesión cerrada")
+
+	def closeEvent(self, event) -> None:
 		self._stop_auto()
+		if self._auto_worker is not None and self._auto_worker.isRunning():
+			self._auto_worker.wait(3000)
+		super().closeEvent(event)
