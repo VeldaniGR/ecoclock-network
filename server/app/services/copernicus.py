@@ -73,3 +73,110 @@ def get_cdse_token(*, force_refresh: bool = False) -> str:
 
 def cdse_auth_headers() -> dict[str, str]:
     return {"Authorization": f"Bearer {get_cdse_token()}"}
+
+STAC_SEARCH_URL = "https://stac.dataspace.copernicus.eu/v1/search"
+
+
+def search_sentinel2_l2a(
+    *,
+    bbox: list[float],
+    datetime_range: str,
+    max_cloud: float = 30.0,
+    limit: int = 5,
+) -> list[dict[str, Any]]:
+    """
+    Busca productos Sentinel-2 L2A en el catálogo STAC de CDSE.
+
+    bbox: [min_lon, min_lat, max_lon, max_lat]  (EPSG:4326)
+    datetime_range: "2024-06-01T00:00:00Z/2024-08-31T23:59:59Z"
+    """
+    body: dict[str, Any] = {
+        "collections": ["sentinel-2-l2a"],
+        "bbox": bbox,
+        "datetime": datetime_range,
+        "limit": limit,
+        "query": {
+            "eo:cloud_cover": {"lt": max_cloud},
+        },
+    }
+
+    headers = {
+        **cdse_auth_headers(),
+        "Content-Type": "application/json",
+        "Accept": "application/geo+json",
+    }
+
+    try:
+        with httpx.Client(timeout=60.0) as client:
+            response = client.post(STAC_SEARCH_URL, json=body, headers=headers)
+    except httpx.HTTPError as exc:
+        raise CopernicusAuthError(f"Error de red en STAC search: {exc}") from exc
+
+    if response.status_code == 401:
+        raise CopernicusAuthError("STAC search: no autorizado (revisa token CDSE)")
+    if response.status_code >= 400:
+        raise CopernicusAuthError(
+            f"STAC search HTTP {response.status_code}: {response.text[:400]}"
+        )
+
+    data = response.json()
+    features = data.get("features") or []
+    results: list[dict[str, Any]] = []
+    for feat in features:
+        props = feat.get("properties") or {}
+        results.append(
+            {
+                "id": feat.get("id"),
+                "datetime": props.get("datetime"),
+                "cloud_cover": props.get("eo:cloud_cover"),
+                "bbox": feat.get("bbox"),
+                "assets": list((feat.get("assets") or {}).keys()),
+            }
+        )
+    return results
+
+
+def build_posidonia_payload(
+    *,
+    product_id: str,
+    bbox: list[float],
+    cloud_cover: float | None = None,
+    datetime_str: str | None = None,
+    unit_id: str | None = None,
+) -> dict[str, Any]:
+    """Payload de tarea tipo posidonia alineado con tasks/posidonia/README.md."""
+    uid = unit_id or f"POS-{product_id[-12:]}"
+    return {
+        "type": "posidonia",
+        "version": 1,
+        "unit_id": uid,
+        "region": "Illes Balears",
+        "bbox": {
+            "min_lon": bbox[0],
+            "min_lat": bbox[1],
+            "max_lon": bbox[2],
+            "max_lat": bbox[3],
+            "crs": "EPSG:4326",
+        },
+        "source": {
+            "name": "copernicus_sentinel2",
+            "collection": "sentinel-2-l2a",
+            "product_id": product_id,
+            "datetime": datetime_str,
+            "cloud_cover": cloud_cover,
+            "provider": "CDSE",
+            "stac": "https://stac.dataspace.copernicus.eu/v1",
+        },
+        "params": {
+            "metric": "surface_m2",
+            "method": "placeholder",
+            "notes": (
+                "Beta: el cliente puede devolver un resultado simulado. "
+                "Fuente satélite: Copernicus Sentinel-2 L2A (no GFW ni Atlas API)."
+            ),
+        },
+        "description": (
+            "Estimar superficie de Posidonia oceanica en la unidad indicada "
+            "a partir de escena Sentinel-2 (CDSE)."
+        ),
+    }
