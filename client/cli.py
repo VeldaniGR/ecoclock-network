@@ -189,25 +189,58 @@ def _auth(args: argparse.Namespace) -> str:
 
 
 def cmd_run(args: argparse.Namespace) -> dict[str, Any]:
-    """Flujo completo: auth -> next -> compute (stub) -> submit."""
+    """Flujo: auth -> next -> compute -> submit.
+    Con --auto: repite hasta --max-tasks o Ctrl+C.
+    """
     from . import ndvi
 
     token = _auth(args)
     args.token = token
 
-    task = cmd_next(args)
-    print(f"[+] Tarea recibida: id={task.get('id')} name={task.get('name')} status={task.get('status')}")
+    auto = getattr(args, "auto", False)
+    max_tasks = getattr(args, "max_tasks", 1) or 1
+    sleep_sec = getattr(args, "sleep", 2.0)
+    if not auto:
+        max_tasks = 1
 
-    started = time.time()
-    output = ndvi.compute(task)
-    compute_time = time.time() - started
+    completed = 0
+    last_result: dict[str, Any] = {}
 
-    args.task_id = task["id"]
-    args.output = json.dumps(output)
-    args.compute_time_sec = round(compute_time, 3)
-    result = cmd_submit(args)
-    print(f"[+] Resultado enviado: task_id={result.get('task_id')} status={result.get('status')}")
-    return result
+    try:
+        while completed < max_tasks:
+            task = cmd_next(args)
+            tid = task.get("id")
+            name = task.get("name")
+            payload = task.get("payload") or {}
+            if isinstance(payload, str):
+                payload = json.loads(payload)
+            ttype = payload.get("type", "?")
+            print(f"[+] Tarea id={tid} name={name} type={ttype}")
+
+            started = time.time()
+            output = ndvi.compute(task)
+            compute_time = time.time() - started
+
+            args.task_id = tid
+            args.output = json.dumps(output)
+            args.compute_time_sec = round(compute_time, 3)
+            result = cmd_submit(args)
+            completed += 1
+            last_result = result
+            print(
+                f"[+] Enviada task_id={result.get('task_id')} "
+                f"compute_time={args.compute_time_sec}s "
+                f"({completed}/{max_tasks})"
+            )
+
+            if auto and completed < max_tasks:
+                time.sleep(max(0.0, sleep_sec))
+    except KeyboardInterrupt:
+        print(f"\n[i] Auto detenido. Completadas: {completed}", file=sys.stderr)
+        last_result = {"ok": True, "completed": completed, "stopped": "keyboard"}
+
+    last_result["completed_count"] = completed
+    return last_result
 
 
 def cmd_gui(args: argparse.Namespace) -> dict[str, Any]:
@@ -364,6 +397,13 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--force-register", action="store_true",
                    help="Ignorar token guardado y registrar de nuevo")
     s.add_argument("--token", help="Token (si no, usa el guardado)")
+    # --- modo automático ---
+    s.add_argument("--auto", action="store_true",
+                   help="Bucle continuo: next → compute → submit (Ctrl+C para parar)")
+    s.add_argument("--max-tasks", type=int, default=1,
+                   help="Máximo de tareas (con --auto usa este tope; default 1)")
+    s.add_argument("--sleep", type=float, default=2.0,
+                   help="Segundos de pausa entre tareas en --auto (default 2)")
     s.set_defaults(func=cmd_run)
     s = sub.add_parser("gui", help="Lanzar la GUI (Fase 2, requiere PyQt6)")
     s.set_defaults(func=cmd_gui)
@@ -372,6 +412,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_update)
     s = sub.add_parser("logout", help="Borrar el token guardado")
     s.set_defaults(func=cmd_logout)
+
+    
 
     return p
 

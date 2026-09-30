@@ -79,10 +79,20 @@ async def submit_result(
 	)
 	task.status = "done"
 	task.completed_at = datetime.now(timezone.utc)
+	# Créditos = base + bonus por tiempo (acotado)
+	compute_sec = float(submission.compute_time_sec or 0.0)
+	if compute_sec < 0:
+		compute_sec = 0.0
+	capped = min(compute_sec, settings.CREDITS_COMPUTE_CAP_SEC)
+	amount = settings.CREDITS_PER_TASK + (
+		settings.CREDITS_PER_COMPUTE_SEC * capped
+	)
+	amount = round(amount, 4)
+
 	credit = Credit(
 		user_id=current_user.id,
 		task_id=task.id,
-		amount=settings.CREDITS_PER_TASK,
+		amount=amount,
 	)
 	db.add(result)
 	db.add(credit)

@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     CREDITS_PER_TASK: float = 1.0
+    # Créditos extra por segundo de cómputo (tope anti-abuso)
+    CREDITS_PER_COMPUTE_SEC: float = 0.1
+    CREDITS_COMPUTE_CAP_SEC: float = 60.0  # máx. segundos que cuentan
+      
 
     # Copernicus Data Space Ecosystem
     CDSE_USERNAME: str = ""
