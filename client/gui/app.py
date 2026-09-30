@@ -21,6 +21,8 @@ try:
 		QTextEdit,
 		QVBoxLayout,
 		QWidget,
+		QCheckBox,
+		
 	)
 except ImportError:  # pragma: no cover
 	QApplication = None  # type: ignore[assignment]
@@ -66,6 +68,7 @@ class EcoClockWindow(QMainWindow):
 		self.stack.addWidget(self.login_page)  # index 0
 		self.stack.addWidget(self.task_page)   # index 1
 		self.setCentralWidget(self.stack)
+		self._auto_worker: AutoWorker | None = None
 
 		# Menu basico con logout y salida.
 		self._build_menu()
@@ -117,6 +120,12 @@ class EcoClockWindow(QMainWindow):
 		layout.addWidget(self.task_label)
 		layout.addWidget(self.task_output)
 		layout.addWidget(self.submit_button)
+		self.auto_switch = QCheckBox("Modo automático", page)
+		self.auto_switch.setToolTip(
+			"Next → compute → submit en bucle. Desmarca para parar."
+		)
+		self.auto_switch.toggled.connect(self._on_auto_toggled)
+		layout.addWidget(self.auto_switch)
 		return page
 
 	def _on_login_clicked(self) -> None:
@@ -176,6 +185,65 @@ class EcoClockWindow(QMainWindow):
 		self.statusBar().showMessage(f"Tarea {task_id} enviada")
 		self._fetch_next_task()
 
+	def _on_auto_toggled(self, checked: bool) -> None:
+		if checked:
+			self._start_auto()
+		else:
+			self._stop_auto()
+
+	def _start_auto(self) -> None:
+		if not self._token:
+			self.auto_switch.blockSignals(True)
+			self.auto_switch.setChecked(False)
+			self.auto_switch.blockSignals(False)
+			QMessageBox.warning(self, "Auto", "Inicia sesión primero.")
+			return
+		if self._auto_worker and self._auto_worker.isRunning():
+			return
+		from client.gui.auto_worker import AutoWorker
+
+		self.submit_button.setEnabled(False)
+		self._auto_worker = AutoWorker(self._base_url, self._token, sleep_sec=1.0)
+		self._auto_worker.task_started.connect(self._on_auto_task_started)
+		self._auto_worker.task_finished.connect(self._on_auto_task_finished)
+		self._auto_worker.error.connect(self._on_auto_error)
+		self._auto_worker.stopped.connect(self._on_auto_stopped)
+		self.statusBar().showMessage("Modo automático activo…")
+		self._auto_worker.start()
+
+	def _stop_auto(self) -> None:
+		if self._auto_worker and self._auto_worker.isRunning():
+			self._auto_worker.request_stop()
+			self.statusBar().showMessage("Parando automático…")
+
+	def _on_auto_task_started(self, task: dict) -> None:
+		tid = task.get("id", "?")
+		name = task.get("name", "?")
+		self.task_label.setText(f"[AUTO] Tarea #{tid}: {name}")
+		self._current_task = task
+
+	def _on_auto_task_finished(self, result: dict, dt: float) -> None:
+		tid = result.get("task_id", "?")
+		self.statusBar().showMessage(f"Auto: enviada #{tid} ({dt}s)")
+		self.task_output.setPlainText(
+			__import__("json").dumps(result.get("output") or {}, indent=2)
+		)
+
+	def _on_auto_error(self, msg: str) -> None:
+		self.auto_switch.blockSignals(True)
+		self.auto_switch.setChecked(False)
+		self.auto_switch.blockSignals(False)
+		self.submit_button.setEnabled(True)
+		QMessageBox.critical(self, "Auto", f"Error en modo automático:\n{msg}")
+
+	def _on_auto_stopped(self, completed: int) -> None:
+		self.submit_button.setEnabled(True)
+		self.statusBar().showMessage(f"Auto detenido. Completadas: {completed}")
+		if self.auto_switch.isChecked():
+			self.auto_switch.blockSignals(True)
+			self.auto_switch.setChecked(False)
+			self.auto_switch.blockSignals(False)
+
 	def _logout(self) -> None:
 		self._token = None
 		self._current_task = None
@@ -183,3 +251,4 @@ class EcoClockWindow(QMainWindow):
 		self.password_input.clear()
 		self.stack.setCurrentIndex(self.PAGE_LOGIN)
 		self.statusBar().showMessage("Sesion cerrada")
+		self._stop_auto()
