@@ -22,8 +22,11 @@ try:
 		QVBoxLayout,
 		QWidget,
 	)
-except ImportError:  # pragma: no cover - solo en tiempo de ejecucion
+except ImportError:  # pragma: no cover
 	QApplication = None  # type: ignore[assignment]
+	Qt = QAction = QLabel = QLineEdit = None  # type: ignore[assignment]
+	QMainWindow = QMessageBox = QPushButton = object  # type: ignore[assignment]
+	QStackedWidget = QTextEdit = QVBoxLayout = QWidget = object  # type: ignore[assignment]
 
 
 def main(argv: list[str] | None = None) -> int:

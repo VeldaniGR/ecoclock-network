@@ -26,7 +26,7 @@ import requests
 # --- Sub-comando opcional: gui (PyQt6) -------------------------------------
 try:
 	from .gui import app as _gui_app
-except ImportError:  # PyQt6 no instalado: el sub-comando gui fallara bonito
+except Exception:  # PyQt6 ausente o GUI a medias: CLI sigue funcionando
 	_gui_app = None
 
 # --- Constants ---------------------------------------------------------------
