@@ -45,6 +45,22 @@ Crear un **intermediario de confianza** entre quienes quieren contribuir al cuid
 
 La *Posidonia oceanica* es una planta marina endémica del Mediterráneo (no un alga): genera oxígeno, fija CO₂, estabiliza fondos y playas y sostiene biodiversidad. El Atlas Posidonia documenta su presencia, impactos (fondeo, contaminación, clima) y conservación en Baleares; Eco'clock usará ese tipo de información cartográfica/publicada como base de tareas de cómputo distribuido sobre **extensión de pradera**, de momento, no sobre blanqueo coralino.
 
+### Cómo comprobamos los resultados?
+
+Eco'clock no se limita a aceptar lo que envía cada ordenador. El proceso tiene varias capas de control de calidad:
+
+1. **Revisión automática al enviar** — Cada resultado debe tener el formato correcto y valores plausibles (por ejemplo, un índice de vegetación en un rango posible, o una superficie coherente con la zona analizada).
+
+2. **Contraste entre varios participantes** — La misma unidad de trabajo puede calcularse en más de un equipo. Si los resultados coinciden de forma razonable, se consideran válidos. Si discrepan mucho, el sistema los marca para revisar o solicita otro cálculo.
+
+3. **Controles de calidad periódicos** — Sobre el conjunto de datos se analizan patrones raros, sesgos o resultados que no encajan con lo esperado para una región o una fecha.
+
+4. **Revisión humana cuando importa** — En casos dudosos, en zonas piloto o antes de usar los datos en informes públicos, puede intervenir el equipo del proyecto.
+
+Los créditos reconocen la participación; el valor de los datos se consolida cuando el resultado pasa estos filtros. En la fase beta parte del cálculo aún es de prueba y se indica con claridad.
+
+> Detalle de implementación (estados, quórum, créditos): se documentará en `docs/` a medida que se active cada capa.
+
 ## 🛠️ Stack tecnológico
 
 ### Servidor
