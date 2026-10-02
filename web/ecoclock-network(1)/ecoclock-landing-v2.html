@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eco'clock — Red de datos ambientales</title>
+<meta name="description" content="Eco'clock Network: bosques, arrecifes, hielo, agua, energía y delitos ambientales en un único tablero, actualizado cada 6–12 horas.">
+
+<!-- ============================================================
+     SITE CONFIG — edit SITE_CONFIG in the script + the tags below
+     before deploying (canonical, OG, Twitter). Keep them in sync.
+     ============================================================ -->
+<!--
+  SUBDOMAIN: this file is a single self-contained page. To publish it
+  on a subdomain (e.g. app.tudominio.org):
+    1) Point the subdomain's DNS (CNAME or A record) to your host.
+    2) Upload this file as index.html at the root your host serves.
+    3) Update <link rel="canonical">, the OG/Twitter block below,
+       and SITE_CONFIG.canonicalUrl + SITE_CONFIG.social in the script.
+  No other code changes are required.
+-->
+<link rel="canonical" href="https://app.ecoclock.example/">
+<link rel="alternate" hreflang="es" href="https://app.ecoclock.example/?lang=es">
+<link rel="alternate" hreflang="en" href="https://app.ecoclock.example/?lang=en">
+<link rel="alternate" hreflang="fr" href="https://app.ecoclock.example/?lang=fr">
+<link rel="alternate" hreflang="de" href="https://app.ecoclock.example/?lang=de">
+<link rel="alternate" hreflang="it" href="https://app.ecoclock.example/?lang=it">
+<link rel="alternate" hreflang="pt" href="https://app.ecoclock.example/?lang=pt">
+<link rel="alternate" hreflang="zh" href="https://app.ecoclock.example/?lang=zh">
+<link rel="alternate" hreflang="ja" href="https://app.ecoclock.example/?lang=ja">
+<link rel="alternate" hreflang="ru" href="https://app.ecoclock.example/?lang=ru">
+<link rel="alternate" hreflang="ar" href="https://app.ecoclock.example/?lang=ar">
+<link rel="alternate" hreflang="x-default" href="https://app.ecoclock.example/">
+
+<!-- ============================================================
+     OPEN GRAPH + TWITTER / X  (Discord, Facebook, LinkedIn, Slack,
+     Telegram, WhatsApp use OG; X uses Twitter Card; Instagram
+     inherits Facebook OG when a link is shared.)
+     Edit values here AND in SITE_CONFIG.social so deploy notes match.
+     Leave og:image / twitter:image out until you host a real asset.
+     ============================================================ -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Eco'clock Network">
+<meta property="og:title" content="Eco'clock — Red de datos ambientales">
+<meta property="og:description" content="El pulso del planeta, medido cada 6 a 12 horas. Bosques, arrecifes, hielo, agua, energía y delitos ambientales en un único tablero.">
+<meta property="og:url" content="https://app.ecoclock.example/">
+<meta property="og:locale" content="es_ES">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="it_IT">
+<meta property="og:locale:alternate" content="pt_PT">
+<meta property="og:locale:alternate" content="zh_CN">
+<meta property="og:locale:alternate" content="ja_JP">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:locale:alternate" content="ar_SA">
+<!-- Optional image (uncomment + set absolute URL when ready):
+<meta property="og:image" content="https://app.ecoclock.example/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Eco'clock Network — monitor ambiental">
+-->
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Eco'clock — Red de datos ambientales">
+<meta name="twitter:description" content="El pulso del planeta, medido cada 6 a 12 horas. Bosques, arrecifes, hielo, agua, energía y delitos ambientales en un único tablero.">
+<meta name="twitter:url" content="https://app.ecoclock.example/">
+<!-- Optional: <meta name="twitter:site" content="@tu_cuenta"> -->
+<!-- Optional image: <meta name="twitter:image" content="https://app.ecoclock.example/og-cover.png"> -->
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Ccircle%20cx='16'%20cy='16'%20r='14'%20fill='none'%20stroke='%231f8a92'%20stroke-width='2'/%3E%3Ccircle%20cx='16'%20cy='16'%20r='5'%20fill='%231f8a92'/%3E%3Cpath%20d='M16%202v4M16%2026v4M2%2016h4M26%2016h4'%20stroke='%231f8a92'%20stroke-width='1.5'%20stroke-linecap='round'/%3E%3Cpath%20d='M16%2016%20L16%209'%20stroke='%23ff8a65'%20stroke-width='2'%20stroke-linecap='round'/%3E%3Cpath%20d='M16%2016%20L21%2018'%20stroke='%23ff8a65'%20stroke-width='1.5'%20stroke-linecap='round'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* =============================================================
+   ECO'CLOCK — DESIGN SYSTEM
+   Vintage naturalist field-poster: woodcut display type, parchment
+   and pine tones, a teal-ocean/coral accent, and the logo's
+   "global wiring" motif reused as the page's connective signature.
+   ============================================================= */
+
+:root{
+  /* ---- brand palette (fixed regardless of theme) ---- */
+  --pine-950:#0a1b13;
+  --pine-900:#0f2418;
+  --pine-800:#17352a;
+  --pine-600:#2f5b41;
+  --pine-400:#4d7d5c;
+  --parchment:#f3e8cf;
+  --parchment-dim:#e7d9b8;
+  --wood-700:#6e4526;
+  --wood-500:#a06a3f;
+  --wood-300:#c99b6a;
+  --teal-800:#0d3a41;
+  --teal-600:#145560;
+  --teal-400:#1f8a92;
+  --coral-500:#ff8a65;
+  --coral-400:#ffab91;
+  --leaf-400:#9ccb5f;
+  --gold-300:#e8caa0;
+  --ink:#182019;
+  --danger:#c9553f;
+
+  /* ---- type ---- */
+  --font-display:'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-body:'Work Sans', -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* ---- layout ---- */
+  --maxw:1180px;
+  --radius-sm:6px;
+  --radius-md:14px;
+  --radius-lg:22px;
+  --shadow-card:0 1px 2px rgba(10,20,15,.06), 0 12px 28px -14px rgba(10,20,15,.35);
+
+  --dur-fast:.18s;
+  --dur-med:.4s;
+}
+
+/* ---- theme tokens: día (light) ---- */
+:root, [data-theme="day"]{
+  --bg:#f6f1e3;
+  --surface:#fffdf7;
+  --surface-2:#efe6ce;
+  --text:#1c231b;
+  --text-dim:#5b6357;
+  --border:rgba(24,32,25,.12);
+  --topbar-bg:rgba(246,241,227,.82);
+  --accent:var(--teal-600);
+  --accent-ink:#fff;
+  --scrim:rgba(10,20,15,.08);
+}
+
+/* ---- theme tokens: crepúsculo (dusk / medium) ---- */
+[data-theme="dusk"]{
+  --bg:#2b2418;
+  --surface:#362d1f;
+  --surface-2:#41351f;
+  --text:#f3e8cf;
+  --text-dim:#c9b998;
+  --border:rgba(243,232,207,.14);
+  --topbar-bg:rgba(43,36,24,.82);
+  --accent:var(--coral-500);
+  --accent-ink:#241206;
+  --scrim:rgba(0,0,0,.35);
+}
+
+/* ---- theme tokens: noche (dark) ---- */
+[data-theme="night"]{
+  --bg:#0c1712;
+  --surface:#12201a;
+  --surface-2:#182a21;
+  --text:#eef2ea;
+  --text-dim:#9db3a4;
+  --border:rgba(238,242,234,.10);
+  --topbar-bg:rgba(12,23,18,.82);
+  --accent:var(--leaf-400);
+  --accent-ink:#0c1712;
+  --scrim:rgba(0,0,0,.55);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  transition:background var(--dur-med) ease, color var(--dur-med) ease;
+}
+
+img{max-width:100%;display:block}
+a{color:inherit}
+button{font-family:inherit}
+
+.container{max-width:var(--maxw); margin-inline:auto; padding-inline:24px}
+
+:focus-visible{outline:2.5px solid var(--accent); outline-offset:3px; border-radius:4px}
+
+h1,h2,h3{font-family:var(--font-display); margin:0; font-weight:600; letter-spacing:-.01em}
+
+.eyebrow--hero{color:var(--coral-400)}
+.eyebrow{
+  font-family:var(--font-mono); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent); font-weight:600;
+}
+
+.visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+/* =================== TOPBAR =================== */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  background:var(--topbar-bg);
+  backdrop-filter:blur(10px) saturate(1.2);
+  border-bottom:1px solid var(--border);
+}
+.topbar-inner{
+  display:flex; align-items:center; gap:14px; padding-block:10px;
+}
+.brand{display:flex; align-items:center; gap:12px; margin-inline-end:auto; min-width:0}
+.brand-logo{
+  width:42px; height:42px; border-radius:50%; flex:none;
+  color:var(--accent);
+  display:block;
+}
+.brand-name{
+  font-family:var(--font-display); font-weight:700; font-size:1.15rem; line-height:1;
+  white-space:nowrap;
+}
+.brand-name .brand-sub{
+  display:block; font-family:var(--font-mono); font-size:.62rem; letter-spacing:.12em;
+  color:var(--text-dim); font-weight:500; text-transform:uppercase; margin-top:3px;
+}
+
+.controls{display:flex; align-items:center; gap:8px; flex:none}
+
+.select-wrap{position:relative}
+.select-wrap select{
+  appearance:none; -webkit-appearance:none;
+  background:var(--surface); color:var(--text);
+  border:1px solid var(--border); border-radius:999px;
+  padding:8px 30px 8px 14px; font-family:var(--font-mono); font-size:.78rem; font-weight:500;
+  cursor:pointer;
+}
+.select-wrap::after{
+  content:"⌄"; position:absolute; inset-inline-end:12px; top:50%; transform:translateY(-55%);
+  pointer-events:none; color:var(--text-dim); font-size:.8rem;
+}
+
+/* =================== HERO =================== */
+.hero{
+  position:relative; overflow:hidden;
+  min-height:min(92vh, 780px);
+  display:flex; align-items:flex-end;
+  color:var(--parchment);
+  isolation:isolate;
+}
+.hero-bg{position:absolute; inset:0; z-index:0; background:#0a1b13}
+.hero-bg img{width:100%; height:100%; display:block; object-fit:cover; object-position:center}
+.hero-bg.bg-forest{animation:cycleForest 36s linear infinite}
+.hero-bg.bg-coral{animation:cycleCoral 36s linear infinite}
+@keyframes cycleForest{
+  0%{opacity:1} 47%{opacity:1} 53%{opacity:0} 97%{opacity:0} 100%{opacity:1}
+}
+@keyframes cycleCoral{
+  0%{opacity:0} 47%{opacity:0} 53%{opacity:1} 97%{opacity:1} 100%{opacity:0}
+}
+@media (prefers-reduced-motion: reduce){
+  .hero-bg.bg-forest{animation:none; opacity:1}
+  .hero-bg.bg-coral{animation:none; opacity:0}
+}
+.hero-scrim{
+  position:absolute; inset:0; z-index:1;
+  background:linear-gradient(180deg, rgba(8,15,11,.15) 0%, rgba(8,15,11,.55) 78%, rgba(8,15,11,.86) 100%);
+}
+.hero-content{position:relative; z-index:2; width:100%; padding-block:64px 48px}
+.hero-clock{
+  font-family:var(--font-mono); font-size:.85rem; letter-spacing:.06em;
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(10,20,15,.4); border:1px solid rgba(243,232,207,.25);
+  padding:7px 14px; border-radius:999px; margin-bottom:22px;
+}
+.hero-clock .dot{width:7px; height:7px; border-radius:50%; background:var(--coral-400); animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1} 50%{opacity:.35}}
+@media (prefers-reduced-motion: reduce){ .hero-clock .dot{animation:none} }
+
+.hero-title{
+  font-size:clamp(2.4rem, 5.4vw, 4.4rem); line-height:1.02; max-width:16ch;
+  text-wrap:balance;
+}
+.hero-subtitle{
+  font-size:clamp(1rem, 1.6vw, 1.2rem); max-width:52ch; margin-top:18px; color:var(--parchment-dim);
+}
+.hero-actions{display:flex; flex-wrap:wrap; gap:14px; margin-top:34px; align-items:center}
+
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-body); font-weight:600; font-size:.95rem;
+  padding:13px 22px; border-radius:999px; border:1px solid transparent;
+  cursor:pointer; transition:transform var(--dur-fast) ease, box-shadow var(--dur-fast) ease, background var(--dur-fast) ease;
+  text-decoration:none;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn-primary{background:var(--coral-500); color:#241206; box-shadow:0 10px 24px -10px rgba(255,138,101,.6)}
+.btn-primary:hover{background:var(--coral-400)}
+.btn-ghost{background:rgba(243,232,207,.08); color:var(--parchment); border-color:rgba(243,232,207,.35)}
+.btn-ghost:hover{background:rgba(243,232,207,.16)}
+.btn-beta-badge{
+  font-family:var(--font-mono); font-size:.62rem; letter-spacing:.1em; background:#241206;
+  color:var(--coral-400); padding:2px 7px; border-radius:5px; font-weight:600;
+}
+
+.scroll-cue{
+  display:inline-flex; align-items:center; gap:8px; margin-top:40px;
+  font-family:var(--font-mono); font-size:.75rem; letter-spacing:.08em; color:var(--parchment-dim);
+  text-decoration:none;
+}
+.scroll-cue .chev{display:inline-block; animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)} 50%{transform:translateY(4px)}}
+@media (prefers-reduced-motion: reduce){ .scroll-cue .chev{animation:none} }
+
+/* =================== SECTIONS =================== */
+section{padding-block:64px}
+.section-head{max-width:62ch; margin-bottom:40px}
+.section-head h2{font-size:clamp(1.6rem, 3vw, 2.3rem); margin-top:10px}
+.section-head p{color:var(--text-dim); margin-top:12px; font-size:1.02rem}
+.section-headrow{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap}
+
+.link-refresh{
+  display:inline-flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:.78rem;
+  color:var(--text-dim); background:none; border:1px solid var(--border); border-radius:999px;
+  padding:8px 14px; cursor:pointer; transition:border-color var(--dur-fast), color var(--dur-fast);
+}
+.link-refresh:hover{border-color:var(--accent); color:var(--accent)}
+.link-refresh .ico{display:inline-block; transition:transform .5s ease}
+.link-refresh.spinning .ico{transform:rotate(360deg)}
+
+.featured-wrap{position:relative}
+
+.featured-grid{
+  position:relative; z-index:1;
+  display:grid; grid-template-columns:1fr 1fr; gap:24px;
+}
+.grid-secondary{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin-top:22px;
+}
+.grid-secondary .card{padding:16px; gap:10px; border-radius:var(--radius-md)}
+.grid-secondary .card-icon{width:34px; height:34px; border-radius:9px; font-size:1rem}
+.grid-secondary .card-source{font-size:.6rem}
+.grid-secondary .card h3{font-size:.98rem}
+.grid-secondary .stat-list{gap:8px}
+.grid-secondary .stat-row{padding-top:8px; gap:8px}
+.grid-secondary .stat-label{font-size:.7rem}
+.grid-secondary .stat-value{font-size:.82rem}
+.grid-secondary .card-foot{font-size:.6rem; padding-top:10px; gap:6px}
+.grid-secondary .trend-ind{font-size:.85em; margin-inline-start:6px; font-weight:700}
+.anomaly-badge{
+  font-family:var(--font-mono); font-size:.55rem; letter-spacing:.06em; text-transform:uppercase;
+  background:var(--danger); color:#fff; padding:2px 6px; border-radius:4px; margin-inline-start:6px;
+}
+.badge-demo{font-size:.55rem; padding:2px 6px}
+
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
+  padding:26px; box-shadow:var(--shadow-card);
+  display:flex; flex-direction:column; gap:16px;
+  transition:transform var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+}
+.card:hover{transform:translateY(-3px)}
+.card-featured{padding:32px}
+.card-top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px}
+.card-icon{
+  width:46px; height:46px; border-radius:12px; flex:none;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--surface-2); font-size:1.35rem;
+}
+.card-featured .card-icon{width:54px; height:54px; font-size:1.6rem}
+.card-source{
+  font-family:var(--font-mono); font-size:.68rem; letter-spacing:.05em; color:var(--text-dim);
+  text-decoration:none; border-bottom:1px dotted var(--border); padding-bottom:1px;
+}
+.card-source:hover{color:var(--accent); border-color:var(--accent)}
+.card h3{font-size:1.3rem}
+.card-featured h3{font-size:1.6rem}
+.card-desc{color:var(--text-dim); font-size:.92rem; margin:0}
+
+.stat-list{display:flex; flex-direction:column; gap:12px; margin-top:2px}
+.stat-row{display:flex; align-items:baseline; justify-content:space-between; gap:14px; border-top:1px solid var(--border); padding-top:12px}
+.stat-row:first-child{border-top:none; padding-top:0}
+.stat-label{font-size:.82rem; color:var(--text-dim)}
+.stat-value{font-family:var(--font-mono); font-weight:600; font-size:1rem; text-align:end; white-space:nowrap}
+.card-featured .stat-value{font-size:1.25rem}
+
+.card-foot{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  margin-top:auto; padding-top:14px; border-top:1px dashed var(--border);
+  font-family:var(--font-mono); font-size:.7rem; color:var(--text-dim);
+}
+.card-foot .countdown{color:var(--accent); font-weight:600; letter-spacing:.02em}                                                                                                                                                                                                            
+.badge{                                                                                                                                                                                                           
+  font-family:var(--font-mono); font-size:.62rem; letter-spacing:.08em; text-transform:uppercase;                                                                                                                 
+  padding:3px 8px; border-radius:6px; font-weight:600;                                                                                                                                                            
+  }                                                                                                                                                                                                                 
+.badge-live{ background:rgba(156,203,95,.22); color:#2f5b41 }                                                                                                                                                     
+.badge-ref { background:rgba(31,138,146,.18); color:var(--teal-600) }                                                                                                                                             
+.badge-demo{ background:var(--surface-2); color:var(--text-dim) }                                                                                                                                                 
+                                                                                                                                                                                                                    
+/* banner offline sutil */                                                                                                                                                                                        
+.status-banner{                                                                                                                                                                                                   
+  background:var(--gold-300); color:var(--pine-900);                                                                                                                                                              
+  padding:10px 18px; text-align:center; font-family:var(--font-mono);                                                                                                                                             
+  font-size:.82rem; border-bottom:1px solid rgba(0,0,0,.12);                                                                                                                                                      
+}                                                                                                                                                                                                                 
+.status-banner[hidden]{ display:none }                                                                                                                                                                            
+
+
+/* ---- demo-data disclosure note ---- */
+.note{
+  display:flex; gap:14px; align-items:flex-start;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md);
+  padding:18px 20px; margin-top:34px; font-size:.88rem; color:var(--text-dim);
+}
+.note .ico{font-size:1.2rem; flex:none; margin-top:1px}
+.note strong{color:var(--text); display:block; margin-bottom:3px; font-weight:600}
+
+/* =================== FOOTER =================== */
+footer{border-top:1px solid var(--border); padding-block:52px 40px; background:var(--surface)}
+.footer-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:44px}
+.footer-brand{display:flex; align-items:center; gap:12px}
+.footer-brand .brand-logo{width:38px; height:38px; border-radius:50%; color:var(--accent)}
+.source-list{list-style:none; padding:0; margin:14px 0 0; display:grid; grid-template-columns:1fr 1fr; gap:9px 20px}
+.source-list a{
+  font-family:var(--font-mono); font-size:.78rem; text-decoration:none; color:var(--text-dim);
+  border-bottom:1px dotted transparent;
+}
+.source-list a:hover{color:var(--accent); border-color:var(--accent)}
+.footer-fine{margin-top:30px; padding-top:22px; border-top:1px solid var(--border); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:.8rem; color:var(--text-dim)}
+
+/* =================== DONATE BAR =================== */
+.donate-bar{
+  border-top:1px solid var(--border); background:var(--bg); padding-block:26px;
+  display:flex; justify-content:center;
+}
+.btn-donate{background:transparent; color:var(--text); border-color:var(--border)}
+.btn-donate:hover{border-color:var(--accent); color:var(--accent)}
+
+/* =================== MODAL =================== */
+.modal-backdrop{
+  position:fixed; inset:0; z-index:100; background:rgba(8,15,11,.6);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  opacity:0; pointer-events:none; transition:opacity var(--dur-fast) ease;
+}
+.modal-backdrop.open{opacity:1; pointer-events:auto}
+.modal{
+  background:var(--surface); border-radius:var(--radius-lg); padding:30px; max-width:420px; width:100%;
+  border:1px solid var(--border); box-shadow:0 30px 60px -20px rgba(0,0,0,.5);
+  transform:translateY(8px); transition:transform var(--dur-fast) ease;
+}
+.modal-backdrop.open .modal{transform:translateY(0)}
+.modal h3{font-size:1.3rem; margin-bottom:10px}
+.modal p{color:var(--text-dim); font-size:.92rem; margin:0 0 22px}
+
+/* =================== RESPONSIVE =================== */
+@media (max-width:860px){
+  .featured-grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .brand-name{font-size:1rem}
+  .controls{gap:6px}
+  .select-wrap select{padding:7px 26px 7px 11px; font-size:.72rem}
+  .source-list{grid-template-columns:1fr}
+}
+
+/* =================== RTL (Arabic) =================== */
+[dir="rtl"] .select-wrap::after{inset-inline-end:12px}
+[dir="rtl"] .scroll-cue .chev{display:inline-block; transform:scaleX(-1)}
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Eco'clock Network",
+  "url": "https://app.ecoclock.example/",
+  "description": "El pulso del planeta, medido cada 6 a 12 horas. Bosques, arrecifes, hielo, agua, energía y delitos ambientales en un único tablero.",
+  "publisher": { "@type": "Organization", "name": "Eco'clock Network" },
+  "inLanguage": ["es","en","fr","de","it","pt","zh","ja","ru","ar"]
+}
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#estado">Saltar al contenido</a>
+<div class="status-banner" id="statusBanner" data-i18n="banner_offline" hidden></div>
+
+<div class="topbar">
+  <div class="container topbar-inner">
+    <div class="brand">
+      <svg class="brand-logo" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <circle cx="21" cy="21" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+  <circle cx="21" cy="21" r="12" fill="none" stroke="currentColor" stroke-width="1.2"/>
+  <circle cx="21" cy="21" r="4.5" fill="currentColor"/>
+  <path d="M21 3v5M21 34v5M3 21h5M34 21h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+  <path d="M21 21 L21 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M21 21 L28 24.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="21" cy="21" r="1.5" fill="var(--bg, #fff)"/>
+</svg>
+      <span class="brand-name">Eco'clock<span class="brand-sub">Network</span></span>
+    </div>
+    <div class="controls">
+      <div class="select-wrap">
+        <label class="visually-hidden" for="langSelect" data-i18n="lang_label"></label>
+        <select id="langSelect" aria-label="Idioma / Language">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="it">Italiano</option>
+          <option value="pt">Português</option>
+          <option value="zh">中文</option>
+          <option value="ja">日本語</option>
+          <option value="ru">Русский</option>
+          <option value="ar">العربية</option>
+        </select>
+      </div>
+      <div class="select-wrap">
+        <label class="visually-hidden" for="themeSelect" data-i18n="theme_label"></label>
+        <select id="themeSelect" aria-label="Tema visual">
+          <option value="day" data-i18n="theme_day"></option>
+          <option value="dusk" data-i18n="theme_dusk"></option>
+          <option value="night" data-i18n="theme_night"></option>
+          <option value="auto" data-i18n="theme_auto"></option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="hero-bg bg-forest">
+    <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Forest_dark.jpg?width=1600"
+         alt="" loading="eager">
+  </div>
+  <div class="hero-bg bg-coral">
+    <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Underwater_photo_of_coral_reef.jpg?width=1600"
+         alt="" loading="eager">
+  </div>
+  <div class="hero-scrim"></div>
+  <div class="hero-content container">
+    <div class="hero-clock">
+      <span class="dot"></span>
+      <span data-i18n="hero_local_time_label"></span>
+      <span id="localClock" style="font-weight:600">--:--:--</span>
+      <span id="localDate">—</span>
+    </div>
+    <span class="eyebrow eyebrow--hero" data-i18n="hero_eyebrow"></span>
+    <h1 class="hero-title"><span data-i18n="hero_title_line1"></span><br><span data-i18n="hero_title_line2"></span></h1>
+    <p class="hero-subtitle" data-i18n="hero_subtitle"></p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" id="downloadBetaBtn" href="https://download.ecoclock.org/" target="_blank" rel="noopener">
+        <span class="btn-beta-badge" data-i18n="badge_beta"></span>
+        <span data-i18n="download_beta"></span>
+      </a>
+      <a class="btn btn-ghost" href="#estado" data-i18n="hero_scroll_cta"></a>
+    </div>
+    <a class="scroll-cue" href="#estado">
+      <span data-i18n="hero_scroll_cta"></span> <span class="chev">⌄</span>
+    </a>
+  </div>
+</header>
+
+<main>
+  <section id="estado" class="container">
+    <div class="section-headrow section-head">
+      <div>
+        <span class="eyebrow" data-i18n="status_eyebrow"></span>
+        <h2 data-i18n="status_title"></h2>
+        <p data-i18n="status_subtitle"></p>
+      </div>
+      <button class="link-refresh" id="refreshAllBtn" type="button">
+        <span class="ico">⟳</span><span data-i18n="manual_refresh"></span>
+      </button>
+    </div>
+
+    <div class="featured-wrap">
+      <div class="featured-grid">
+        <article class="card card-featured" data-card="deforestation">
+          <div class="card-top">
+            <div class="card-icon" aria-hidden="true">🌳</div>
+            <a class="card-source" href="https://www.globalforestwatch.org" target="_blank" rel="noopener">Global Forest Watch ↗</a>
+          </div>
+          <h3 data-i18n="card_deforestation_title"></h3>
+          <p class="card-desc" data-i18n="card_deforestation_desc"></p>
+          <div class="stat-list">
+            <div class="stat-row"><span class="stat-label" data-i18n="stat_area_lost"></span><span class="stat-value" data-stat="deforestation.areaLost"></span></div>
+            <div class="stat-row"><span class="stat-label" data-i18n="stat_alerts"></span><span class="stat-value" data-stat="deforestation.alerts"></span></div>
+            <div class="stat-row"><span class="stat-label" data-i18n="stat_top_region"></span><span class="stat-value" data-stat="deforestation.topRegion"></span></div>
+          </div>
+          <div class="card-foot">
+            <span class="badge badge-live" data-i18n="badge_live"></span>
+            <span><span data-i18n="last_updated"></span>: <span data-stat="deforestation.lastUpdated"></span></span>
+            <span><span data-i18n="next_update"></span>: <span class="countdown" data-countdown="deforestation">--:--:--</span> <span class="trend-ind" data-trend="deforestation" aria-hidden="true"></span><span class="anomaly-badge" data-anomaly="deforestation" hidden>!</span></span>
+          </div>
+        </article>
+
+        <article class="card card-featured" data-card="coral">
+          <div class="card-top">
+            <div class="card-icon" aria-hidden="true">🪸</div>
+            <a class="card-source" href="https://www.aims.gov.au" target="_blank" rel="noopener">AIMS ↗</a>
+          </div>
+          <h3 data-i18n="card_coral_title"></h3>
+          <p class="card-desc" data-i18n="card_coral_desc"></p>
+          <div class="stat-list">
+            <div class="stat-row"><span class="stat-label" data-i18n="stat_bleaching"></span><span class="stat-value" data-stat="coral.bleaching"></span></div>
+            <div class="stat-row"><span class="stat-label" data-i18n="stat_reef_stress"></span><span class="stat-value" data-stat="coral.reefStress"></span></div>
+            <div class="stat-row"><span class="stat-label" data-i18n="stat_watch_region"></span><span class="stat-value" data-stat="coral.watchRegion"></span></div>
+          </div>
+          <div class="card-foot">
+            <span class="badge badge-ref" data-i18n="badge_ref"></span>
+            <span><span data-i18n="last_updated"></span>: <span data-stat="coral.lastUpdated"></span></span>
+            <span><span data-i18n="next_update"></span>: <span class="countdown" data-countdown="coral">--:--:--</span> <span class="trend-ind" data-trend="coral" aria-hidden="true"></span><span class="anomaly-badge" data-anomaly="coral" hidden>!</span></span>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <h3 style="margin-top:52px; margin-bottom:0; font-size:1.15rem" data-i18n="secondary_title"></h3>
+    <div class="grid-secondary">
+      <article class="card" data-card="energy">
+        <div class="card-top">
+          <div class="card-icon" aria-hidden="true">⚡</div>
+          <a class="card-source" href="https://www.eia.gov" target="_blank" rel="noopener">EIA ↗</a>
+        </div>
+        <h3 data-i18n="card_energy_title"></h3>
+        <div class="stat-list">
+          <div class="stat-row"><span class="stat-label" data-i18n="stat_co2"></span><span class="stat-value" data-stat="energy.co2"></span></div>
+          <div class="stat-row"><span class="stat-label" data-i18n="stat_renewables"></span><span class="stat-value" data-stat="energy.renewables"></span></div>
+        </div>
+        <div class="card-foot">
+          <span class="badge badge-live" data-i18n="badge_live"></span>
+          <span><span data-i18n="last_updated"></span>: <span data-stat="energy.lastUpdated"></span></span>
+          <span class="countdown" data-countdown="energy">--:--:--</span> <span class="trend-ind" data-trend="energy" aria-hidden="true"></span><span class="anomaly-badge" data-anomaly="energy" hidden>!</span>
+        </div>
+      </article>
+
+      <article class="card" data-card="water">
+        <div class="card-top">
+          <div class="card-icon" aria-hidden="true">💧</div>
+          <a class="card-source" href="https://www.fao.org/aquastat" target="_blank" rel="noopener">FAOSTAT / AQUASTAT ↗</a>
+        </div>
+        <h3 data-i18n="card_water_title"></h3>
+        <div class="stat-list">
+          <div class="stat-row"><span class="stat-label" data-i18n="stat_water_stress"></span><span class="stat-value" data-stat="water.stress"></span></div>
+          <div class="stat-row"><span class="stat-label" data-i18n="stat_withdrawal"></span><span class="stat-value" data-stat="water.withdrawal"></span></div>
+        </div>
+        <div class="card-foot">
+          <span class="badge badge-live" data-i18n="badge_live"></span>
+          <span><span data-i18n="last_updated"></span>: <span data-stat="water.lastUpdated"></span></span>
+          <span class="countdown" data-countdown="water">--:--:--</span> <span class="trend-ind" data-trend="water" aria-hidden="true"></span><span class="anomaly-badge" data-anomaly="water" hidden>!</span>
+        </div>
+      </article>
+
+      <article class="card" data-card="ice">
+        <div class="card-top">
+          <div class="card-icon" aria-hidden="true">🧊</div>
+          <a class="card-source" href="https://nsidc.org" target="_blank" rel="noopener">NSIDC ↗</a>
+        </div>
+        <h3 data-i18n="card_ice_title"></h3>
+        <div class="stat-list">
+          <div class="stat-row"><span class="stat-label" data-i18n="stat_ice_extent"></span><span class="stat-value" data-stat="ice.extent"></span></div>
+          <div class="stat-row"><span class="stat-label" data-i18n="stat_ice_anomaly"></span><span class="stat-value" data-stat="ice.anomaly"></span></div>
+        </div>
+        <div class="card-foot">
+          <span class="badge badge-ref" data-i18n="badge_ref"></span>
+          <span><span data-i18n="last_updated"></span>: <span data-stat="ice.lastUpdated"></span></span>
+          <span class="countdown" data-countdown="ice">--:--:--</span> <span class="trend-ind" data-trend="ice" aria-hidden="true"></span><span class="anomaly-badge" data-anomaly="ice" hidden>!</span>
+        </div>
+      </article>
+
+      <article class="card" data-card="ozone">
+        <div class="card-top">
+          <div class="card-icon" aria-hidden="true">🔆</div>
+          <a class="card-source" href="https://ozonewatch.gsfc.nasa.gov" target="_blank" rel="noopener">NASA Ozone Watch ↗</a>
+        </div>
+        <h3 data-i18n="card_ozone_title"></h3>
+        <div class="stat-list">
+          <div class="stat-row"><span class="stat-label" data-i18n="stat_ozone_hole"></span><span class="stat-value" data-stat="ozone.hole"></span></div>
+          <div class="stat-row"><span class="stat-label" data-i18n="stat_ozone_status"></span><span class="stat-value" data-stat="ozone.status"></span></div>
+        </div>
+        <div class="card-foot">
+          <span class="badge badge-live" data-i18n="badge_live"></span>
+          <span><span data-i18n="last_updated"></span>: <span data-stat="ozone.lastUpdated"></span></span>
+          <span class="countdown" data-countdown="ozone">--:--:--</span> <span class="trend-ind" data-trend="ozone" aria-hidden="true"></span><span class="anomaly-badge" data-anomaly="ozone" hidden>!</span>
+        </div>
+      </article>
+
+      <article class="card" data-card="crime">
+        <div class="card-top">
+          <div class="card-icon" aria-hidden="true">🦏</div>
+          <a class="card-source" href="https://www.unodc.org" target="_blank" rel="noopener">UNODC ↗</a>
+        </div>
+        <h3 data-i18n="card_crime_title"></h3>
+        <div class="stat-list">
+          <div class="stat-row"><span class="stat-label" data-i18n="stat_cases"></span><span class="stat-value" data-stat="crime.cases"></span></div>
+          <div class="stat-row"><span class="stat-label" data-i18n="stat_top_type"></span><span class="stat-value" data-stat="crime.topType"></span></div>
+        </div>
+        <div class="card-foot">
+          <span class="badge badge-ref" data-i18n="badge_ref"></span>
+          <span><span data-i18n="last_updated"></span>: <span data-stat="crime.lastUpdated"></span></span>
+          <span class="countdown" data-countdown="crime">--:--:--</span> <span class="trend-ind" data-trend="crime" aria-hidden="true"></span><span class="anomaly-badge" data-anomaly="crime" hidden>!</span>
+        </div>
+      </article>
+    </div>
+
+    <div class="note">
+      <span class="ico" aria-hidden="true">ℹ️</span>
+      <div><strong data-i18n="demo_note_title"></strong><span data-i18n="demo_note_body"></span></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <div class="footer-brand"><svg class="brand-logo" width="38" height="38" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <circle cx="21" cy="21" r="19" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+  <circle cx="21" cy="21" r="12" fill="none" stroke="currentColor" stroke-width="1.2"/>
+  <circle cx="21" cy="21" r="4.5" fill="currentColor"/>
+  <path d="M21 3v5M21 34v5M3 21h5M34 21h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+  <path d="M21 21 L21 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M21 21 L28 24.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="21" cy="21" r="1.5" fill="var(--bg, #fff)"/>
+</svg>
+        <span class="brand-name">Eco'clock<span class="brand-sub">Network</span></span>
+      </div>
+      <p style="color:var(--text-dim); font-size:.9rem; max-width:46ch; margin-top:14px" data-i18n="footer_disclaimer"></p>
+      <p style="color:var(--text-dim); font-size:.72rem; margin-top:8px; max-width:46ch" data-i18n="footer_legal_note"></p>
+      <p style="color:var(--text-dim); font-size:.72rem; margin-top:10px; font-family:var(--font-mono)">
+        <span data-i18n="photo_credit_label"></span>:
+        <a href="https://commons.wikimedia.org/wiki/File:Forest_dark.jpg" target="_blank" rel="noopener" style="color:inherit">Forest dark</a> ·
+        <a href="https://commons.wikimedia.org/wiki/File:Underwater_photo_of_coral_reef.jpg" target="_blank" rel="noopener" style="color:inherit">Underwater photo of coral reef</a>
+        — Wikimedia Commons, <span data-i18n="photo_credit_pd"></span>
+      </p>
+    </div>
+    <div>
+      <span class="eyebrow" data-i18n="footer_sources_title"></span>
+      <ul class="source-list">
+        <li><a href="https://www.globalforestwatch.org" target="_blank" rel="noopener">Global Forest Watch (GFW)</a></li>
+        <li><a href="https://www.aims.gov.au" target="_blank" rel="noopener">AIMS</a></li>
+        <li><a href="https://www.eia.gov" target="_blank" rel="noopener">EIA</a></li>
+        <li><a href="https://www.fao.org/faostat" target="_blank" rel="noopener">FAOSTAT</a></li>
+        <li><a href="https://www.fao.org/aquastat" target="_blank" rel="noopener">AQUASTAT</a></li>
+        <li><a href="https://nsidc.org" target="_blank" rel="noopener">NSIDC</a></li>
+        <li><a href="https://ozonewatch.gsfc.nasa.gov" target="_blank" rel="noopener">NASA Ozone Watch</a></li>
+        <li><a href="https://www.unodc.org" target="_blank" rel="noopener">UNODC</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-fine">
+    <span data-i18n="footer_rights"></span>
+    <span style="font-family:var(--font-mono)">Eco'clock Network © <span id="year"></span></span>
+  </div>
+</footer>
+
+<div class="donate-bar">
+  <div class="container" style="display:flex; justify-content:center">
+    <button class="btn btn-ghost btn-donate" id="donateBtn" type="button">
+      <span aria-hidden="true">💚​</span> <span data-i18n="donate_now"></span>
+    </button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="donateModal" role="dialog" aria-modal="true" aria-labelledby="donateModalTitle">
+  <div class="modal">
+        <h3 id="donateModalTitle" data-i18n="donate_modal_title"></h3>                                                                                                                                                
+      <p data-i18n="donate_modal_body"></p>                                                                                                                                                                         
+      <ul style="list-style:none; padding:0; margin:0 0 22px; font-size:.88rem; color:var(--text-dim); line-height:1.7">                                                                                            
+        <li>💳 <span data-i18n="donate_stripe"></span></li>                                                                                                                                                         
+        <li>📱 <span data-i18n="donate_bizum"></span></li>                                                                                                                                                          
+        <li>🏦 <span data-i18n="donate_swift"></span></li>                                                                                                                                                          
+        <li>✉️ <span data-i18n="donate_email"></span>: <a href="mailto:hola@ecoclock.org" style="color:var(--accent); text-decoration:none">hola@ecoclock.org</a></li>                                              
+      </ul>                                                                                                                                                                                                         
+      <button class="btn btn-primary" id="donateModalClose" data-i18n="download_modal_close"></button>                                                                                                              
+    </div>
+</div>
+
+<script src="i18next.min.js"></script>
+<script>
+/* =============================================================
+   ECO'CLOCK — app logic
+   Sections: 1) config  2) i18n resources  3) i18n engine
+             4) theme engine  5) local clock  6) data + refresh
+             7) UI bindings  8) boot
+   ============================================================= */
+
+/* ---------- 1) CONFIG — the "programmable" bits ---------- */
+const SITE_CONFIG = {
+  // Update this when you point a subdomain at this file (e.g. app.tudominio.org).
+  canonicalUrl: 'https://app.ecoclock.example/',
+  // Leave empty to show the "coming soon" modal. Set a real URL (installer,
+  // TestFlight, Play/App Store listing…) to make the button link straight there.
+  betaDownloadUrl: '',
+  // Payment gateway URL for donations (e.g. a Stripe/SWIFT-compatible checkout link).
+  // Leave empty to show the "not active yet" message with the +info link.
+  donateUrl: '',
+  refreshHoursRange: { min: 6, max: 12 },
+
+  /* ============================================================
+     SOCIAL / OG — programmable preview for X, Discord, Facebook,
+     LinkedIn, Slack, Telegram, WhatsApp, etc.
+     Crawlers read the <meta> tags in <head> (static HTML). Keep
+     those tags in sync with this block when you change values.
+     Instagram uses Facebook's Open Graph when a link is shared.
+     Leave imageUrl empty to avoid a broken preview thumbnail.
+     ============================================================ */
+  social: {
+    siteName: "Eco'clock Network",
+    title: "Eco'clock — Red de datos ambientales",
+    description: "El pulso del planeta, medido cada 6 a 12 horas. Bosques, arrecifes, hielo, agua, energía y delitos ambientales en un único tablero.",
+    // Absolute URL preferred. Empty = no og:image / twitter:image (safer until you host one).
+    imageUrl: '',
+    // Optional square/large image for richer cards (1200×630 recommended for og:image).
+    imageWidth: 1200,
+    imageHeight: 630,
+    // X / Twitter handle without @, or empty.
+    twitterSite: '',
+    twitterCreator: '',
+    // Primary locale for og:locale (BCP 47).
+    locale: 'es_ES',
+    // Alternate locales (optional list).
+    localeAlternates: ['en_US', 'fr_FR', 'de_DE', 'it_IT', 'pt_PT', 'zh_CN', 'ja_JP', 'ru_RU', 'ar_SA'],
+  },
+};
+
+const SUPPORTED_LANGS = ['es','en','fr','de','it','pt','zh','ja','ru','ar'];
+const RTL_LANGS = ['ar'];
+const LOCALE_MAP = {
+  es:'es-ES', en:'en-US', fr:'fr-FR', de:'de-DE', it:'it-IT',
+  pt:'pt-PT', zh:'zh-CN', ja:'ja-JP', ru:'ru-RU', ar:'ar-SA'
+};
+
+/* ---------- 2) I18N RESOURCES ---------- */
+const I18N_RESOURCES = {
+es:{translation:{
+  lang_label:"Idioma", theme_label:"Vista", theme_day:"Día", theme_dusk:"Crepúsculo", theme_night:"Noche", theme_auto:"Automático",
+  hero_local_time_label:"Tu hora local",
+  hero_eyebrow:"Monitor ambiental en tiempo real · 2026",
+  hero_title_line1:"El planeta sangra.", hero_title_line2:"Los datos no mienten.",
+  hero_subtitle:"Cada segundo, Eco'clock reúne los registros públicos de bosques, arrecifes, hielo, agua, energía y delitos ambientales en un único tablero. Mira. Comparte. Actúa.",
+  badge_beta:"BETA", download_beta:"Descargar Beta", hero_scroll_cta:"Ver el estado del planeta",
+  status_eyebrow:"Estado actual", status_title:"Dos señales que más preocupan",
+  status_subtitle:"La deforestación y el blanqueamiento de coral concentran el mayor riesgo de pérdida irreversible. El resto de indicadores completa el panorama.",
+  manual_refresh:"Actualizar ahora",
+  card_deforestation_title:"Deforestación", card_deforestation_desc:"Alertas de pérdida de cobertura arbórea detectadas por satélite.",
+  stat_area_lost:"Superficie perdida (24 h, estimado)", stat_alerts:"Alertas GLAD activas", stat_top_region:"Región con más alertas",
+  status_demo:"Demo", last_updated:"Actualizado", next_update:"Próxima actualización",
+  card_coral_title:"Arrecifes de coral", card_coral_desc:"Estrés térmico y blanqueamiento en los arrecifes monitoreados.",
+  stat_bleaching:"Nivel de blanqueamiento", stat_reef_stress:"Arrecifes bajo estrés térmico", stat_watch_region:"Región en vigilancia",
+  secondary_title:"El resto de la red",
+  card_energy_title:"Energía", stat_co2:"Emisiones de CO₂ (energía, anual)", stat_renewables:"Participación renovable",
+  card_water_title:"Agua y agricultura", stat_water_stress:"Índice de estrés hídrico", stat_withdrawal:"Uso agrícola sobre el total de agua dulce",
+  card_ice_title:"Hielo marino", stat_ice_extent:"Extensión del hielo ártico", stat_ice_anomaly:"Anomalía vs. promedio 1981–2010",
+  card_ozone_title:"Capa de ozono", stat_ozone_hole:"Área del agujero de ozono", stat_ozone_status:"Estado",
+  card_crime_title:"Delitos ambientales", stat_cases:"Casos reportados (trimestre)", stat_top_type:"Tipo más frecuente",
+  demo_note_title:"Sobre estos datos",
+  demo_note_body:"Los datos que ves son valores de referencia con cadencia real, publicados por cada organismo. La conexión en vivo requiere un proxy backend con claves API registradas; se desplegará por fases a lo largo de 2026.",
+  footer_disclaimer:"Eco'clock Network no está afiliado a las organizaciones citadas; enlaza y referencia sus datos públicos.",
+  footer_sources_title:"Fuentes de datos", footer_rights:"Proyecto de Eco'clock Network — asociación en constitución (2026).",
+  download_modal_title:"Eco'clock Beta", download_modal_body:"La beta aún no tiene un paquete público. Este botón ya está listo para enlazar tu instalador, TestFlight o tienda de apps en cuanto lo publiques.", download_modal_close:"Entendido",
+  unit_ha:"ha", unit_gt_co2:"Gt CO₂", unit_million_km2:"millones de km²", anomaly_label:"Anomalía",
+    badge_live:"LIVE", badge_ref:"REF", banner_offline:"Conexión parcial con las fuentes — algunos datos pueden no estar disponibles ahora mismo.",
+  val_deforestation_region:"Cuenca del Amazonas (Brasil)", val_coral_watch_region:"Gran Barrera de Coral (Australia)",
+  val_coral_bleaching_level:"Alerta 2 (vigilancia elevada)", val_ozone_status:"Recuperación gradual en curso",
+  val_crime_top_type:"Tráfico de fauna silvestre",
+  photo_credit_label:"Fotografías", photo_credit_pd:"dominio público",
+  donate_now:"Donar ahora", donate_modal_title:"Donaciones", donate_modal_body:"Las donaciones económicas no están activas por el momento. Descubre otras maneras de apoyar este proyecto."
+  ,footer_legal_note:"Mientras la asociación no esté inscrita, Eco'clock Network opera como proyecto personal; no emite facturas ni certificados de donación con validez fiscal."
+  ,donate_stripe:"Stripe (targeta) — próximamente"                                                                                                                                                                
+  ,donate_bizum:"Bizum (España) — próximamente"                                                                                                                                                                   
+  ,donate_swift:"Transferencia SWIFT internacional — próximamente"                                                                                                                                                
+  ,donate_email:"Contacto directo"                                                                                                                                                                                
+}},
+en:{translation:{
+  lang_label:"Language", theme_label:"View", theme_day:"Day", theme_dusk:"Dusk", theme_night:"Night", theme_auto:"Auto",
+  hero_local_time_label:"Your local time",
+  hero_eyebrow:"Real-time environmental monitor · 2026",
+  hero_title_line1:"The planet is bleeding.", hero_title_line2:"The data doesn't lie.",
+  hero_subtitle:"Every second, Eco'clock brings together public records on forests, reefs, ice, water, energy and environmental crime in a single dashboard. Watch. Share. Act.",
+  badge_beta:"BETA", download_beta:"Download Beta", hero_scroll_cta:"See the planet's status",
+  status_eyebrow:"Current status", status_title:"Two signals we watch closest",
+  status_subtitle:"Deforestation and coral bleaching carry the highest risk of irreversible loss. The other indicators fill out the picture.",
+  manual_refresh:"Refresh now",
+  card_deforestation_title:"Deforestation", card_deforestation_desc:"Satellite-detected tree cover loss alerts.",
+  stat_area_lost:"Area lost (24 h, estimated)", stat_alerts:"Active GLAD alerts", stat_top_region:"Region with most alerts",
+  status_demo:"Demo", last_updated:"Updated", next_update:"Next update",
+  card_coral_title:"Coral reefs", card_coral_desc:"Heat stress and bleaching across monitored reefs.",
+  stat_bleaching:"Bleaching level", stat_reef_stress:"Reefs under heat stress", stat_watch_region:"Region under watch",
+  secondary_title:"The rest of the network",
+  card_energy_title:"Energy", stat_co2:"CO₂ emissions (energy, annual)", stat_renewables:"Renewable share",
+  card_water_title:"Water & agriculture", stat_water_stress:"Water stress index", stat_withdrawal:"Agricultural share of freshwater use",
+  card_ice_title:"Sea ice", stat_ice_extent:"Arctic ice extent", stat_ice_anomaly:"Anomaly vs. 1981–2010 average",
+  card_ozone_title:"Ozone layer", stat_ozone_hole:"Ozone hole area", stat_ozone_status:"Status",
+  card_crime_title:"Environmental crime", stat_cases:"Reported cases (quarter)", stat_top_type:"Most frequent type",
+  demo_note_title:"About this data",
+  demo_note_body:"This beta shows demonstration values at the real cadence and format. Wiring up each live source requires your own API keys and a backend proxy, because of each agency's CORS policy.",
+  footer_disclaimer:"Eco'clock Network is not affiliated with the organizations listed; it links to and cites their public data.",
+  footer_sources_title:"Data sources", footer_rights:"Eco'clock Network Project — association in the process of formation (2026).",
+  download_modal_title:"Eco'clock Beta", download_modal_body:"The beta doesn't have a public package yet. This button is already wired up to link your installer, TestFlight or app-store listing once you publish it.", download_modal_close:"Got it",
+  unit_ha:"ha", unit_gt_co2:"Gt CO₂", unit_million_km2:"million km²", anomaly_label:"Anomaly",
+  val_deforestation_region:"Amazon Basin (Brazil)", val_coral_watch_region:"Great Barrier Reef (Australia)",
+  val_coral_bleaching_level:"Alert 2 (elevated watch)", val_ozone_status:"Gradual recovery underway",
+  val_crime_top_type:"Wildlife trafficking",
+  photo_credit_label:"Photos", photo_credit_pd:"public domain",
+  donate_now:"Donate now", donate_modal_title:"Donations", donate_modal_body:"Financial donations are not active at the moment. Discover other ways to support this project."
+  ,footer_legal_note:"As long as the association is not registered, Eco'clock Network operates as a personal project; it does not issue invoices or tax-valid donation certificates."
+  ,donate_stripe:"Stripe (card) — coming soon"                                                                                                                                                                
+  ,donate_bizum:"Bizum (Spain) — coming soon"                                                                                                                                                                   
+  ,donate_swift:"International SWIFT transfer — coming soon"                                                                                                                                                
+  ,donate_email:"Direct contact"
+}},
+fr:{translation:{
+  lang_label:"Langue", theme_label:"Affichage", theme_day:"Jour", theme_dusk:"Crépuscule", theme_night:"Nuit", theme_auto:"Auto",
+  hero_local_time_label:"Votre heure locale",
+  hero_eyebrow:"Moniteur environnemental en temps réel · 2026",
+  hero_title_line1:"La planète saigne.", hero_title_line2:"Les données ne mentent pas.",
+  hero_subtitle:"Chaque seconde, Eco'clock réunit les registres publics sur les forêts, les récifs, la glace, l'eau, l'énergie et la criminalité environnementale dans un seul tableau de bord. Regardez. Partagez. Agissez.",
+  badge_beta:"BÊTA", download_beta:"Télécharger la bêta", hero_scroll_cta:"Voir l'état de la planète",
+  status_eyebrow:"État actuel", status_title:"Deux signaux à surveiller de près",
+  status_subtitle:"La déforestation et le blanchissement des coraux concentrent le plus grand risque de perte irréversible. Les autres indicateurs complètent le tableau.",
+  manual_refresh:"Actualiser",
+  card_deforestation_title:"Déforestation", card_deforestation_desc:"Alertes de perte de couvert arboré détectées par satellite.",
+  stat_area_lost:"Surface perdue (24 h, estimation)", stat_alerts:"Alertes GLAD actives", stat_top_region:"Région la plus alertée",
+  status_demo:"Démo", last_updated:"Mis à jour", next_update:"Prochaine mise à jour",
+  card_coral_title:"Récifs coralliens", card_coral_desc:"Stress thermique et blanchissement sur les récifs surveillés.",
+  stat_bleaching:"Niveau de blanchissement", stat_reef_stress:"Récifs sous stress thermique", stat_watch_region:"Région sous surveillance",
+  secondary_title:"Le reste du réseau",
+  card_energy_title:"Énergie", stat_co2:"Émissions de CO₂ (énergie, annuel)", stat_renewables:"Part des renouvelables",
+  card_water_title:"Eau et agriculture", stat_water_stress:"Indice de stress hydrique", stat_withdrawal:"Part agricole des prélèvements d'eau douce",
+  card_ice_title:"Glace de mer", stat_ice_extent:"Étendue de la banquise arctique", stat_ice_anomaly:"Anomalie vs. moyenne 1981–2010",
+  card_ozone_title:"Couche d'ozone", stat_ozone_hole:"Superficie du trou d'ozone", stat_ozone_status:"État",
+  card_crime_title:"Criminalité environnementale", stat_cases:"Cas signalés (trimestre)", stat_top_type:"Type le plus fréquent",
+  demo_note_title:"À propos de ces données",
+  demo_note_body:"Cette bêta affiche des valeurs de démonstration avec le rythme et le format réels. Connecter chaque source en direct exige des clés API propres et un serveur intermédiaire, en raison des politiques CORS de chaque organisme.",
+  footer_disclaimer:"Eco'clock Network n'est affilié à aucune des organisations citées ; le site renvoie vers leurs données publiques et les cite.",
+  footer_sources_title:"Sources de données", footer_rights:"Projet de réseau Eco'clock — association en cours de constitution (2026).",
+  download_modal_title:"Eco'clock Bêta", download_modal_body:"La bêta n'a pas encore de paquet public. Ce bouton est déjà prêt à pointer vers votre installateur, TestFlight ou fiche de store dès sa publication.", download_modal_close:"Compris",
+  unit_ha:"ha", unit_gt_co2:"Gt CO₂", unit_million_km2:"millions de km²", anomaly_label:"Anomalie",
+  val_deforestation_region:"Bassin amazonien (Brésil)", val_coral_watch_region:"Grande Barrière de corail (Australie)",
+  val_coral_bleaching_level:"Alerte 2 (vigilance élevée)", val_ozone_status:"Rétablissement progressif en cours",
+  val_crime_top_type:"Trafic d'espèces sauvages",
+  photo_credit_label:"Photos", photo_credit_pd:"domaine public",
+  donate_now:"Faire un don", donate_modal_title:"Dons", donate_modal_body:"Les dons financiers ne sont pas encore actifs. Découvrez d'autres façons de soutenir ce projet."
+  ,footer_legal_note:"Tant que l'association n'est pas enregistrée, Eco'clock Network fonctionne comme un projet personnel ; elle n'émet ni factures ni reçus de don fiscalement valides."
+  ,donate_stripe:"Stripe (carte) — bientôt disponible"                                                                                                                                                                
+  ,donate_bizum:"Bizum (Espagne) — bientôt disponible"                                                                                                                                                                   
+  ,donate_swift:"Virement international SWIFT — bientôt disponible"                                                                                                                                                
+  ,donate_email:"Contact direct"
+}},
+de:{translation:{
+  lang_label:"Sprache", theme_label:"Ansicht", theme_day:"Tag", theme_dusk:"Dämmerung", theme_night:"Nacht", theme_auto:"Automatisch",
+  hero_local_time_label:"Deine Ortszeit",
+  hero_eyebrow:"Umweltmonitor in Echtzeit · 2026",
+  hero_title_line1:"Der Planet blutet.", hero_title_line2:"Die Daten lügen nicht.",
+  hero_subtitle:"Jede Sekunde bündelt Eco'clock öffentliche Daten zu Wäldern, Riffen, Eis, Wasser, Energie und Umweltkriminalität in einem einzigen Dashboard. Beobachten. Teilen. Handeln.",
+  badge_beta:"BETA", download_beta:"Beta herunterladen", hero_scroll_cta:"Zustand des Planeten ansehen",
+  status_eyebrow:"Aktueller Stand", status_title:"Zwei Signale, die uns am meisten beunruhigen",
+  status_subtitle:"Entwaldung und Korallenbleiche bergen das größte Risiko irreversibler Verluste. Die übrigen Indikatoren vervollständigen das Bild.",
+  manual_refresh:"Jetzt aktualisieren",
+  card_deforestation_title:"Entwaldung", card_deforestation_desc:"Satellitengestützte Warnungen zum Verlust der Baumbedeckung.",
+  stat_area_lost:"Verlorene Fläche (24 Std., geschätzt)", stat_alerts:"Aktive GLAD-Warnungen", stat_top_region:"Region mit den meisten Warnungen",
+  status_demo:"Demo", last_updated:"Aktualisiert", next_update:"Nächste Aktualisierung",
+  card_coral_title:"Korallenriffe", card_coral_desc:"Hitzestress und Bleiche in den überwachten Riffen.",
+  stat_bleaching:"Bleichgrad", stat_reef_stress:"Riffe unter Hitzestress", stat_watch_region:"Beobachtete Region",
+  secondary_title:"Der Rest des Netzwerks",
+  card_energy_title:"Energie", stat_co2:"CO₂-Emissionen (Energie, jährlich)", stat_renewables:"Anteil erneuerbarer Energien",
+  card_water_title:"Wasser & Landwirtschaft", stat_water_stress:"Wasserstress-Index", stat_withdrawal:"Landwirtschaftlicher Anteil an der Süßwassernutzung",
+  card_ice_title:"Meereis", stat_ice_extent:"Ausdehnung des arktischen Eises", stat_ice_anomaly:"Abweichung vom Mittel 1981–2010",
+  card_ozone_title:"Ozonschicht", stat_ozone_hole:"Fläche des Ozonlochs", stat_ozone_status:"Status",
+  card_crime_title:"Umweltkriminalität", stat_cases:"Gemeldete Fälle (Quartal)", stat_top_type:"Häufigster Typ",
+  demo_note_title:"Über diese Daten",
+  demo_note_body:"Diese Beta zeigt Demo-Werte im echten Rhythmus und Format. Jede Quelle live anzubinden erfordert eigene API-Schlüssel und einen Backend-Proxy, wegen der CORS-Richtlinien der jeweiligen Institution.",
+  footer_disclaimer:"Eco'clock Network ist nicht mit den genannten Organisationen verbunden; die Seite verlinkt und zitiert deren öffentliche Daten.",
+  footer_sources_title:"Datenquellen", footer_rights:"Eco'clock Network Project – Verein in Gründung (2026).",
+  download_modal_title:"Eco'clock Beta", download_modal_body:"Die Beta hat noch kein öffentliches Paket. Dieser Button ist bereits vorbereitet, um deinen Installer, TestFlight oder Store-Eintrag zu verlinken, sobald du ihn veröffentlichst.", download_modal_close:"Verstanden",
+  unit_ha:"ha", unit_gt_co2:"Gt CO₂", unit_million_km2:"Mio. km²", anomaly_label:"Anomalie",
+  val_deforestation_region:"Amazonasbecken (Brasilien)", val_coral_watch_region:"Great Barrier Reef (Australien)",
+  val_coral_bleaching_level:"Alarmstufe 2 (erhöhte Wachsamkeit)", val_ozone_status:"Allmähliche Erholung im Gange",
+  val_crime_top_type:"Wildtierhandel",
+  photo_credit_label:"Fotos", photo_credit_pd:"gemeinfrei",
+  donate_now:"Jetzt spenden", donate_modal_title:"Spenden", donate_modal_body:"Finanzielle Spenden sind derzeit nicht aktiv. Entdecke andere Wege, dieses Projekt zu unterstützen."
+  ,footer_legal_note:"Solange der Verein nicht eingetragen ist, wird das Eco'clock Network als persönliches Projekt betrieben; es stellt weder Rechnungen noch steuerlich anerkannte Spendenbescheinigungen aus."
+  ,donate_stripe:"Stripe (Karte) – demnächst verfügbar"                                                                                                                                                                
+  ,donate_bizum:"Bizum (Spanien) – demnächst verfügbar"                                                                                                                                                                   
+  ,donate_swift:"Internationale SWIFT-Überweisung – demnächst verfügbar"                                                                                                                                                
+  ,donate_email:"Direkter Kontakt"
+}},
+it:{translation:{
+  lang_label:"Lingua", theme_label:"Vista", theme_day:"Giorno", theme_dusk:"Crepuscolo", theme_night:"Notte", theme_auto:"Automatico",
+  hero_local_time_label:"La tua ora locale",
+  hero_eyebrow:"Monitor ambientale in tempo reale · 2026",
+  hero_title_line1:"Il pianeta sanguina.", hero_title_line2:"I dati non mentono.",
+  hero_subtitle:"Ogni secondo, Eco'clock riunisce i registri pubblici su foreste, barriere coralline, ghiaccio, acqua, energia e reati ambientali in un'unica dashboard. Guarda. Condividi. Agisci.",
+  badge_beta:"BETA", download_beta:"Scarica la Beta", hero_scroll_cta:"Guarda lo stato del pianeta",
+  status_eyebrow:"Stato attuale", status_title:"Due segnali che ci preoccupano di più",
+  status_subtitle:"La deforestazione e lo sbiancamento dei coralli concentrano il rischio più alto di perdita irreversibile. Gli altri indicatori completano il quadro.",
+  manual_refresh:"Aggiorna ora",
+  card_deforestation_title:"Deforestazione", card_deforestation_desc:"Allarmi di perdita di copertura arborea rilevati via satellite.",
+  stat_area_lost:"Superficie persa (24 h, stima)", stat_alerts:"Allarmi GLAD attivi", stat_top_region:"Regione con più allarmi",
+  status_demo:"Demo", last_updated:"Aggiornato", next_update:"Prossimo aggiornamento",
+  card_coral_title:"Barriere coralline", card_coral_desc:"Stress termico e sbiancamento nelle barriere monitorate.",
+  stat_bleaching:"Livello di sbiancamento", stat_reef_stress:"Barriere sotto stress termico", stat_watch_region:"Regione sotto osservazione",
+  secondary_title:"Il resto della rete",
+  card_energy_title:"Energia", stat_co2:"Emissioni di CO₂ (energia, annuali)", stat_renewables:"Quota rinnovabile",
+  card_water_title:"Acqua e agricoltura", stat_water_stress:"Indice di stress idrico", stat_withdrawal:"Quota agricola sul prelievo di acqua dolce",
+  card_ice_title:"Ghiaccio marino", stat_ice_extent:"Estensione del ghiaccio artico", stat_ice_anomaly:"Anomalia vs. media 1981–2010",
+  card_ozone_title:"Strato di ozono", stat_ozone_hole:"Area del buco dell'ozono", stat_ozone_status:"Stato",
+  card_crime_title:"Reati ambientali", stat_cases:"Casi segnalati (trimestre)", stat_top_type:"Tipo più frequente",
+  demo_note_title:"Informazioni su questi dati",
+  demo_note_body:"Questa beta mostra valori dimostrativi con la cadenza e il formato reali. Collegare ogni fonte in tempo reale richiede chiavi API proprie e un server intermedio, per via delle policy CORS di ciascun ente.",
+  footer_disclaimer:"Eco'clock Network non è affiliato alle organizzazioni citate; il sito rimanda ai loro dati pubblici e li cita.",
+  footer_sources_title:"Fonti dei dati", footer_rights:"Progetto Eco'clock Network — associazione in fase di costituzione (2026).",
+  download_modal_title:"Eco'clock Beta", download_modal_body:"La beta non ha ancora un pacchetto pubblico. Questo pulsante è già pronto per collegare il tuo installer, TestFlight o la scheda store non appena lo pubblichi.", download_modal_close:"Capito",
+  unit_ha:"ha", unit_gt_co2:"Gt CO₂", unit_million_km2:"milioni di km²", anomaly_label:"Anomalia",
+  val_deforestation_region:"Bacino amazzonico (Brasile)", val_coral_watch_region:"Grande Barriera Corallina (Australia)",
+  val_coral_bleaching_level:"Allerta 2 (sorveglianza elevata)", val_ozone_status:"Recupero graduale in corso",
+  val_crime_top_type:"Traffico di fauna selvatica",
+  photo_credit_label:"Foto", photo_credit_pd:"pubblico dominio",
+  donate_now:"Dona ora", donate_modal_title:"Donazioni", donate_modal_body:"Le donazioni economiche non sono ancora attive. Scopri altri modi per sostenere questo progetto."
+  ,footer_legal_note:"Finché l'associazione non sarà registrata, Eco'clock Network opera come progetto personale; non emette fatture né certificati di donazione fiscalmente validi."
+  ,donate_stripe:"Stripe (carta) — in arrivo"                                                                                                                                                                
+  ,donate_bizum:"Bizum (Spagna) — in arrivo"                                                                                                                                                                   
+  ,donate_swift:"Bonifico internazionale SWIFT — in arrivo"                                                                                                                                                
+  ,donate_email:"Contatto diretto"
+}},
+pt:{translation:{
+  lang_label:"Idioma", theme_label:"Visualização", theme_day:"Dia", theme_dusk:"Crepúsculo", theme_night:"Noite", theme_auto:"Automático",
+  hero_local_time_label:"Sua hora local",
+  hero_eyebrow:"Monitor ambiental em tempo real · 2026",
+  hero_title_line1:"O planeta está sangrando.", hero_title_line2:"Os dados não mentem.",
+  hero_subtitle:"A cada segundo, o Eco'clock reúne registros públicos de florestas, recifes, gelo, água, energia e crimes ambientais em um único painel. Veja. Compartilhe. Aja.",
+  badge_beta:"BETA", download_beta:"Baixar Beta", hero_scroll_cta:"Ver o estado do planeta",
+  status_eyebrow:"Estado atual", status_title:"Dois sinais que mais preocupam",
+  status_subtitle:"O desmatamento e o branqueamento de corais concentram o maior risco de perda irreversível. Os demais indicadores completam o panorama.",
+  manual_refresh:"Atualizar agora",
+  card_deforestation_title:"Desmatamento", card_deforestation_desc:"Alertas de perda de cobertura arbórea detectados por satélite.",
+  stat_area_lost:"Área perdida (24 h, estimado)", stat_alerts:"Alertas GLAD ativos", stat_top_region:"Região com mais alertas",
+  status_demo:"Demo", last_updated:"Atualizado", next_update:"Próxima atualização",
+  card_coral_title:"Recifes de coral", card_coral_desc:"Estresse térmico e branqueamento nos recifes monitorados.",
+  stat_bleaching:"Nível de branqueamento", stat_reef_stress:"Recifes sob estresse térmico", stat_watch_region:"Região sob observação",
+  secondary_title:"O resto da rede",
+  card_energy_title:"Energia", stat_co2:"Emissões de CO₂ (energia, anual)", stat_renewables:"Participação renovável",
+  card_water_title:"Água e agricultura", stat_water_stress:"Índice de estresse hídrico", stat_withdrawal:"Parcela agrícola no uso de água doce",
+  card_ice_title:"Gelo marinho", stat_ice_extent:"Extensão do gelo ártico", stat_ice_anomaly:"Anomalia vs. média 1981–2010",
+  card_ozone_title:"Camada de ozônio", stat_ozone_hole:"Área do buraco de ozônio", stat_ozone_status:"Status",
+  card_crime_title:"Crimes ambientais", stat_cases:"Casos reportados (trimestre)", stat_top_type:"Tipo mais frequente",
+  demo_note_title:"Sobre estes dados",
+  demo_note_body:"Esta beta mostra valores de demonstração com a cadência e o formato reais. Conectar cada fonte em tempo real exige chaves de API próprias e um servidor intermediário, devido às políticas de CORS de cada órgão.",
+  footer_disclaimer:"O Eco'clock Network não é afiliado às organizações citadas; o site linka e cita seus dados públicos.",
+  footer_sources_title:"Fontes de dados", footer_rights:"Projeto Eco'clock Network — associação em processo de formação (2026).",
+  download_modal_title:"Eco'clock Beta", download_modal_body:"A beta ainda não tem um pacote público. Este botão já está pronto para linkar seu instalador, TestFlight ou ficha de loja assim que for publicado.", download_modal_close:"Entendi",
+  unit_ha:"ha", unit_gt_co2:"Gt CO₂", unit_million_km2:"milhões de km²", anomaly_label:"Anomalia",
+  val_deforestation_region:"Bacia amazônica (Brasil)", val_coral_watch_region:"Grande Barreira de Coral (Austrália)",
+  val_coral_bleaching_level:"Alerta 2 (vigilância elevada)", val_ozone_status:"Recuperação gradual em curso",
+  val_crime_top_type:"Tráfico de vida selvagem",
+  photo_credit_label:"Fotos", photo_credit_pd:"domínio público",
+  donate_now:"Doar agora", donate_modal_title:"Doações", donate_modal_body:"As doações financeiras ainda não estão ativas. Descubra outras formas de apoiar este projeto."
+  ,footer_legal_note:"Enquanto a associação não estiver registrada, a Eco'clock Network opera como um projeto pessoal; ela não emite notas fiscais nem certificados de doação com validade fiscal."
+  ,donate_stripe:"Stripe (cartão) — em breve"                                                                                                                                                                
+  ,donate_bizum:"Bizum (Espanha) — em breve"                                                                                                                                                                   
+  ,donate_swift:"Transferência internacional via SWIFT — em breve"                                                                                                                                                
+  ,donate_email:"Contato direto"
+}},
+zh:{translation:{
+  lang_label:"语言", theme_label:"视图", theme_day:"白天", theme_dusk:"黄昏", theme_night:"夜晚", theme_auto:"自动",
+  hero_local_time_label:"您的当地时间",
+  hero_eyebrow:"实时环境监测 · 2026",
+  hero_title_line1:"地球在流血。", hero_title_line2:"数据不会说谎。",
+  hero_subtitle:"Eco'clock 每一秒都在汇集森林、珊瑚礁、冰层、水资源、能源和环境犯罪的公开数据，呈现在一个仪表盘中。查看。分享。行动。",
+  badge_beta:"测试版", download_beta:"下载测试版", hero_scroll_cta:"查看地球现状",
+  status_eyebrow:"当前状态", status_title:"最值得关注的两个信号",
+  status_subtitle:"森林砍伐和珊瑚白化带来的不可逆损失风险最高，其余指标则补全了全貌。",
+  manual_refresh:"立即刷新",
+  card_deforestation_title:"森林砍伐", card_deforestation_desc:"卫星监测到的树木覆盖损失警报。",
+  stat_area_lost:"损失面积（24 小时，估算）", stat_alerts:"活跃 GLAD 警报数", stat_top_region:"警报最多的地区",
+  status_demo:"演示", last_updated:"更新时间", next_update:"下次更新",
+  card_coral_title:"珊瑚礁", card_coral_desc:"受监测珊瑚礁的热应激与白化情况。",
+  stat_bleaching:"白化程度", stat_reef_stress:"受热应激的珊瑚礁比例", stat_watch_region:"重点监测地区",
+  secondary_title:"网络的其余部分",
+  card_energy_title:"能源", stat_co2:"CO₂ 排放量（能源，年度）", stat_renewables:"可再生能源占比",
+  card_water_title:"水资源与农业", stat_water_stress:"水资源压力指数", stat_withdrawal:"农业用水占淡水总用量比例",
+  card_ice_title:"海冰", stat_ice_extent:"北极海冰范围", stat_ice_anomaly:"相对 1981–2010 年均值的异常",
+  card_ozone_title:"臭氧层", stat_ozone_hole:"臭氧空洞面积", stat_ozone_status:"状态",
+  card_crime_title:"环境犯罪", stat_cases:"报告案件数（本季度）", stat_top_type:"最常见类型",
+  demo_note_title:"关于这些数据",
+  demo_note_body:"此测试版展示的是演示数值，但更新节奏和格式与真实情况一致。要接入每个实时数据源，需要各机构自己的 API 密钥，并因各自的 CORS 策略而需要一个后端代理。",
+  footer_disclaimer:"Eco'clock Network 与所列机构无关联；本站仅链接并引用其公开数据。",
+  footer_sources_title:"数据来源", footer_rights:"Eco'clock 網路計畫－正在籌建中的協會（2026年）。",
+  download_modal_title:"Eco'clock 测试版", download_modal_body:"测试版目前还没有公开安装包。发布后，只需在此按钮中添加您的安装包、TestFlight 或应用商店链接即可。", download_modal_close:"知道了",
+  unit_ha:"公顷", unit_gt_co2:"Gt CO₂", unit_million_km2:"百万平方公里", anomaly_label:"异常",
+  val_deforestation_region:"亚马逊流域（巴西）", val_coral_watch_region:"大堡礁（澳大利亚）",
+  val_coral_bleaching_level:"警报级别 2（高度关注）", val_ozone_status:"正在逐步恢复",
+  val_crime_top_type:"野生动物走私",
+  photo_credit_label:"图片", photo_credit_pd:"公共领域",
+  donate_now:"立即捐赠", donate_modal_title:"捐赠", donate_modal_body:"目前尚未开通经济捐赠功能。了解支持本项目的其他方式。"
+  ,footer_legal_note:"在協會未完成註冊期間，Eco'clock Network 僅作為個人項目運作；其不提供發票或具有稅務效力的捐贈證書。"
+  ,donate_stripe:"Stripe（銀行卡）— 即將推出"                                                                                                                                                                
+  ,donate_bizum:"Bizum（西班牙）—即將推出"                                                                                                                                                                   
+  ,donate_swift:"國際 SWIFT 轉帳－即將推出"                                                                                                                                                
+  ,donate_email:"直接聯繫"
+}},
+ja:{translation:{
+  lang_label:"言語", theme_label:"表示", theme_day:"昼", theme_dusk:"たそがれ", theme_night:"夜", theme_auto:"自動",
+  hero_local_time_label:"現地時刻",
+  hero_eyebrow:"リアルタイム環境モニター · 2026",
+  hero_title_line1:"地球は血を流している。", hero_title_line2:"データは嘘をつかない。",
+  hero_subtitle:"Eco'clockは、毎秒、森林・サンゴ礁・氷・水・エネルギー・環境犯罪に関する公開データをひとつのダッシュボードに集約します。見る。共有する。行動する。",
+  badge_beta:"ベータ", download_beta:"ベータ版をダウンロード", hero_scroll_cta:"地球の現状を見る",
+  status_eyebrow:"現在の状況", status_title:"特に注視すべき2つの兆候",
+  status_subtitle:"森林伐採とサンゴの白化は、不可逆的な損失のリスクが最も高い指標です。その他の指標が全体像を補います。",
+  manual_refresh:"今すぐ更新",
+  card_deforestation_title:"森林伐採", card_deforestation_desc:"衛星が検知した樹木被覆の減少アラート。",
+  stat_area_lost:"喪失面積（24時間、推定）", stat_alerts:"有効なGLADアラート数", stat_top_region:"アラートが最も多い地域",
+  status_demo:"デモ", last_updated:"更新日時", next_update:"次回更新",
+  card_coral_title:"サンゴ礁", card_coral_desc:"監視対象のサンゴ礁における熱ストレスと白化の状況。",
+  stat_bleaching:"白化レベル", stat_reef_stress:"熱ストレス下のサンゴ礁の割合", stat_watch_region:"注視地域",
+  secondary_title:"ネットワークのその他の指標",
+  card_energy_title:"エネルギー", stat_co2:"CO₂排出量（エネルギー、年間）", stat_renewables:"再生可能エネルギーの割合",
+  card_water_title:"水と農業", stat_water_stress:"水ストレス指数", stat_withdrawal:"淡水利用に占める農業用水の割合",
+  card_ice_title:"海氷", stat_ice_extent:"北極海氷の面積", stat_ice_anomaly:"1981〜2010年平均との差",
+  card_ozone_title:"オゾン層", stat_ozone_hole:"オゾンホールの面積", stat_ozone_status:"状態",
+  card_crime_title:"環境犯罪", stat_cases:"報告件数（四半期）", stat_top_type:"最も多いタイプ",
+  demo_note_title:"このデータについて",
+  demo_note_body:"このベータ版は、実際の更新頻度と形式でデモ用の数値を表示しています。各情報源をリアルタイムで接続するには、各機関独自のAPIキーと、CORSポリシーに対応するためのバックエンドプロキシが必要です。",
+  footer_disclaimer:"Eco'clock Networkは記載の各機関と提携しておらず、それぞれの公開データにリンク・引用しています。",
+  footer_sources_title:"データソース", footer_rights:"Eco'clock Network Project — 設立準備中の団体（2026年）",
+  download_modal_title:"Eco'clock ベータ版", download_modal_body:"ベータ版はまだ公開パッケージがありません。公開され次第、このボタンにインストーラー、TestFlight、またはストアのリンクを設定できます。", download_modal_close:"了解",
+  unit_ha:"ha", unit_gt_co2:"Gt CO₂", unit_million_km2:"百万km²", anomaly_label:"異常",
+  val_deforestation_region:"アマゾン盆地（ブラジル）", val_coral_watch_region:"グレートバリアリーフ（オーストラリア）",
+  val_coral_bleaching_level:"警戒レベル2（厳重警戒）", val_ozone_status:"緩やかな回復が進行中",
+  val_crime_top_type:"野生生物の密売",
+  photo_credit_label:"写真", photo_credit_pd:"パブリックドメイン",
+  donate_now:"今すぐ寄付", donate_modal_title:"寄付", donate_modal_body:"現在、金銭的な寄付は受け付けておりません。このプロジェクトを支援する他の方法をご覧ください。"
+  ,footer_legal_note:"当団体が正式に登録されるまでの間、Eco'clock Networkは個人プロジェクトとして運営されます。そのため、請求書や税務上有効な寄付証明書の発行は行いません。"
+  ,donate_stripe:"Stripe（カード）— 近日対応予定"                                                                                                                                                                
+  ,donate_bizum:"Bizum（スペイン）— 近日対応予定"                                                                                                                                                                   
+  ,donate_swift:"SWIFT国際送金 — 近日開始予定"                                                                                                                                                
+  ,donate_email:"直接の連絡"
+}},
+ru:{translation:{
+  lang_label:"Язык", theme_label:"Вид", theme_day:"День", theme_dusk:"Сумерки", theme_night:"Ночь", theme_auto:"Авто",
+  hero_local_time_label:"Ваше местное время",
+  hero_eyebrow:"Экологический монитор в реальном времени · 2026",
+  hero_title_line1:"Планета истекает кровью.", hero_title_line2:"Данные не лгут.",
+  hero_subtitle:"Каждую секунду Eco'clock объединяет открытые данные о лесах, рифах, льдах, воде, энергетике и экологических преступлениях на одной панели. Смотрите. Делитесь. Действуйте.",
+  badge_beta:"БЕТА", download_beta:"Скачать бету", hero_scroll_cta:"Смотреть состояние планеты",
+  status_eyebrow:"Текущее состояние", status_title:"Два сигнала, которые тревожат больше всего",
+  status_subtitle:"Вырубка лесов и обесцвечивание кораллов несут наибольший риск необратимых потерь. Остальные показатели дополняют картину.",
+  manual_refresh:"Обновить сейчас",
+  card_deforestation_title:"Вырубка лесов", card_deforestation_desc:"Спутниковые оповещения о потере древесного покрова.",
+  stat_area_lost:"Утраченная площадь (24 ч, оценка)", stat_alerts:"Активные оповещения GLAD", stat_top_region:"Регион с наибольшим числом оповещений",
+  status_demo:"Демо", last_updated:"Обновлено", next_update:"Следующее обновление",
+  card_coral_title:"Коралловые рифы", card_coral_desc:"Тепловой стресс и обесцвечивание на наблюдаемых рифах.",
+  stat_bleaching:"Уровень обесцвечивания", stat_reef_stress:"Рифы в состоянии теплового стресса", stat_watch_region:"Регион под наблюдением",
+  secondary_title:"Остальная часть сети",
+  card_energy_title:"Энергетика", stat_co2:"Выбросы CO₂ (энергетика, за год)", stat_renewables:"Доля возобновляемых источников",
+  card_water_title:"Вода и сельское хозяйство", stat_water_stress:"Индекс водного стресса", stat_withdrawal:"Доля сельского хозяйства в заборе пресной воды",
+  card_ice_title:"Морской лёд", stat_ice_extent:"Площадь арктического льда", stat_ice_anomaly:"Отклонение от среднего за 1981–2010 гг.",
+  card_ozone_title:"Озоновый слой", stat_ozone_hole:"Площадь озоновой дыры", stat_ozone_status:"Статус",
+  card_crime_title:"Экологические преступления", stat_cases:"Зарегистрировано случаев (за квартал)", stat_top_type:"Наиболее частый тип",
+  demo_note_title:"Об этих данных",
+  demo_note_body:"В этой бете показаны демонстрационные значения с реальной периодичностью и форматом. Для подключения каждого источника в реальном времени нужны собственные API-ключи и промежуточный сервер — из-за политики CORS каждого ведомства.",
+  footer_disclaimer:"Eco'clock Network не аффилирован с перечисленными организациями; сайт лишь ссылается на их открытые данные и цитирует их.",
+  footer_sources_title:"Источники данных", footer_rights:"Проект сети Eco'clock — объединение, находящееся в стадии формирования (2026 г.).",
+  download_modal_title:"Eco'clock Бета", download_modal_body:"У беты пока нет публичного пакета. Эта кнопка уже готова вести на ваш установочный файл, TestFlight или страницу в магазине приложений, как только вы их опубликуете.", download_modal_close:"Понятно",
+  unit_ha:"га", unit_gt_co2:"Гт CO₂", unit_million_km2:"млн км²", anomaly_label:"Аномалия",
+  val_deforestation_region:"Бассейн Амазонки (Бразилия)", val_coral_watch_region:"Большой Барьерный риф (Австралия)",
+  val_coral_bleaching_level:"Уровень тревоги 2 (повышенное наблюдение)", val_ozone_status:"Идёт постепенное восстановление",
+  val_crime_top_type:"Незаконная торговля дикими животными",
+  photo_credit_label:"Фото", photo_credit_pd:"общественное достояние",
+  donate_now:"Пожертвовать сейчас", donate_modal_title:"Пожертвования", donate_modal_body:"Финансовые пожертвования пока не активны. Узнайте о других способах поддержать этот проект."
+  ,footer_legal_note:"Пока ассоциация не зарегистрирована, Eco'clock Network действует как частный проект; она не выставляет счета и не выдает сертификаты о пожертвованиях, имеющие налоговую значимость."
+  ,donate_stripe:"Stripe (карты) — скоро"                                                                                                                                                                
+  ,donate_bizum:"Bizum (Испания) — скоро"                                                                                                                                                                   
+  ,donate_swift:"Международный перевод SWIFT — скоро"                                                                                                                                                
+  ,donate_email:"Прямой контакт"
+}},
+ar:{translation:{
+  lang_label:"اللغة", theme_label:"المظهر", theme_day:"نهار", theme_dusk:"غسق", theme_night:"ليل", theme_auto:"تلقائي",
+  hero_local_time_label:"توقيتك المحلي",
+  hero_eyebrow:"مراقبة بيئية في الوقت الفعلي · 2026",
+  hero_title_line1:"الكوكب ينزف.", hero_title_line2:"البيانات لا تكذب.",
+  hero_subtitle:"في كل ثانية، يجمع Eco'clock سجلات عامة عن الغابات والشعاب المرجانية والجليد والمياه والطاقة والجرائم البيئية في لوحة واحدة. شاهد. شارك. تحرّك.",
+  badge_beta:"تجريبي", download_beta:"تنزيل النسخة التجريبية", hero_scroll_cta:"عرض حالة الكوكب",
+  status_eyebrow:"الحالة الراهنة", status_title:"إشارتان تستحقان أكبر قدر من الاهتمام",
+  status_subtitle:"تركّز إزالة الغابات وابيضاض المرجان أكبر قدر من مخاطر الفقدان الذي لا يمكن تداركه، بينما تكمل بقية المؤشرات الصورة العامة.",
+  manual_refresh:"تحديث الآن",
+  card_deforestation_title:"إزالة الغابات", card_deforestation_desc:"تنبيهات بفقدان الغطاء الشجري تُرصد عبر الأقمار الصناعية.",
+  stat_area_lost:"المساحة المفقودة (24 ساعة، تقديري)", stat_alerts:"تنبيهات GLAD النشطة", stat_top_region:"المنطقة الأكثر تنبيهًا",
+  status_demo:"تجريبي", last_updated:"آخر تحديث", next_update:"التحديث القادم",
+  card_coral_title:"الشعاب المرجانية", card_coral_desc:"الإجهاد الحراري وابيضاض المرجان في الشعاب المراقَبة.",
+  stat_bleaching:"مستوى الابيضاض", stat_reef_stress:"الشعاب الواقعة تحت إجهاد حراري", stat_watch_region:"المنطقة قيد المراقبة",
+  secondary_title:"بقية الشبكة",
+  card_energy_title:"الطاقة", stat_co2:"انبعاثات ثاني أكسيد الكربون (الطاقة، سنويًا)", stat_renewables:"حصة الطاقة المتجددة",
+  card_water_title:"المياه والزراعة", stat_water_stress:"مؤشر إجهاد المياه", stat_withdrawal:"حصة الزراعة من استخدام المياه العذبة",
+  card_ice_title:"الجليد البحري", stat_ice_extent:"امتداد الجليد القطبي الشمالي", stat_ice_anomaly:"الانحراف عن متوسط 1981–2010",
+  card_ozone_title:"طبقة الأوزون", stat_ozone_hole:"مساحة ثقب الأوزون", stat_ozone_status:"الحالة",
+  card_crime_title:"الجرائم البيئية", stat_cases:"الحالات المبلَّغ عنها (ربع سنوي)", stat_top_type:"النوع الأكثر شيوعًا",
+  demo_note_title:"حول هذه البيانات",
+  demo_note_body:"تعرض هذه النسخة التجريبية قيمًا توضيحية بنفس الوتيرة والتنسيق الحقيقيَّين. يتطلب ربط كل مصدر مباشرةً مفاتيح API خاصة وخادمًا وسيطًا، بسبب سياسات CORS الخاصة بكل جهة.",
+  footer_disclaimer:"شبكة Eco'clock غير تابعة للمؤسسات المذكورة؛ الموقع يكتفي بالربط ببياناتها العامة والاستشهاد بها.",
+  footer_sources_title:"مصادر البيانات", footer_rights:"مشروع شبكة Eco'clock — جمعية قيد التأسيس (2026).",
+  download_modal_title:"نسخة Eco'clock التجريبية", download_modal_body:"لا تملك النسخة التجريبية بعد حزمة عامة. هذا الزر جاهز بالفعل لربط برنامج التثبيت أو TestFlight أو صفحة المتجر فور نشرها.", download_modal_close:"فهمت",
+  unit_ha:"هكتار", unit_gt_co2:"غت CO₂", unit_million_km2:"مليون كم²", anomaly_label:"شذوذ",
+  val_deforestation_region:"حوض الأمازون (البرازيل)", val_coral_watch_region:"الحاجز المرجاني العظيم (أستراليا)",
+  val_coral_bleaching_level:"المستوى 2 (مراقبة مرتفعة)", val_ozone_status:"تعافٍ تدريجي جارٍ",
+  val_crime_top_type:"الاتجار بالحياة البرية",
+  photo_credit_label:"الصور", photo_credit_pd:"ملك عام",
+  donate_now:"تبرع الآن", donate_modal_title:"التبرعات", donate_modal_body:"التبرعات المالية غير مفعّلة حاليًا. اكتشف طرقًا أخرى لدعم هذا المشروع."
+  ,footer_legal_note:"ما دامت الجمعية غير مسجلة، فإن شبكة Eco'clock Network تعمل كمشروع شخصي؛ فهي لا تصدر فواتير أو شهادات تبرع معتمدة لأغراض ضريبية."
+  ,donate_stripe:"Stripe (بطاقة) — قريباً"                                                                                                                                                                
+  ,donate_bizum:"Bizum (إسبانيا) — قريباً"                                                                                                                                                                   
+  ,donate_swift:"تحويل دولي عبر نظام سويفت (SWIFT) — قريباً"                                                                                                                                                
+  ,donate_email:"اتصال مباشر"
+}}
+};
+
+/* ---------- 3) DATA — illustrative "demo" values ----------
+   Replace fetchLive() below with real calls to each agency's API
+   (through your own backend proxy) to go from demo to live. */
+const DATA_BASE = {
+  deforestation: { areaLost: 6140, alerts: 18420, intervalHours: 6, jitter: 0.05 },
+  coral:         { reefStress: 34, intervalHours: 7, jitter: 0.06 },
+  energy:        { co2: 36.8, renewables: 30.9, intervalHours: 9, jitter: 0.02 },
+  water:         { stress: 18.6, withdrawal: 70, intervalHours: 10, jitter: 0.03 },
+  ice:           { extent: 9.2, anomaly: 1.4, intervalHours: 8, jitter: 0.03 },
+  ozone:         { hole: 19.1, intervalHours: 12, jitter: 0.04 },
+  crime:         { cases: 1240, intervalHours: 11, jitter: 0.04 }
+};
+const scheduleTimers = {};
+const updateCounts = {}; // for anomaly cadence
+
+function safeLS(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    if(raw == null) return fallback;
+    return JSON.parse(raw);
+  }catch(e){ return fallback; }
+}
+function safeSS(key, value){
+  try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){}
+}
+
+function jitterVal(base, pct){
+  const factor = 1 + (Math.random()*2 - 1) * pct;
+  return base * factor;
+}
+function fmtInt(n, locale){ return Math.round(n).toLocaleString(locale); }
+function fmtDec(n, locale, digits){ return n.toLocaleString(locale, {minimumFractionDigits:digits, maximumFractionDigits:digits}); }
+
+function loadTrend(id){
+  let t = safeLS('ecoclock_trend_' + id, null);
+  if(!t || (t.dir !== 'up' && t.dir !== 'down')){
+    t = { dir: Math.random() < 0.5 ? 'up' : 'down', strength: 0.008 + Math.random()*0.012 };
+    safeSS('ecoclock_trend_' + id, t);
+  }
+  return t;
+}
+
+function loadSchedule(id, intervalHours){
+  const key = 'ecoclock_sched_' + id;
+  let sched = safeLS(key, null);
+  const now = Date.now();
+  const intervalMs = intervalHours * 3600 * 1000;
+  if(!sched || !sched.last || !sched.next){
+    const elapsedFraction = Math.random();
+    sched = { last: now - elapsedFraction*intervalMs, next: 0 };
+    sched.next = sched.last + intervalMs;
+  }
+  if(sched.next <= now){
+    sched = { last: now, next: now + intervalMs };
+  }
+  safeSS(key, sched);
+  return sched;
+}
+function saveSchedule(id, sched){
+  safeSS('ecoclock_sched_' + id, sched);
+}
+
+const liveValues = {};
+
+function computeCardValues(id, prev){
+  const base = DATA_BASE[id];
+  const trend = loadTrend(id);
+  const v = {};
+  const applyTrend = (n) => {
+    const delta = n * trend.strength * (trend.dir === 'up' ? 1 : -1);
+    return Math.max(0, n + delta);
+  };
+  // anomaly ~1 every 20 updates
+  updateCounts[id] = (updateCounts[id] || 0) + 1;
+  const isAnomaly = (updateCounts[id] % 20 === 0) || (Math.random() < 0.05 && updateCounts[id] > 3);
+  const anomalyFactor = isAnomaly ? (1.15 + Math.random()*0.25) * (Math.random() < 0.5 ? 1 : -1) : 0;
+
+  switch(id){
+    case 'deforestation':
+      v.areaLost = applyTrend(jitterVal(base.areaLost, base.jitter));
+      v.alerts = applyTrend(jitterVal(base.alerts, base.jitter));
+      if(isAnomaly){ v.areaLost *= (1 + Math.abs(anomalyFactor)*0.4); v.alerts *= (1 + Math.abs(anomalyFactor)*0.5); }
+      break;
+    case 'coral':
+      v.reefStress = applyTrend(jitterVal(base.reefStress, base.jitter));
+      if(isAnomaly) v.reefStress = Math.min(100, v.reefStress * (1 + Math.abs(anomalyFactor)*0.35));
+      break;
+    case 'energy':
+      v.co2 = applyTrend(jitterVal(base.co2, base.jitter));
+      v.renewables = applyTrend(jitterVal(base.renewables, base.jitter));
+      if(isAnomaly) v.co2 *= (1 + anomalyFactor * 0.08);
+      break;
+    case 'water':
+      v.stress = applyTrend(jitterVal(base.stress, base.jitter));
+      v.withdrawal = applyTrend(jitterVal(base.withdrawal, base.jitter));
+      if(isAnomaly) v.stress = Math.min(100, v.stress * (1 + Math.abs(anomalyFactor)*0.2));
+      break;
+    case 'ice':
+      v.extent = applyTrend(jitterVal(base.extent, base.jitter));
+      v.anomaly = applyTrend(jitterVal(base.anomaly, base.jitter));
+      if(isAnomaly){ v.extent *= (1 - Math.abs(anomalyFactor)*0.12); v.anomaly *= (1 + Math.abs(anomalyFactor)*0.3); }
+      break;
+    case 'ozone':
+      v.hole = applyTrend(jitterVal(base.hole, base.jitter));
+      if(isAnomaly) v.hole *= (1 + Math.abs(anomalyFactor)*0.15);
+      break;
+    case 'crime':
+      v.cases = applyTrend(jitterVal(base.cases, base.jitter));
+      if(isAnomaly) v.cases *= (1 + Math.abs(anomalyFactor)*0.45);
+      break;
+  }
+  v._trend = trend.dir;
+  v._anomaly = !!isAnomaly;
+  return v;
+}
+
+function renderCard(id){
+  const locale = LOCALE_MAP[i18next.language] || 'en-US';
+  const v = liveValues[id];
+  const sched = loadSchedule(id, DATA_BASE[id].intervalHours);
+  const setStat = (field, text) => {
+    document.querySelectorAll('[data-stat="'+id+'.'+field+'"]').forEach(el => el.textContent = text);
+  };
+  const unitHa = i18next.t('unit_ha');
+  const unitGt = i18next.t('unit_gt_co2');
+  const unitMkm = i18next.t('unit_million_km2');
+  switch(id){
+    case 'deforestation':
+      setStat('areaLost', fmtInt(v.areaLost, locale) + ' ' + unitHa);
+      setStat('alerts', fmtInt(v.alerts, locale));
+      break;
+    case 'coral':
+      setStat('reefStress', fmtDec(v.reefStress, locale, 0) + '%');
+      break;
+    case 'energy':
+      setStat('co2', fmtDec(v.co2, locale, 1) + ' ' + unitGt);
+      setStat('renewables', fmtDec(v.renewables, locale, 1) + '%');
+      break;
+    case 'water':
+      setStat('stress', fmtDec(v.stress, locale, 1) + '%');
+      setStat('withdrawal', fmtDec(v.withdrawal, locale, 0) + '%');
+      break;
+    case 'ice':
+      setStat('extent', fmtDec(v.extent, locale, 1) + ' ' + unitMkm);
+      setStat('anomaly', '\u2212' + fmtDec(v.anomaly, locale, 1) + ' ' + unitMkm);
+      break;
+    case 'ozone':
+      setStat('hole', fmtDec(v.hole, locale, 1) + ' ' + unitMkm);
+      break;
+    case 'crime':
+      setStat('cases', fmtInt(v.cases, locale));
+      break;
+  }
+  document.querySelectorAll('[data-stat="'+id+'.lastUpdated"]').forEach(el=>{
+    el.textContent = new Intl.DateTimeFormat(locale, {hour:'2-digit', minute:'2-digit'}).format(new Date(sched.last));
+  });
+  // trend + anomaly indicators on card foot
+  document.querySelectorAll('[data-trend="'+id+'"]').forEach(el=>{
+    el.textContent = v._trend === 'up' ? '▲' : '▼';
+    el.setAttribute('title', v._trend === 'up' ? '↑' : '↓');
+    el.style.color = v._trend === 'up' ? 'var(--danger)' : 'var(--leaf-400)';
+  });
+  document.querySelectorAll('[data-anomaly="'+id+'"]').forEach(el=>{
+    el.hidden = !v._anomaly;
+    el.style.display = v._anomaly ? 'inline' : 'none';
+    if(v._anomaly) el.textContent = i18next.t('anomaly_label');
+  });
+}
+
+function renderAllCards(){
+  Object.keys(DATA_BASE).forEach(id=>{
+    if(!liveValues[id]) liveValues[id] = computeCardValues(id);
+    renderCard(id);
+  });
+}
+
+function refreshCard(id, manual){
+  liveValues[id] = computeCardValues(id, liveValues[id]);
+  const now = Date.now();
+  const sched = { last: now, next: now + DATA_BASE[id].intervalHours*3600*1000 };
+  saveSchedule(id, sched);
+  renderCard(id);
+  scheduleNext(id);
+}
+
+function scheduleNext(id){
+  if(scheduleTimers[id]) clearTimeout(scheduleTimers[id]);
+  const sched = loadSchedule(id, DATA_BASE[id].intervalHours);
+  const delay = Math.max(1000, sched.next - Date.now());
+  scheduleTimers[id] = setTimeout(()=> refreshCard(id), delay);
+}
+
+function tickCountdowns(){
+  const now = Date.now();
+  document.querySelectorAll('[data-countdown]').forEach(el=>{
+    const id = el.getAttribute('data-countdown');
+    const sched = safeLS('ecoclock_sched_'+id, null);
+    if(!sched) return;
+    let remaining = Math.max(0, sched.next - now);
+    const h = String(Math.floor(remaining/3600000)).padStart(2,'0');
+    const m = String(Math.floor((remaining%3600000)/60000)).padStart(2,'0');
+    const s = String(Math.floor((remaining%60000)/1000)).padStart(2,'0');
+    el.textContent = h+':'+m+':'+s;
+  });
+}
+
+function initData(){
+  Object.keys(DATA_BASE).forEach(id=>{
+    loadSchedule(id, DATA_BASE[id].intervalHours);
+    liveValues[id] = computeCardValues(id);
+    scheduleNext(id);
+  });
+  renderAllCards();
+  setInterval(tickCountdowns, 1000);
+  tickCountdowns();
+}
+
+/* ---------- 4) THEME ENGINE ---------- */
+function resolveAutoTheme(){
+  const h = new Date().getHours();
+  if(h >= 6 && h < 18) return 'day';
+  if(h >= 18 && h < 21) return 'dusk';
+  return 'night';
+}
+function applyTheme(mode){
+  const resolved = mode === 'auto' ? resolveAutoTheme() : mode;
+  document.documentElement.setAttribute('data-theme', resolved);
+}
+function initTheme(){
+  let stored = 'auto';
+  try{ stored = localStorage.getItem('ecoclock_theme') || 'auto'; }catch(e){}
+  const sel = document.getElementById('themeSelect');
+  sel.value = stored;
+  applyTheme(stored);
+  sel.addEventListener('change', ()=>{
+    try{ localStorage.setItem('ecoclock_theme', sel.value); }catch(e){}
+    applyTheme(sel.value);
+  });
+  setInterval(()=>{ if(sel.value === 'auto') applyTheme('auto'); }, 60000);
+}
+
+/* ---------- 5) LOCAL CLOCK ---------- */
+function initClock(){
+  function tick(){
+    const locale = LOCALE_MAP[i18next.language] || 'en-US';
+    const now = new Date();
+    document.getElementById('localClock').textContent =
+      new Intl.DateTimeFormat(locale, {hour:'2-digit', minute:'2-digit', second:'2-digit'}).format(now);
+    document.getElementById('localDate').textContent =
+      new Intl.DateTimeFormat(locale, {weekday:'short', day:'numeric', month:'short'}).format(now);
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+                                                                                                                                                                                                       
+  /* =============================================================                                                                                                                                                  
+     LIVENESS — fetch() de fuentes reales (NASA EONET, World Bank,                                                                                                                                                  
+     NASA Ozone Watch). Sin claves, sin backend. Si una fuente                                                                                                                                                      
+     falla → datos en REF y banner sutil arriba.                                                                                                                                                                    
+     ============================================================= */                                                                                                                                               
+                                                                                                                                                                                                                    
+  async function fetchEonet(){                                                                                                                                                                                      
+    try{                                                                                                                                                                                                            
+      const r = await fetch('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&days=7&limit=500');                                                                                                              
+      if(!r.ok) throw new Error('eonet '+r.status);                                                                                                                                                                 
+      const j = await r.json();                                                                                                                                                                                     
+      const events = j.events || [];                                                                                                                                                                                
+      const cats = {};                                                                                                                                                                                              
+      events.forEach(e => (e.categories||[]).forEach(c => cats[c.title] = (cats[c.title]||0)+1));                                                                                                                   
+      let topTitle = 'Incendios';                                                                                                                                                                                   
+      let topCount = 0;                                                                                                                                                                                             
+      Object.entries(cats).forEach(([k,v]) => { if(v>topCount){topTitle=k; topCount=v;} });                                                                                                                         
+      liveValues.deforestation.events = events.length;                                                                                                                                                              
+      liveValues.deforestation.top = topTitle;                                                                                                                                                                      
+      liveValues.deforestation.lastUpdated = Date.now();                                                                                                                                                            
+      liveValues.deforestation._live = true;                                                                                                                                                                        
+      scheduleNext('deforestation');                                                                                                                                                                                
+      return true;                                                                                                                                                                                                  
+    }catch(e){ console.warn('EONET fail', e.message); liveValues.deforestation._live = false; return false; }                                                                                                       
+  }                                                                                                                                                                                                                 
+                                                                                                                                                                                                                    
+  async function fetchWorldBankEnergy(){                                                                                                                                                                            
+    try{                                                                                                                                                                                                            
+      const [co2, renew] = await Promise.all([                                                                                                                                                                      
+        fetch('https://api.worldbank.org/v2/country/WLD/indicator/EN.ATM.CO2E.KT?format=json&per_page=1&mrnev=1').then(r=>r.json()),                                                                                
+        fetch('https://api.worldbank.org/v2/country/WLD/indicator/EG.FEC.RNEW.ZS?format=json&per_page=1&mrnev=1').then(r=>r.json())                                                                                 
+      ]);                                                                                                                                                                                                           
+      if(co2?.[1]?.[0]?.value != null){                                                                                                                                                                             
+        liveValues.energy.co2 = co2[1][0].value;                                                                                                                                                                    
+        liveValues.energy._live = true;                                                                                                                                                                             
+      }                                                                                                                                                                                                             
+      if(renew?.[1]?.[0]?.value != null){                                                                                                                                                                           
+        liveValues.energy.renewables = renew[1][0].value;                                                                                                                                                           
+        liveValues.energy._live = true;                                                                                                                                                                             
+      }                                                                                                                                                                                                             
+      liveValues.energy.lastUpdated = Date.now();                                                                                                                                                                   
+      scheduleNext('energy');                                                                                                                                                                                       
+      return true;                                                                                                                                                                                                  
+    }catch(e){ console.warn('WB energy fail', e.message); liveValues.energy._live = false; return false; }                                                                                                          
+  }                                                                                                                                                                                                                 
+                                                                                                                                                                                                                    
+  async function fetchWorldBankWater(){                                                                                                                                                                             
+    try{                                                                                                                                                                                                            
+      const r = await fetch('https://api.worldbank.org/v2/country/WLD/indicator/ER.H2O.FWTL.ZS?format=json&per_page=1&mrnev=1');                                                                                    
+      if(!r.ok) throw new Error('wb-water '+r.status);                                                                                                                                                              
+      const j = await r.json();                                                                                                                                                                                     
+      if(j?.[1]?.[0]?.value != null){                                                                                                                                                                               
+        liveValues.water.stress = j[1][0].value;                                                                                                                                                                    
+        liveValues.water._live = true;                                                                                                                                                                              
+      }                                                                                                                                                                                                             
+      liveValues.water.lastUpdated = Date.now();                                                                                                                                                                    
+      scheduleNext('water');                                                                                                                                                                                        
+      return true;                                                                                                                                                                                                  
+    }catch(e){ console.warn('WB water fail', e.message); liveValues.water._live = false; return false; }                                                                                                            
+  }                                                                                                                                                                                                                 
+                                                                                                                                                                                                                    
+  async function fetchOzoneWatch(){                                                                                                                                                                                 
+    try{                                                                                                                                                                                                            
+      const r = await fetch('https://ozonewatch.gsfc.nasa.gov/data/yozone/yozone.txt');                                                                                                                             
+      if(!r.ok) throw new Error('ozone '+r.status);                                                                                                                                                                 
+      const txt = await r.text();                                                                                                                                                                                   
+      const lines = txt.trim().split('\n');                                                                                                                                                                         
+      const last = lines[lines.length-1].trim().split(/\s+/);                                                                                                                                                       
+      const date = last[0], area = parseFloat(last[1]);                                                                                                                                                             
+      if(!isNaN(area)){                                                                                                                                                                                             
+        liveValues.ozone.hole = area;                                                                                                                                                                               
+        liveValues.ozone._live = true;                                                                                                                                                                              
+      }                                                                                                                                                                                                             
+      liveValues.ozone.lastUpdated = Date.now();                                                                                                                                                                    
+      scheduleNext('ozone');                                                                                                                                                                                        
+      return true;                                                                                                                                                                                                  
+    }catch(e){ console.warn('OzoneWatch fail (CORS?)', e.message); liveValues.ozone._live = false; return false; }                                                                                                  
+  }                                                                                                                                                                                                                 
+                                                                                                                                                                                                                    
+  function showOfflineBanner(active){                                                                                                                                                                               
+    const el = document.getElementById('statusBanner');                                                                                                                                                             
+    if(!el) return;                                                                                                                                                                                                 
+    el.hidden = !active;                                                                                                                                                                                            
+  }                                                                                                                                                                                                                 
+                                                                                                                                                                                                                    
+  async function fetchAllLive(){                                                                                                                                                                                    
+    if(!liveValues.deforestation) liveValues.deforestation = {};                                                                                                                                                    
+    if(!liveValues.energy) liveValues.energy = {};                                                                                                                                                                  
+    if(!liveValues.water) liveValues.water = {};                                                                                                                                                                    
+    if(!liveValues.ozone) liveValues.ozone = {};                                                                                                                                                                    
+    const results = await Promise.all([                                                                                                                                                                             
+      fetchEonet(), fetchWorldBankEnergy(), fetchWorldBankWater(), fetchOzoneWatch()                                                                                                                                
+    ]);                                                                                                                                                                                                             
+    showOfflineBanner(results.some(r => !r));                                                                                                                                                                       
+    renderAllCards();                                                                                                                                                                                               
+  }                                  
+
+/* ---------- 6) I18N ENGINE ---------- */
+function detectInitialLang(){
+  try{
+    const params = new URLSearchParams(location.search);
+    const q = params.get('lang');
+    if(q && SUPPORTED_LANGS.includes(q)) return q;
+  }catch(e){}
+  try{
+    const stored = localStorage.getItem('ecoclock_lang');
+    if(stored && SUPPORTED_LANGS.includes(stored)) return stored;
+  }catch(e){}
+  const nav = ((navigator.language || 'en').split('-')[0]).toLowerCase();
+  return SUPPORTED_LANGS.includes(nav) ? nav : 'en';
+}
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = i18next.t(el.getAttribute('data-i18n'));
+  });
+  document.title = i18next.t('hero_title_line1') + " " + i18next.t('hero_title_line2') + " \u2014 Eco'clock";
+  const isRtl = RTL_LANGS.includes(i18next.language);
+  document.documentElement.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
+  document.documentElement.setAttribute('lang', i18next.language);
+}
+function initI18n(cb){
+  const lng = detectInitialLang();
+  i18next.init({ lng, fallbackLng:'en', resources: I18N_RESOURCES, returnEmptyString:false }, ()=>{
+    document.getElementById('langSelect').value = lng;
+    applyTranslations();
+    if(cb) cb();
+  });
+}
+
+/* ---------- 7) UI BINDINGS ---------- */
+function openDonateModal(){ document.getElementById('donateModal').classList.add('open'); }
+function closeDonateModal(){ document.getElementById('donateModal').classList.remove('open'); }
+
+function bindUI(){
+  document.getElementById('langSelect').addEventListener('change', (e)=>{
+    const lng = e.target.value;
+    i18next.changeLanguage(lng, ()=>{
+      try{ localStorage.setItem('ecoclock_lang', lng); }catch(e){}
+      applyTranslations();
+      renderAllCards();
+    });
+  });
+
+  document.getElementById('donateBtn').addEventListener('click', ()=>{
+    const url = SITE_CONFIG.donateUrl;
+    if(url && url !== '#'){
+      window.location.href = url;
+    } else {
+      openDonateModal();
+    }
+  });
+  document.getElementById('donateModalClose').addEventListener('click', closeDonateModal);
+  document.getElementById('donateModal').addEventListener('click', (e)=>{
+    if(e.target.id === 'donateModal') closeDonateModal();
+  });
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){ closeModal(); closeDonateModal(); }
+  });
+
+  document.getElementById('refreshAllBtn').addEventListener('click', function(){                                                                                                                                    
+    this.classList.add('spinning');                                                                                                                                                                               
+     Object.keys(DATA_BASE).forEach(id => refreshCard(id, true));                                                                                                                                                  
+     fetchAllLive();                                                                                                                                                                                               
+     setTimeout(()=> this.classList.remove('spinning'), 800);                                                                                                                                                      
+  });
+}
+
+/* ---------- 8) BOOT ---------- */
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('year').textContent = new Date().getFullYear();
+  initI18n(function(){
+    initTheme();
+    initClock();
+    initData();                                                                                                                                                                                                       
+      bindUI();                                                                                                                                                                                                     
+      fetchAllLive();                                                                                                                                                                                               
+      setInterval(fetchAllLive, 30 * 60 * 1000);                                                                                                                                                                    
+    });
+  });
+
+</script>
+
+</body>
+</html>

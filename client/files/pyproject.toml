@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ecoclock-network"
+version = "0.1.0"
+description = "Eco'clock — Dona tiempo de cómputo para verificar datos climáticos"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "Eco'clock" }]
+keywords = ["ecoclock", "distributed-computing", "ngo", "donation"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: X11 Applications",
+]
+# Ajusta a lo que use realmente el cliente (y tu toolkit gráfico).
+dependencies = [
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+# Ejemplo: descomenta el que corresponda a tu GUI
+# gui = ["PyGObject>=3.44"]
+# gui = ["PyQt6>=6.5"]
+dev = ["pytest", "ruff"]
+
+[project.urls]
+Homepage = "https://ecoclock.org"
+API = "https://api.ecoclock.org"
+
+[project.scripts]
+ecoclock = "client.cli:main"
+
+[project.gui-scripts]
+ecoclock-gui = "client.gui.app:main"
+
+[tool.setuptools.packages.find]
+include = ["client*"]
+
+[tool.setuptools.package-data]
+"client.gui" = ["assets/*.png", "assets/*.svg"]

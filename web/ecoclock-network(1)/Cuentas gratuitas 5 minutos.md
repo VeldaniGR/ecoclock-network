@@ -1,0 +1,12 @@
+### Cuentas gratuitas (5 minutos cada una, ya teniéndolas no rompen nada)                                                                                                                                           
+                                                                                                                                                                                                                    
+┌───────────────────────┬─────────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┬──────────────────────────────────────────────────────────┐             
+│ Organización          │ URL de registro                                     │ Límite free tier                                           │ Cubre                                                    │             
+├───────────────────────┼─────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤             
+│ Global Forest Watch   │ https://api.globalforestwatch.org/dashboard/account │ Sin clave pública ya — usan OAuth2 (requiere app aprobada) │ GLAD alerts, área deforestada real                       │             
+├───────────────────────┼─────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤             
+│ EIA                   │ https://www.eia.gov/opendata/register.php           │ 5.000 calls/mes, sin coste                                 │ Datos de energía USA/global (CO₂ por sector, renovables) │             
+├───────────────────────┼─────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤             
+│ NASA Earthdata        │ https://urs.earthdata.nasa.gov/users/new            │ Sin límite claro (rate-limited 100 req/min)                │ MODIS, GLDAS, muchos productos de satélite               │             
+├───────────────────────┼─────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤             
+│ NASA GIBS / Worldview │ sin auth requerida                                  │ ilimitado (solo tiles WMTS)                                │ Capas satelitales para mapas                             │    

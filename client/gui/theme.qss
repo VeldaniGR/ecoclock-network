@@ -1,0 +1,360 @@
+/* ============================================================
+ * Eco'clock GUI Theme — Paleta cálida/orgánica
+ * Basado en la propuesta HTML: tierra, crema, verde-hoja, oro
+ * ============================================================ */
+
+/* ---- Variables de color (usadas via QSS directo) ---- */
+/*
+   --bg: #3a2e22        Fondo principal ventana (tierra oscura)
+   --bg2: #5a4630       Fondo secundario / gradiente
+   --win: #f6ecd9       Fondo "tarjeta" / panel principal (crema cálido)
+   --bar: #ecdcba       Barra superior / status bar (arena)
+   --ink: #3b2d1d       Texto principal (casi negro cálido)
+   --mute: #8a7556      Texto secundario / placeholder
+   --line: #dcc79e      Bordes / divisores
+   --acc: #c98a2b       Acento principal (oro)
+   --acc2: #a96d16      Acento hover/pressed (oro oscuro)
+   --leaf: #6f9a4a      Verde hoja (éxito, progreso, ONGs)
+   --leaf2: #4f7a35     Verde hoja oscuro (hover)
+   --field: #fffaf0     Fondo inputs (blanco hueso)
+*/
+
+/* ---- Ventana principal ---- */
+QMainWindow {
+    background-color: #3a2e22;
+    border-radius: 22px;
+}
+
+QMainWindow::separator {
+    background: #dcc79e;
+    width: 1px;
+    height: 1px;
+}
+
+/* Widget central (la "win" del HTML) */
+EcoClockWindow > QWidget#centralWidget,
+QStackedWidget#pageStack {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #fbf3e2, stop:0.55 #f6ecd9, stop:1 #efdfbf);
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* ---- Tipografía base ---- */
+QLabel {
+    color: #3b2d1d;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
+/* ---- Inputs ---- */
+QLineEdit {
+    background-color: #fffaf0;
+    border: 1.5px solid #dcc79e;
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: #3b2d1d;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    selection-background-color: rgba(201, 138, 43, 0.3);
+}
+
+QLineEdit:focus {
+    border-color: #c98a2b;
+    /* Qt no soporta box-shadow en QSS, se simula con border */
+    border-width: 2px;
+}
+
+QLineEdit::placeholder {
+    color: #8a7556;
+}
+
+QLineEdit:disabled {
+    background-color: #f5ebe0;
+    color: #8a7556;
+    border-color: #e8d8c0;
+}
+
+/* ---- Botón primario (gradiente oro) ---- */
+QPushButton[primary="true"] {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #c98a2b, stop:1 #a96d16);
+    border: none;
+    border-radius: 12px;
+    color: #fff8e6;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 24px;
+    min-height: 20px;
+}
+
+QPushButton[primary="true"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #d49635, stop:1 #b8781a);
+}
+
+QPushButton[primary="true"]:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #b8781a, stop:1 #965d12);
+    padding-top: 14px; padding-bottom: 12px; /* micro lift inverso */
+}
+
+QPushButton[primary="true"]:disabled {
+    background: #dcc79e;
+    color: #f5ebe0;
+}
+
+/* Botón secundario (texto, para links) */
+QPushButton[secondary="true"] {
+    background: transparent;
+    border: none;
+    color: #a96d16;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-size: 12.5px;
+    padding: 4px 8px;
+}
+
+QPushButton[secondary="true"]:hover {
+    color: #c98a2b;
+    text-decoration: underline;
+}
+
+/* Botón primario con acento dorado (para submit manual) */
+QPushButton[primary="true"][accent="true"] {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #c98a2b, stop:1 #a96d16);
+    border: none;
+    border-radius: 12px;
+    color: #fff8e6;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 24px;
+    min-height: 20px;
+}
+
+QPushButton[primary="true"][accent="true"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #d49635, stop:1 #b8781a);
+}
+
+QPushButton[primary="true"][accent="true"]:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #b8781a, stop:1 #965d12);
+    padding-top: 14px; padding-bottom: 12px;
+}
+
+QPushButton[primary="true"][accent="true"]:disabled {
+    background: #dcc79e;
+    color: #f5ebe0;
+}
+
+/* ---- TextEdit (output JSON) ---- */
+QTextEdit {
+    background-color: #fffaf0;
+    border: 1.5px solid #dcc79e;
+    border-radius: 12px;
+    color: #3b2d1d;
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+    font-size: 13px;
+    padding: 10px;
+    selection-background-color: rgba(201, 138, 43, 0.3);
+}
+
+QTextEdit:focus {
+    border-color: #c98a2b;
+    border-width: 2px;
+}
+
+/* ---- ProgressBar (dashboard) ---- */
+QProgressBar {
+    background-color: #ecdcba;
+    border: none;
+    border-radius: 6px;
+    height: 10px;
+    text-align: center;
+    color: transparent; /* ocultamos texto interno */
+}
+
+QProgressBar::chunk {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #6f9a4a, stop:1 #c98a2b);
+    border-radius: 6px;
+}
+
+/* ---- Status Bar ---- */
+QStatusBar {
+    background-color: #ecdcba;
+    color: #8a7556;
+    font-size: 12px;
+    border-top: 1px solid #dcc79e;
+    padding: 8px 18px;
+}
+
+QStatusBar::item {
+    border: none;
+}
+
+/* ---- Menu Bar ---- */
+QMenuBar {
+    background: #ecdcba;
+    color: #3b2d1d;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 8px 16px;
+    border-bottom: 1px solid #dcc79e;
+}
+
+QMenuBar::item {
+    background: transparent;
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+QMenuBar::item:selected {
+    background: #dcc79e;
+}
+
+QMenu {
+    background: #f6ecd9;
+    border: 1px solid #dcc79e;
+    border-radius: 12px;
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 8px 24px;
+    border-radius: 8px;
+    color: #3b2d1d;
+}
+
+QMenu::item:selected {
+    background: #ecdcba;
+}
+
+QMenu::separator {
+    height: 1px;
+    background: #dcc79e;
+    margin: 4px 8px;
+}
+
+/* ---- Clases helper para widgets custom (aplicadas via setProperty) ---- */
+
+/* Tarjetas de stats */
+QWidget[class="statCard"] {
+    background-color: #fffaf0;
+    border: 1px solid #dcc79e;
+    border-radius: 14px;
+}
+
+QWidget[class="statCard"] QLabel[class="statValue"] {
+    font-size: 22px;
+    font-weight: 700;
+    color: #a96d16;
+}
+
+QWidget[class="statCard"] QLabel[class="statLabel"] {
+    color: #8a7556;
+    font-size: 11.5px;
+}
+
+/* Pill "Verificada" */
+QLabel[class="pill"] {
+    background-color: rgba(111, 154, 74, 0.2);
+    color: #4f7a35;
+    border-radius: 99px;
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Row de lista ONGs */
+QWidget[class="orgRow"] {
+    border-bottom: 1px solid #dcc79e;
+}
+
+QWidget[class="orgRow"]:last-child {
+    border-bottom: none;
+}
+
+QWidget[class="orgRow"] QLabel[class="orgName"] {
+    font-size: 13.5px;
+    color: #3b2d1d;
+}
+
+/* Label sección (LABEL uppercase) */
+QLabel[class="sectionLabel"] {
+    font-size: 12px;
+    font-weight: 600;
+    color: #8a7556;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+/* Subtitle login */
+QLabel[class="subtitle"] {
+    color: #8a7556;
+    font-size: 13.5px;
+    line-height: 1.45;
+}
+
+/* Brand title */
+QLabel[class="brandTitle"] {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #3b2d1d;
+}
+
+QLabel[class="brandTitleAccent"] {
+    color: #a96d16;
+}
+
+/* Logo container */
+QWidget[class="brandLogo"] {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #c98a2b, stop:1 #a96d16);
+    border-radius: 14px;
+}
+
+/* Sonar widget */
+QWidget[class="sonarWidget"] {
+    background-color: #1f1812;
+    border-radius: 16px;
+}
+
+/* Dashboard panels */
+QWidget#dashboardLeftPanel {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #fbf3e2, stop:0.55 #f6ecd9, stop:1 #efdfbf);
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+QWidget#dashboardRightPanel {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #fbf3e2, stop:0.55 #f6ecd9, stop:1 #efdfbf);
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-left: none;
+}
+
+/* Manual task widget */
+QWidget[class="manualTaskWidget"] {
+    background-color: #fffaf0;
+    border: 1px solid #dcc79e;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+/* Register page */
+QWidget#registerPage {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #fbf3e2, stop:0.55 #f6ecd9, stop:1 #efdfbf);
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Toggle switch - handled in Python paintEvent */
+
+/* Leaf widget - handled in Python paintEvent */

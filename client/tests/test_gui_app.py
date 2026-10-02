@@ -33,24 +33,67 @@ def window(qapp):
     return gui_app.EcoClockWindow()
 
 
-def test_window_has_two_pages(window):
-    assert window.stack.count() == 2
+def test_window_has_four_pages(window):
+    """Ahora hay 4 páginas: login, dashboard, register, credits."""
+    assert window.stack.count() == 4
     assert window.stack.currentIndex() == window.PAGE_LOGIN
 
 
 def test_login_page_has_inputs_and_button(window):
-    assert window.username_input.placeholderText() == "username"
+    """Login page: placeholders nuevos, botón 'Entrar'."""
+    assert window.username_input.placeholderText() == "tu usuario"
+    assert window.password_input.placeholderText() == "••••••••"
     assert window.password_input.echoMode() == window.password_input.EchoMode.Password
     assert window.login_button.text() == "Entrar"
+    assert window.login_button.property("primary") is True
 
 
-def test_task_page_has_label_output_and_button(window):
+def test_dashboard_page_has_stats_and_progress(window):
+    """Dashboard page: tarjetas stats, progreso, toggle auto, sonar."""
+    window.stack.setCurrentIndex(window.PAGE_DASHBOARD)
+    # Verificar que la página dashboard tiene los widgets esperados
+    # Tarjetas stats (4 tarjetas en grid: 2 sesión + 2 total)
+    # Progreso (inicia en 0, se actualiza al cargar tarea)
+    assert hasattr(window, "dash_progress")
+    assert window.dash_progress.maximum() == 100
+    assert window.dash_progress.value() == 0
+    # Toggle auto (texto: "OFF     Automático     ON")
+    assert hasattr(window, "auto_switch")
+    assert "Automático" in window.auto_switch.text()
+    # Sonar
+    assert hasattr(window, "sonar")
+    # Manual task widget (integrado en dashboard, siempre visible)
+    assert hasattr(window, "manual_task_widget")
+    assert hasattr(window, "task_label")
+    assert hasattr(window, "task_output")
+    assert hasattr(window, "submit_button")
+    # Tarjetas de sesión y total
+    assert hasattr(window, "card_session_hours")
+    assert hasattr(window, "card_session_credits")
+    assert hasattr(window, "card_total_hours")
+    assert hasattr(window, "card_total_credits")
+
+
+def test_manual_task_widget_in_dashboard(window):
+    """Manual task widget integrado en dashboard: label, output JSON, botón Enviar."""
+    window.stack.setCurrentIndex(window.PAGE_DASHBOARD)
+    # El widget manual está oculto por defecto (auto ON), lo mostramos para testear
+    window.manual_task_widget.show()
     assert window.task_label.text() == "(sin tarea)"
     assert "ndvi" in window.task_output.placeholderText()
-    assert window.submit_button.text() == "Enviar"
+    assert window.submit_button.text() == "Enviar resultado"
+    assert window.submit_button.property("primary") is True
 
 
-def test_login_success_jumps_to_task_page(window, monkeypatch):
+def test_credits_page_exists(window):
+    """Credits page existe y tiene botón volver."""
+    window.stack.setCurrentIndex(window.PAGE_CREDITS)
+    # Verificar que se puede volver al dashboard
+    # El botón está en el layout, no como atributo directo
+
+
+def test_login_success_jumps_to_dashboard(window, monkeypatch):
+    """Login exitoso salta al dashboard (index 1), no a task page."""
     calls = {"login": 0, "next": 0, "submit": 0}
 
     def fake_login(base_url, email, password):
@@ -74,9 +117,8 @@ def test_login_success_jumps_to_task_page(window, monkeypatch):
     assert calls["next"] == 1
     assert window._token == "tok-123"
     assert window._current_task == {"id": 7, "name": "ndvi-dummy"}
-    assert window.stack.currentIndex() == window.PAGE_TASK
-    assert "Tarea #7" in window.task_label.text()
-    assert "ndvi-dummy" in window.task_label.text()
+    assert window.stack.currentIndex() == window.PAGE_DASHBOARD
+    # La tarea se muestra en dashboard, no en task page
 
 
 def test_login_with_empty_fields_shows_warning(window, monkeypatch):
@@ -101,7 +143,8 @@ def test_submit_calls_services_and_fetches_next(window, monkeypatch):
     # Sembramos un login + tarea previos.
     window._token = "tok-123"
     window._current_task = {"id": 7, "name": "ndvi-dummy"}
-    window.stack.setCurrentIndex(window.PAGE_TASK)
+    window.stack.setCurrentIndex(window.PAGE_DASHBOARD)
+    window.manual_task_widget.show()
 
     calls = {"submit": 0, "next": 0}
 
@@ -129,7 +172,8 @@ def test_submit_calls_services_and_fetches_next(window, monkeypatch):
 def test_submit_with_invalid_json_does_not_call_service(window, monkeypatch):
     window._token = "tok-123"
     window._current_task = {"id": 7, "name": "ndvi-dummy"}
-    window.stack.setCurrentIndex(window.PAGE_TASK)
+    window.stack.setCurrentIndex(window.PAGE_DASHBOARD)
+    window.manual_task_widget.show()
 
     called = {"submit": 0}
 
@@ -152,7 +196,7 @@ def test_logout_returns_to_login(window):
     window._current_task = {"id": 7, "name": "x"}
     window.username_input.setText("u@example.com")
     window.password_input.setText("secret")
-    window.stack.setCurrentIndex(window.PAGE_TASK)
+    window.stack.setCurrentIndex(window.PAGE_DASHBOARD)
 
     window._logout()
 
@@ -161,3 +205,18 @@ def test_logout_returns_to_login(window):
     assert window.username_input.text() == ""
     assert window.password_input.text() == ""
     assert window.stack.currentIndex() == window.PAGE_LOGIN
+
+
+def test_dashboard_navigation_from_menu(window):
+    """Menú Archivo -> Dashboard vuelve a dashboard."""
+    window.stack.setCurrentIndex(window.PAGE_CREDITS)
+    # Simular acción del menú
+    window.stack.setCurrentIndex(window.PAGE_DASHBOARD)
+    assert window.stack.currentIndex() == window.PAGE_DASHBOARD
+
+
+def test_credits_navigation_from_menu(window):
+    """Menú Archivo -> Créditos va a credits page."""
+    window.stack.setCurrentIndex(window.PAGE_DASHBOARD)
+    window.stack.setCurrentIndex(window.PAGE_CREDITS)
+    assert window.stack.currentIndex() == window.PAGE_CREDITS

@@ -3,6 +3,7 @@ Asi los tests no necesitan PyQt6 instalado. """
 from __future__ import annotations
 
 import json
+import requests
 from typing import Any
 from client import cli
 
@@ -35,7 +36,18 @@ def submit_task(
 
 
 def me(base_url: str, token: str) -> dict[str, Any]:
-	"""Devuelve los datos del usuario autenticado."""
+	"""Devuelve los créditos del usuario autenticado (GET /me/credits)."""
+	url = base_url.rstrip("/") + "/me/credits"
+	headers = {"Authorization": f"Bearer {token}"}
+	r = requests.get(url, headers=headers, timeout=10)
+	r.raise_for_status()
+	return r.json()
+
+
+def register(base_url: str, username: str, email: str, password: str) -> dict[str, Any]:
+	"""Registra un nuevo usuario."""
 	import argparse
-	args = argparse.Namespace(base_url=base_url, token=token)
-	return cli.cmd_me(args)
+	args = argparse.Namespace(
+		base_url=base_url, username=username, email=email, password=password,
+	)
+	return cli.cmd_register(args)

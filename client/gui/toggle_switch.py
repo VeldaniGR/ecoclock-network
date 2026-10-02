@@ -1,4 +1,4 @@
-"""Interruptor deslizante (pill + círculo), estilo 'Activar'."""
+"""Interruptor deslizante (pill + círculo) — recoloreado a paleta Eco'clock."""
 from __future__ import annotations
 
 from PyQt6.QtCore import QPropertyAnimation, QRectF, Qt, pyqtProperty, pyqtSignal
@@ -23,6 +23,10 @@ class ToggleSwitch(QWidget):
 
     def isChecked(self) -> bool:
         return self._checked
+
+    def text(self) -> str:
+        """Devuelve el label del switch (para compatibilidad con tests)."""
+        return self._label
 
     def setChecked(self, checked: bool, *, animate: bool = True) -> None:
         if self._checked == checked:
@@ -60,16 +64,32 @@ class ToggleSwitch(QWidget):
         margin = 2.0
         radius = (h - 2 * margin) / 2.0
 
-        # Fondo píldora
-        bg = QColor("#2a2a24") if not self._checked else QColor("#3d5a40")
+        # Colores paleta Eco'clock
+        # Off: --bar / --line (arena) | On: --leaf / --leaf2 (verde hoja)
+        # Círculo: --field / --win (crema)
+        if self._checked:
+            bg_color = QColor("#6f9a4a")      # --leaf
+            bg_color_end = QColor("#4f7a35")  # --leaf2
+        else:
+            bg_color = QColor("#ecdcba")      # --bar
+            bg_color_end = QColor("#dcc79e")  # --line
+
+        # Fondo píldora con gradiente sutil
         path = QPainterPath()
         path.addRoundedRect(QRectF(margin, margin, w - 2 * margin, h - 2 * margin), radius, radius)
-        p.fillPath(path, bg)
 
-        # Texto
-        p.setPen(QColor("#f0f0f0"))
+        # Gradiente horizontal para el fondo
+        from PyQt6.QtGui import QLinearGradient
+        grad = QLinearGradient(margin, 0, w - margin, 0)
+        grad.setColorAt(0, bg_color)
+        grad.setColorAt(1, bg_color_end)
+        p.fillPath(path, grad)
+
+        # Texto label
+        p.setPen(QColor("#3b2d1d"))  # --ink
         font = QFont()
         font.setPointSize(11)
+        font.setWeight(QFont.Weight.Medium)
         p.setFont(font)
         p.drawText(
             QRectF(16, 0, w * 0.55, h),
@@ -77,10 +97,23 @@ class ToggleSwitch(QWidget):
             self._label,
         )
 
-        # Círculo deslizante
+        # Círculo deslizante - crema (--field / --win)
         track = w - 2 * margin - 2 * radius
         cx = margin + radius + track * self._offset
         cy = h / 2.0
-        p.setBrush(QColor("#f5f5f5"))
+        circle_r = radius - 4
+
+        # Sombra sutil del círculo
+        p.setBrush(QColor(0, 0, 0, 30))
         p.setPen(Qt.PenStyle.NoPen)
-        p.drawEllipse(QRectF(cx - radius + 2, cy - radius + 2, 2 * radius - 4, 2 * radius - 4))
+        p.drawEllipse(QRectF(cx - circle_r + 1, cy - circle_r + 1, 2 * circle_r, 2 * circle_r))
+
+        # Círculo principal
+        p.setBrush(QColor("#fffaf0"))  # --field
+        p.setPen(Qt.PenStyle.NoPen)
+        p.drawEllipse(QRectF(cx - circle_r, cy - circle_r, 2 * circle_r, 2 * circle_r))
+
+        # Indicador interno (opcional: check cuando on)
+        if self._checked:
+            p.setBrush(QColor("#6f9a4a"))  # --leaf
+            p.drawEllipse(QRectF(cx - 4, cy - 4, 8, 8))

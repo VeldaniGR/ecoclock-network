@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://app.ecoclock.example/</loc>
+    <changefreq>hourly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://app.ecoclock.example/?lang=es"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://app.ecoclock.example/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://app.ecoclock.example/?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://app.ecoclock.example/?lang=de"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://app.ecoclock.example/?lang=it"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://app.ecoclock.example/?lang=pt"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://app.ecoclock.example/?lang=zh"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://app.ecoclock.example/?lang=ja"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://app.ecoclock.example/?lang=ru"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://app.ecoclock.example/?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://app.ecoclock.example/"/>
+  </url>
+</urlset>

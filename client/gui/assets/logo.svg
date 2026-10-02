@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg class="brand-logo" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+<circle cx="21" cy="21" fill="none" opacity=".35" r="19" stroke="#c98a2b" stroke-width="1.5"/>
+<circle cx="21" cy="21" fill="none" r="12" stroke="#c98a2b" stroke-width="1.2"/>
+<circle cx="21" cy="21" fill="#c98a2b" r="4.5"/>
+<path d="M21 3v5M21 34v5M3 21h5M34 21h5" opacity=".6" stroke="#c98a2b" stroke-linecap="round" stroke-width="1.2"/>
+<path d="M21 21 L21 10" stroke="#c98a2b" stroke-linecap="round" stroke-width="2"/>
+<path d="M21 21 L28 24.5" stroke="#c98a2b" stroke-linecap="round" stroke-width="1.5"/>
+<circle cx="21" cy="21" fill="#3a2e22" r="1.5"/>
+</svg>

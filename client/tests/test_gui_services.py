@@ -19,12 +19,16 @@ def test_login_devuelve_token():
 
 
 def test_me_pasa_el_token():
-	fake_user = {"id": 7, "username": "alice"}
-	with patch("client.cli.cmd_me", return_value=fake_user) as m:
+	fake_user = {"id": 7, "username": "alice", "total": 123.4, "recent": []}
+	with patch("client.gui.services.requests.get") as m_get:
+		m_get.return_value.raise_for_status = lambda: None
+		m_get.return_value.json.return_value = fake_user
 		result = services.me("http://x", "fake-token-123")
 	assert result == fake_user
-	m.assert_called_once()
-	assert m.call_args[0][0].token == "fake-token-123"
+	m_get.assert_called_once()
+	args, kwargs = m_get.call_args
+	assert args[0] == "http://x/me/credits"
+	assert kwargs["headers"]["Authorization"] == "Bearer fake-token-123"
 
 
 def test_next_task_pide_al_server():

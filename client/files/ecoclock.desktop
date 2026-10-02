@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Eco'clock
+GenericName=Donación de cómputo
+Comment=Dona tiempo de cómputo a ONG verificadas
+Exec=ecoclock-gui
+Icon=ecoclock
+Terminal=false
+Categories=Network;Science;
+Keywords=ecoclock;donacion;computo;ong;
+StartupWMClass=ecoclock
