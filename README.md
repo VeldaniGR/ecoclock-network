@@ -74,8 +74,9 @@ Los créditos reconocen la participación; el valor de los datos se consolida cu
 
 ### Cliente de escritorio
 
-- **Python**
-- **PyQt6** (GUI)
+- **Python** ≥ 3.10, empaquetado con `pyproject.toml` (setuptools)
+- **Typer** + **Rich** (CLI)
+- **PyQt6** (GUI, extra `gui`)
 - **requests** (HTTP)
 - **NumPy** (cálculo)
 - **PyInstaller** (empaquetado **onedir** → `dist/ecoclock-cli/` + `_internal/`)
@@ -94,18 +95,21 @@ ecoclock-network/
 │   │   ├── api/            # Endpoints (auth, tasks, me, …)
 │   │   ├── core/           # Config, seguridad, JWT
 │   │   ├── db/             # Modelos SQLAlchemy
-│   │   └── schemas/        # Pydantic
+│   │   ├── schemas/        # Pydantic
+│   │   └── services/       # copernicus.py: token + search STAC
 │   ├── tests/
 │   ├── Dockerfile
 │   └── requirements.txt
 │
 ├── client/                 # CLI + GUI de escritorio
-│   ├── cli.py
+│   ├── cli.py              # entry point: ecoclock
 │   ├── gui/                # PyQt6
+│   │   └── app.py          # entry point: ecoclock-gui
 │   └── requirements.txt
 │
 ├── tasks/                  # Definición de tareas (dummy / real)
-│   └── ndvi/               # Ejemplo: NDVI
+│   ├── ndvi/               # Ejemplo: NDVI
+│   └── posidonia/          # README esquema payload
 │
 ├── docs/
 │   ├── architecture.md     # (pendiente / en redacción)
@@ -113,17 +117,15 @@ ecoclock-network/
 │   └── legal/
 │       └── checklist-asociacion.md
 │
+├── scripts/                # seed de tareas (STAC CDSE), build-linux.sh
+├── packaging/
+│   └── linux/              # ecoclock.desktop, install-desktop.sh, ecoclock.png
+│
+├── pyproject.toml          # paquete Python + entry points (ecoclock, ecoclock-gui)
 ├── docker-compose.yml
 ├── .gitignore
 ├── LICENSE
 └── README.md
-├── scripts/
-│   └── seed_posidonia_tasks.py   # STAC CDSE → tareas posidonia
-├── server/app/services/
-│   └── copernicus.py             # token + search STAC
-├── tasks/
-│   ├── ndvi/
-│   └── posidonia/                # README esquema payload
 ```
 
 ## 🚀 Estado del proyecto
@@ -149,9 +151,56 @@ Binarios oficiales (GitHub Actions, formato **onedir**):
 
 Todos los releases: <https://github.com/VeldaniGR/ecoclock-network/releases>
 
-## 🏃 Cómo correr el proyecto en local
+## 📥 Instalación (pip / pipx)
+
+El cliente es un paquete Python (`pyproject.toml`, requiere **Python ≥ 3.10**) que instala dos ejecutables en tu `PATH`:
+
+| Comando        | Descripción                          |
+|----------------|--------------------------------------|
+| `ecoclock`     | Cliente de línea de comandos (CLI)   |
+| `ecoclock-gui` | Aplicación gráfica de escritorio     |
 
 ```bash
+# Solo CLI
+pipx install .
+
+# CLI + GUI (PyQt6)
+pipx install ".[gui]"
+
+# Desarrollo (entorno virtual, modo editable, con tests)
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[gui,dev]"
+pytest
+```
+
+Extras disponibles: `gui` (PyQt6) y `dev` (pytest, pytest-asyncio, httpx).
+
+### Icono en el escritorio (Linux)
+
+Para que Eco'clock aparezca en el menú de aplicaciones con su logo:
+
+```bash
+./packaging/linux/install-desktop.sh packaging/linux/ecoclock.png
+```
+
+Copia `ecoclock.desktop` a `~/.local/share/applications/` y el icono a `~/.local/share/icons/hicolor/256x256/apps/`. Requiere haber instalado `ecoclock-gui` (extra `gui`).
+
+## 🏃 Cómo correr el proyecto en local
+
+### Servidor y cliente
+
+```bash
+# Servidor + Postgres + Redis
+docker compose up -d
+
+# Health check
+curl http://localhost:8000/health
+
+# Cliente CLI (tarea de ejemplo)
+python client/cli.py     # o, con el paquete instalado: ecoclock
+```
+
 ### Seed de tareas (Copernicus / Fase C)
 
 Script: `scripts/seed_copernicus_tasks.py`
@@ -170,16 +219,6 @@ python scripts/seed_copernicus_tasks.py --ndvi 5 --posidonia 5 --dry-run
 
 # Inserción real
 python scripts/seed_copernicus_tasks.py --ndvi 5 --posidonia 5
-
-
-# Servidor + Postgres + Redis
-docker compose up -d
-
-# Health check
-curl http://localhost:8000/health
-
-# Cliente CLI (tarea de ejemplo)
-python client/cli.py
 ```
 
 ### Binario autocontenido (PyInstaller — onedir)
