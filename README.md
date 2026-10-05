@@ -119,7 +119,15 @@ ecoclock-network/
 │
 ├── scripts/                # seed de tareas (STAC CDSE), build-linux.sh
 ├── packaging/
-│   └── linux/              # ecoclock.desktop, install-desktop.sh, ecoclock.png
+|   ├── linux/
+│   |    ├── install-desktop.sh
+│   |    ├── ecoclock.desktop
+│   |    └── ecoclock.png
+|   └── windows/
+|       ├── install-desktop.ps1
+|       ├── install-desktop.bat
+|       ├── ecoclock.ico
+|       └── README.md           
 │
 ├── pyproject.toml          # paquete Python + entry points (ecoclock, ecoclock-gui)
 ├── docker-compose.yml
@@ -138,7 +146,7 @@ ecoclock-network/
 | **Fase 3** | Créditos, verificación estilo BOINC | 🟢 Hecha (tag v0.3.0-fase3) |
 | **Fase 4** | Beta: instaladores, auto-update | 🟢 Hecha (v0.5.0–v0.5.3) |
 | **v0.5.3** | Binarios onedir Linux/Windows, fix DLL, auto-update | 🟢 [Release](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.3) |
-| **Móvil** | Cliente Flutter + API ngrok / futura api.ecoclock | 🟡 En curso |
+| **Móvil** | Cliente Flutter + API ngrok / Railway api.ecoclock | 🟢 Hecha |
 | **CDSE / token** | Credenciales servidor + `get_cdse_token` | 🟢 Hecha (local) |
 | **Seed posidonia / NDVI** | Script STAC CDSE → Task pending | 🟢 Hecha (script manual) |
 
