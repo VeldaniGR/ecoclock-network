@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Eco'clock
+Comment=Dona tiempo de cómputo para verificar datos climáticos
+Exec=ecoclock-gui
+Icon=ecoclock
+Terminal=false
+Categories=Utility;Science;Education;
+StartupNotify=true
