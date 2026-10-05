@@ -393,7 +393,7 @@ class EcoClockWindow(QMainWindow):
         header_row.addStretch(1)
 
         from client.gui.toggle_switch import ToggleSwitch
-        self.auto_switch = ToggleSwitch("OFF     Automático     ON", right_widget)
+        self.auto_switch = ToggleSwitch("OFF Auto ON", right_widget)
         self.auto_switch.setMinimumWidth(180)
         self.auto_switch.toggled.connect(self._on_auto_toggled)
         header_row.addWidget(self.auto_switch)
