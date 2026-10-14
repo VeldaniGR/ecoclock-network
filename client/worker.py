@@ -59,10 +59,33 @@ def _compute_posidonia(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def _compute_biodiversity(payload: dict[str, Any]) -> dict[str, Any]:
+    """Stub beta: riqueza de especies. Producción: consulta GBIF real o worker offline."""
+    unit_id = payload.get("unit_id") or "unknown"
+    params = payload.get("params") or {}
+    metric = params.get("metric") or "species_richness"
+    time.sleep(random.uniform(0.1, 0.35))
+    # Placeholder: entero plausible de riqueza en una celda
+    value = int(random.uniform(15, 420))
+    return {
+        "type": "biodiversity",
+        "version": 1,
+        "unit_id": unit_id,
+        "metric": metric,
+        "value": value,
+        "unit": "species_count",
+        "method": "placeholder",
+        "source": (payload.get("source") or {}).get("name"),
+        "processed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+
 def compute(task: dict[str, Any]) -> dict[str, Any]:
     """Punto único CLI / GUI / auto. Salida siempre dict JSON-serializable."""
     payload = _payload(task)
     task_type = (payload.get("type") or "ndvi").lower()
     if task_type == "posidonia":
         return _compute_posidonia(payload)
+    if task_type == "biodiversity":
+        return _compute_biodiversity(payload)
     return _compute_ndvi(payload)
