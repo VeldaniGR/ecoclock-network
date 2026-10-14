@@ -192,7 +192,7 @@ def cmd_run(args: argparse.Namespace) -> dict[str, Any]:
     """Flujo: auth -> next -> compute -> submit.
     Con --auto: repite hasta --max-tasks o Ctrl+C.
     """
-    from . import ndvi
+    from . import worker
 
     token = _auth(args)
     args.token = token
@@ -218,7 +218,7 @@ def cmd_run(args: argparse.Namespace) -> dict[str, Any]:
             print(f"[+] Tarea id={tid} name={name} type={ttype}")
 
             started = time.time()
-            output = ndvi.compute(task)
+            output = worker.compute(task)
             compute_time = time.time() - started
 
             args.task_id = tid

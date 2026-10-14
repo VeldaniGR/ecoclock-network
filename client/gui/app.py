@@ -441,6 +441,12 @@ class EcoClockWindow(QMainWindow):
         self.submit_button.clicked.connect(self._on_submit_clicked)
         layout.addWidget(self.submit_button)
 
+        self.compute_button = QPushButton("Calcular y enviar", widget)
+        self.compute_button.setProperty("primary", True)
+        self.compute_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.compute_button.clicked.connect(self._on_compute_submit_clicked)
+        layout.addWidget(self.compute_button)
+
         return widget
 
     def _make_stat_card(self, value: str, label: str) -> QWidget:
@@ -872,8 +878,12 @@ class EcoClockWindow(QMainWindow):
         self._current_task = task
         tid = task.get("id", "?") if isinstance(task, dict) else "?"
         name = task.get("name", "?") if isinstance(task, dict) else "?"
+        payload = task.get("payload") or {} if isinstance(task, dict) else {}
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+        ttype = payload.get("type", "?") if isinstance(payload, dict) else "?"
         # Actualizar label en el formulario manual inline
-        self.task_label.setText(f"Tarea #{tid}: {name}")
+        self.task_label.setText(f"Tarea #{tid}: {name} [{ttype}]")
         self.task_output.clear()
         # También actualizar dashboard
         self._update_dashboard_task(task)
@@ -882,7 +892,11 @@ class EcoClockWindow(QMainWindow):
         """Actualiza la info de tarea actual en el dashboard."""
         tid = task.get("id", "?")
         name = task.get("name", "?")
-        self.dash_task_label.setText(f"Tarea actual: #{tid} {name}")
+        payload = task.get("payload") or {}
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+        ttype = payload.get("type", "?") if isinstance(payload, dict) else "?"
+        self.dash_task_label.setText(f"Tarea actual: #{tid} {name} [{ttype}]")
         # TODO: calcular progreso real desde la API; por ahora mock
         self.dash_progress.setValue(64)
         self.dash_progress_text.setText("64 % completada")
@@ -912,6 +926,31 @@ class EcoClockWindow(QMainWindow):
         self._update_session_stats()
         self._fetch_next_task()
 
+
+    def _on_compute_submit_clicked(self) -> None:
+        if not self._token or not self._current_task:
+            return
+        from client import worker
+        from client.gui import services
+        import time as _time
+
+        try:
+            t0 = _time.time()
+            output = worker.compute(self._current_task)
+            dt = round(_time.time() - t0, 3)
+            self.task_output.setPlainText(
+                json.dumps(output, indent=2, ensure_ascii=False)
+            )
+            tid = self._current_task.get("id")
+            services.submit_task(self._base_url, self._token, tid, output, dt)
+        except Exception as exc:  # noqa: BLE001
+            QMessageBox.critical(self, "Calcular", str(exc))
+            return
+        self.status_text.setText(f"Tarea {tid} calculada y enviada ({dt}s)")
+        self._session_credits += 1
+        self._update_session_stats()
+        self._fetch_next_task()
+
     def _on_auto_toggled(self, checked: bool) -> None:
         if checked:
             self._start_auto()
@@ -930,6 +969,8 @@ class EcoClockWindow(QMainWindow):
 
         # Deshabilitar botón enviar (widget siempre visible)
         self.submit_button.setEnabled(False)
+        if hasattr(self, "compute_button"):
+            self.compute_button.setEnabled(False)
 
         self._auto_worker = AutoWorker(self._base_url, self._token, sleep_sec=1.0)
         self._auto_worker.task_started.connect(self._on_auto_task_started)
@@ -949,9 +990,13 @@ class EcoClockWindow(QMainWindow):
         else:
             self.sonar.stop()
             self.submit_button.setEnabled(True)
+        if hasattr(self, "compute_button"):
+            self.compute_button.setEnabled(True)
 
     def _on_auto_stopped(self, completed: int) -> None:
         self.submit_button.setEnabled(True)
+        if hasattr(self, "compute_button"):
+            self.compute_button.setEnabled(True)
         self.sonar.stop()
         self.status_text.setText(f"Auto detenido. Completadas: {completed}")
         if self.auto_switch.isChecked():
@@ -963,9 +1008,13 @@ class EcoClockWindow(QMainWindow):
     def _on_auto_task_started(self, task: dict) -> None:
         tid = task.get("id", "?")
         name = task.get("name", "?")
-        self.task_label.setText(f"[AUTO] Tarea #{tid}: {name}")
+        payload = task.get("payload") or {}
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+        ttype = payload.get("type", "?") if isinstance(payload, dict) else "?"
+        self.task_label.setText(f"[AUTO] Tarea #{tid}: {name} [{ttype}]")
         self._current_task = task
-        self.sonar.set_status("Procesando", f"#{tid} {name}")
+        self.sonar.set_status("Procesando", f"#{tid} {name} [{ttype}]")
         self._update_dashboard_task(task)
 
     def _on_auto_task_finished(self, result: dict, dt: float) -> None:
@@ -983,6 +1032,8 @@ class EcoClockWindow(QMainWindow):
     def _on_auto_error(self, msg: str) -> None:
         self.auto_switch.setChecked(False, animate=True)
         self.submit_button.setEnabled(True)
+        if hasattr(self, "compute_button"):
+            self.compute_button.setEnabled(True)
         self.sonar.stop()
         QMessageBox.critical(self, "Auto", f"Error en modo automático:\n{msg}")
 

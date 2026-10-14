@@ -6,7 +6,7 @@ from typing import Any
 
 from PyQt6.QtCore import QThread, pyqtSignal
 
-from client import ndvi
+from client import worker
 from client.gui import services
 
 
@@ -39,7 +39,7 @@ class AutoWorker(QThread):
                 task = services.next_task(self._base_url, self._token)
                 self.task_started.emit(task)
                 t0 = time.time()
-                output = ndvi.compute(task)
+                output = worker.compute(task)
                 dt = round(time.time() - t0, 3)
                 result = services.submit_task(
                     self._base_url,
