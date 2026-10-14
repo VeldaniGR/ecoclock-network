@@ -72,9 +72,20 @@ async def submit_result(
 	if task.status == "done":
 		raise HTTPException(status_code=409, detail="Esta tarea ya fue completada")
 
+	from app.services.validate_output import OutputValidationError, validate_output
+	try:
+		_payload = task.payload
+		if isinstance(_payload, str):
+			_payload = json.loads(_payload)
+		validated = validate_output(_payload, submission.output)
+	except OutputValidationError as e:
+		raise HTTPException(status_code=422, detail=f"Output inválido: {e}") from e
+	except Exception as e:
+		raise HTTPException(status_code=422, detail=f"Output no válido: {e}") from e
+
 	result = Result(
 		task_id=task.id,
-		output=json.dumps(submission.output),
+		output=json.dumps(validated),
 		compute_time_sec=submission.compute_time_sec,
 	)
 	task.status = "done"
