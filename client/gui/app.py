@@ -434,12 +434,6 @@ class EcoClockWindow(QMainWindow):
         self.task_output.setMinimumHeight(120)
         layout.addWidget(self.task_output, stretch=1)
 
-        self.submit_button = QPushButton("Enviar resultado", widget)
-        self.submit_button.setProperty("primary", True)
-        self.submit_button.setProperty("accent", True)  # Para estilo dorado en QSS
-        self.submit_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.submit_button.clicked.connect(self._on_submit_clicked)
-        layout.addWidget(self.submit_button)
 
         self.compute_button = QPushButton("Calcular y enviar", widget)
         self.compute_button.setProperty("primary", True)
@@ -792,12 +786,14 @@ class EcoClockWindow(QMainWindow):
         except Exception:
             pass
 
-    def _update_total_stats_cards(self, total_hours: float, total_credits: int) -> None:
+    def _update_total_stats_cards(self, total_hours: float, total_credits) -> None:
         """Actualiza las tarjetas de totales (desde API)."""
-        # Formatear horas con 1 decimal
         self.card_total_hours.findChild(QLabel, "statValue").setText(f"{total_hours:.1f} h")
-        # Formatear créditos con separador de miles
-        self.card_total_credits.findChild(QLabel, "statValue").setText(f"{total_credits:,}".replace(",", "."))
+        try:
+            n = int(round(float(total_credits)))
+        except (TypeError, ValueError):
+            n = 0
+        self.card_total_credits.findChild(QLabel, "statValue").setText(f"{n:,}".replace(",", "."))
 
     def _update_session_stats(self) -> None:
         """Actualiza las tarjetas de sesión (cronómetro en vivo)."""
@@ -809,6 +805,19 @@ class EcoClockWindow(QMainWindow):
         self.card_session_hours.findChild(QLabel, "statValue").setText(f"{session_hours:.1f} h")
         # Créditos de sesión
         self.card_session_credits.findChild(QLabel, "statValue").setText(str(self._session_credits))
+
+    def _refresh_total_credits(self) -> None:
+        """Vuelve a pedir /me/credits y actualiza la tarjeta de totales."""
+        if not self._token:
+            return
+        from client.gui import services
+        try:
+            credits = services.me(self._base_url, self._token)
+            total = credits.get("total", credits.get("totalCredits", 0))
+            total_hours = credits.get("totalHours", float(total) * 0.01)
+            self._update_total_stats_cards(total_hours, total)
+        except Exception:
+            pass
 
     def _show_credits_page(self) -> None:
         if not self._token:
@@ -844,6 +853,10 @@ class EcoClockWindow(QMainWindow):
             return
 
         total = data.get("total", data.get("totalCredits", "?"))
+        try:
+            total_txt = str(int(round(float(total))))
+        except (TypeError, ValueError):
+            total_txt = str(total)
         # Total label
         total_label = QLabel(f"Total: {total}")
         total_label.setStyleSheet("font-size: 16px; font-weight: 600; color: #3b2d1d; padding: 8px;")
@@ -897,9 +910,8 @@ class EcoClockWindow(QMainWindow):
             payload = json.loads(payload)
         ttype = payload.get("type", "?") if isinstance(payload, dict) else "?"
         self.dash_task_label.setText(f"Tarea actual: #{tid} {name} [{ttype}]")
-        # TODO: calcular progreso real desde la API; por ahora mock
-        self.dash_progress.setValue(64)
-        self.dash_progress_text.setText("64 % completada")
+        self.dash_progress.setValue(0)
+        self.dash_progress_text.setText("0 % — lista para calcular")
 
     def _on_submit_clicked(self) -> None:
         if not self._token or not self._current_task:
@@ -930,6 +942,10 @@ class EcoClockWindow(QMainWindow):
     def _on_compute_submit_clicked(self) -> None:
         if not self._token or not self._current_task:
             return
+
+        self.dash_progress.setRange(0, 0)  # barra indeterminada (animada)
+        self.dash_progress_text.setText("Calculando…")
+
         from client import worker
         from client.gui import services
         import time as _time
@@ -944,11 +960,19 @@ class EcoClockWindow(QMainWindow):
             tid = self._current_task.get("id")
             services.submit_task(self._base_url, self._token, tid, output, dt)
         except Exception as exc:  # noqa: BLE001
+            self.dash_progress.setRange(0, 100)
+            self.dash_progress.setValue(0)
+            self.dash_progress_text.setText("Error — reintenta")
             QMessageBox.critical(self, "Calcular", str(exc))
             return
+
+        self.dash_progress.setRange(0, 100)
+        self.dash_progress.setValue(100)
+        self.dash_progress_text.setText("100 % completada")
         self.status_text.setText(f"Tarea {tid} calculada y enviada ({dt}s)")
         self._session_credits += 1
         self._update_session_stats()
+        self._refresh_total_credits()
         self._fetch_next_task()
 
     def _on_auto_toggled(self, checked: bool) -> None:
@@ -968,7 +992,6 @@ class EcoClockWindow(QMainWindow):
         from client.gui.auto_worker import AutoWorker
 
         # Deshabilitar botón enviar (widget siempre visible)
-        self.submit_button.setEnabled(False)
         if hasattr(self, "compute_button"):
             self.compute_button.setEnabled(False)
 
@@ -989,12 +1012,10 @@ class EcoClockWindow(QMainWindow):
             self.status_text.setText("Parando automático…")
         else:
             self.sonar.stop()
-            self.submit_button.setEnabled(True)
         if hasattr(self, "compute_button"):
             self.compute_button.setEnabled(True)
 
     def _on_auto_stopped(self, completed: int) -> None:
-        self.submit_button.setEnabled(True)
         if hasattr(self, "compute_button"):
             self.compute_button.setEnabled(True)
         self.sonar.stop()
@@ -1026,12 +1047,12 @@ class EcoClockWindow(QMainWindow):
         self.sonar.set_status("Enviada", f"task {tid} · {dt}s")
         # Actualizar stats de sesión
         self._session_compute_time += dt
-        self._session_credits += 1  # Asumimos 1 crédito por tarea; ajustar según API
+        self._session_credits += 1
         self._update_session_stats()
+        self._refresh_total_credits()
 
     def _on_auto_error(self, msg: str) -> None:
         self.auto_switch.setChecked(False, animate=True)
-        self.submit_button.setEnabled(True)
         if hasattr(self, "compute_button"):
             self.compute_button.setEnabled(True)
         self.sonar.stop()
