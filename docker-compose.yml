@@ -4,12 +4,12 @@
       container_name: ecoclock-db
       environment:
         POSTGRES_USER: ecoclock
-        POSTGRES_PASSWORD: CHANGE_ME_dev_password
+        POSTGRES_PASSWORD: Veldani&Octo555$
         POSTGRES_DB: ecoclock
       volumes:
         - postgres-data:/var/lib/postgresql/data
-      ports:
-        - "5432:5432"
+     #  ports:
+       # - "5432:5432"
       healthcheck:
         test: ["CMD-SHELL", "pg_isready -U ecoclock -d ecoclock"]
         interval: 5s
@@ -20,8 +20,8 @@
     redis:
       image: redis:7-alpine
       container_name: ecoclock-redis
-      ports:
-        - "6379:6379"
+     #  ports:
+       # - "6379:6379"
       volumes:
         - redis-data:/data
       healthcheck:
@@ -36,11 +36,16 @@
         context: ./server
         dockerfile: Dockerfile
       container_name: ecoclock-api
+      env_file:
+        - .env
       environment:
-        DATABASE_URL: postgresql://ecoclock:CHANGE_ME_dev_password@db:5432/ecoclock
+        DATABASE_URL: postgresql://ecoclock:Veldani&Octo555$@db:5432/ecoclock
         REDIS_URL: redis://redis:6379/0
-        SECRET_KEY: CHANGE_ME_dev_secret_key
-        ENVIRONMENT: development
+        RESEND_API_KEY: ${RESEND_API_KEY}
+        RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@ecoclock.org}
+        PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: ${PASSWORD_RESET_TOKEN_EXPIRE_MINUTES:-30}
+        SECRET_KEY: 330d370a9f63bfd0f8ec4458f576edd9e397f2659a17c7d255914e23b890af07
+        ENVIRONMENT: production
       ports:
         - "8000:8000"
       depends_on:

@@ -22,3 +22,10 @@ class UserResponse(UserBase):
 class Token(BaseModel):
 	access_token: str
 	token_type: str
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(..., min_length=20)
+    new_password: str = Field(..., min_length=8)

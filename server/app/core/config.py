@@ -11,7 +11,10 @@ class Settings(BaseSettings):
     # Créditos extra por segundo de cómputo (tope anti-abuso)
     CREDITS_PER_COMPUTE_SEC: float = 0.1
     CREDITS_COMPUTE_CAP_SEC: float = 60.0  # máx. segundos que cuentan
-      
+    # Resend (password reset)
+    RESEND_API_KEY: str = ""
+    RESEND_FROM_EMAIL: str = "noreply@ecoclock.org"
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
 
     # Copernicus Data Space Ecosystem
     CDSE_USERNAME: str = ""

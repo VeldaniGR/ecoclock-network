@@ -31,6 +31,82 @@ async def _create_dummy_ndvi_task(db: AsyncSession) -> Task:
 	await db.refresh(task)
 	return task
 
+async def _ensure_pending_tasks(db: AsyncSession, min_pending: int = 3) -> None:
+    """Si hay pocas tareas pending, inserta un lote sintético (NDVI + Posidonia + fungi)."""
+    from sqlalchemy import func
+
+    count = (
+        await db.execute(
+            select(func.count()).select_from(Task).where(Task.status == "pending")
+        )
+    ).scalar() or 0
+    if count >= min_pending:
+        return
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    batch = []
+
+    for i in range(3):
+        batch.append(
+            Task(
+                name=f"ndvi-auto-{i}-{int(now.timestamp())}",
+                payload=json.dumps(
+                    {
+                        "type": "ndvi",
+                        "version": 1,
+                        "tile_id": f"AUTO_NDVI_{i}",
+                        "bands": {"red": 0.08 + i * 0.01, "nir": 0.36 + i * 0.02},
+                        "description": "NDVI auto (API refill)",
+                    }
+                ),
+                status="pending",
+                created_at=now,
+            )
+        )
+    for i in range(2):
+        batch.append(
+            Task(
+                name=f"posidonia-auto-{i}-{int(now.timestamp())}",
+                payload=json.dumps(
+                    {
+                        "type": "posidonia",
+                        "version": 1,
+                        "unit_id": f"POS-AUTO-{i:04d}",
+                        "region": "Illes Balears",
+                        "params": {"metric": "surface_m2", "method": "placeholder"},
+                        "description": "Posidonia auto (API refill)",
+                    }
+                ),
+                status="pending",
+                created_at=now,
+            )
+        )
+    for i, sp in enumerate(["Boletus edulis", "Cantharellus cibarius"]):
+        slug = sp.lower().replace(" ", "-")
+        batch.append(
+            Task(
+                name=f"fungi-auto-{slug}-{int(now.timestamp())}",
+                payload=json.dumps(
+                    {
+                        "type": "biodiversity",
+                        "subtype": "fungi",
+                        "version": 1,
+                        "unit_id": f"FUNGI-AUTO-{i:04d}",
+                        "taxon": sp,
+                        "region": "Mediterraneo",
+                        "params": {"metric": "presence_score", "method": "placeholder"},
+                        "description": f"Fungi auto (API refill): {sp}",
+                    }
+                ),
+                status="pending",
+                created_at=now,
+            )
+        )
+
+    for t in batch:
+        db.add(t)
+    await db.commit()
+
 
 @router.get("/next", response_model=TaskResponse)
 async def get_next_task(
@@ -38,12 +114,29 @@ async def get_next_task(
     current_user: User = Depends(get_current_user),
 ):
     """Devuelve la siguiente tarea pendiente para el usuario autenticado."""
+    await _ensure_pending_tasks(db, min_pending=3)
+
     result = await db.execute(
         select(Task).where(Task.status == "pending").order_by(Task.id).limit(1)
     )
     task = result.scalar_one_or_none()
     if not task:
-        task = await _create_dummy_ndvi_task(db)
+        # Último recurso (no debería ocurrir tras _ensure_pending_tasks)
+        task = Task(
+            name="ndvi-dummy",
+            payload=json.dumps(
+                {
+                    "type": "ndvi",
+                    "tile_id": "S2A_DUMMY",
+                    "bands": {"red": 0.08, "nir": 0.42},
+                    "description": "NDVI dummy fallback",
+                }
+            ),
+            status="pending",
+        )
+        db.add(task)
+        await db.commit()
+        await db.refresh(task)
 
     task.status = "assigned"
     task.user_id = current_user.id
