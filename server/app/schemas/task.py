@@ -28,7 +28,9 @@ class TaskResponse(BaseModel):
 class TaskSubmit(BaseModel):
     task_id: int
     output: Dict[str, Any]
-    compute_time_sec: Optional[float] = None
+    compute_time_sec: float | None = None
+    client: str | None = None          # flutter_mobile | gui | cli
+    client_mode: str | None = None     # manual | auto
 
 
 

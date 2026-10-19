@@ -176,35 +176,36 @@ async def submit_result(
 	except Exception as e:
 		raise HTTPException(status_code=422, detail=f"Output no válido: {e}") from e
 
-	result = Result(
-		task_id=task.id,
-		output=json.dumps(validated),
-		compute_time_sec=submission.compute_time_sec,
-	)
-	task.status = "done"
-	task.completed_at = datetime.now(timezone.utc)
-	# Créditos = base + bonus por tiempo (acotado)
-	compute_sec = float(submission.compute_time_sec or 0.0)
-	if compute_sec < 0:
-		compute_sec = 0.0
-	capped = min(compute_sec, settings.CREDITS_COMPUTE_CAP_SEC)
-	amount = settings.CREDITS_PER_TASK + (
-		settings.CREDITS_PER_COMPUTE_SEC * capped
-	)
-	amount = round(amount, 4)
+    result = Result(
+        task_id=task.id,
+        output=json.dumps(validated),
+        compute_time_sec=submission.compute_time_sec,
+        client=submission.client,
+        client_mode=submission.client_mode,
+    )
+    task.status = "done"
+    task.completed_at = datetime.now(timezone.utc)
+    # Créditos = base + bonus por tiempo (acotado)
+    compute_sec = float(submission.compute_time_sec or 0.0)
+    if compute_sec < 0:
+        compute_sec = 0.0
+    capped = min(compute_sec, settings.CREDITS_COMPUTE_CAP_SEC)
+    amount = settings.CREDITS_PER_TASK + (
+        settings.CREDITS_PER_COMPUTE_SEC * capped
+    )
+    amount = round(amount, 4)
 
-	credit = Credit(
-		user_id=current_user.id,
-		task_id=task.id,
-		amount=amount,
-	)
-	db.add(result)
-	db.add(credit)
-	await db.commit()
-	await db.refresh(result)
+    credit = Credit(
+        user_id=current_user.id,
+        task_id=task.id,
+        amount=amount,
+    )
+    db.add(result)
+    db.add(credit)
+    await db.commit()
+    await db.refresh(result)
 
-	if isinstance(result.output, str):
-		result.output = json.loads(result.output)
+    if isinstance(result.output, str):
+        result.output = json.loads(result.output)
 
-	return result
-
+    return result

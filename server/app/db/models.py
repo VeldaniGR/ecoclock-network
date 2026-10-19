@@ -32,13 +32,15 @@ class Task(Base):
 	credits = relationship("Credit", back_populates="task")
 
 class Result(Base):
-	__tablename__ = "results"
-	id = Column(Integer, primary_key=True, index=True)
-	task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False)
-	output = Column(Text, nullable=False)
-	compute_time_sec = Column(Float, nullable=True)
-	created_at = Column(DateTime, default=utcnow)
-	task = relationship("Task", back_populates="results")
+    __tablename__ = "results"
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False)
+    output = Column(Text, nullable=False)
+    compute_time_sec = Column(Float, nullable=True)
+    client = Column(String, nullable=True)        # flutter_mobile | gui | cli
+    client_mode = Column(String, nullable=True)   # manual | auto
+    created_at = Column(DateTime, default=utcnow)
+    task = relationship("Task", back_populates="results")
 
 class Credit(Base):
 	__tablename__ = "credits"
