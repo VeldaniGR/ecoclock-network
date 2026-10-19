@@ -157,14 +157,14 @@ async def submit_result(
 	current_user: User = Depends(get_current_user),
 ):
 	"""Recibe el resultado de una tarea procesada por el cliente."""
-	task = result = await db.execute(select(Task).where(Task.id == submission.task_id)); task = result.scalar_one_or_none()
+	result = await db.execute(select(Task).where(Task.id == submission.task_id))
+	task = result.scalar_one_or_none()
 	if not task:
 		raise HTTPException(status_code=404, detail="Tarea no encontrada")
 	if task.user_id != current_user.id:
 		raise HTTPException(status_code=403, detail="Esta tarea no te pertenece")
 	if task.status == "done":
 		raise HTTPException(status_code=409, detail="Esta tarea ya fue completada")
-
 	from app.services.validate_output import OutputValidationError, validate_output
 	try:
 		_payload = task.payload
@@ -176,36 +176,33 @@ async def submit_result(
 	except Exception as e:
 		raise HTTPException(status_code=422, detail=f"Output no válido: {e}") from e
 
-    result = Result(
-        task_id=task.id,
-        output=json.dumps(validated),
-        compute_time_sec=submission.compute_time_sec,
-        client=submission.client,
-        client_mode=submission.client_mode,
-    )
-    task.status = "done"
-    task.completed_at = datetime.now(timezone.utc)
-    # Créditos = base + bonus por tiempo (acotado)
-    compute_sec = float(submission.compute_time_sec or 0.0)
-    if compute_sec < 0:
-        compute_sec = 0.0
-    capped = min(compute_sec, settings.CREDITS_COMPUTE_CAP_SEC)
-    amount = settings.CREDITS_PER_TASK + (
-        settings.CREDITS_PER_COMPUTE_SEC * capped
-    )
-    amount = round(amount, 4)
-
-    credit = Credit(
-        user_id=current_user.id,
-        task_id=task.id,
-        amount=amount,
-    )
-    db.add(result)
-    db.add(credit)
-    await db.commit()
-    await db.refresh(result)
-
-    if isinstance(result.output, str):
-        result.output = json.loads(result.output)
-
-    return result
+	result_row = Result(
+		task_id=task.id,
+		output=json.dumps(validated),
+		compute_time_sec=submission.compute_time_sec,
+		client=submission.client,
+		client_mode=submission.client_mode,
+	)
+	task.status = "done"
+	task.completed_at = datetime.now(timezone.utc)
+	# Créditos = base + bonus por tiempo (acotado)
+	compute_sec = float(submission.compute_time_sec or 0.0)
+	if compute_sec < 0:
+		compute_sec = 0.0
+	capped = min(compute_sec, settings.CREDITS_COMPUTE_CAP_SEC)
+	amount = settings.CREDITS_PER_TASK + (
+		settings.CREDITS_PER_COMPUTE_SEC * capped
+	)
+	amount = round(amount, 4)
+	credit = Credit(
+		user_id=current_user.id,
+		task_id=task.id,
+		amount=amount,
+	)
+	db.add(result_row)
+	db.add(credit)
+	await db.commit()
+	await db.refresh(result_row)
+	if isinstance(result_row.output, str):
+		result_row.output = json.loads(result_row.output)
+	return result_row
