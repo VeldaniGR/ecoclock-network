@@ -40,34 +40,25 @@ async def get_my_credits(
     )
     recent = rows.scalars().all()
 
-    # Contadores por client_mode / client (tabla results + tasks del usuario)
-    mode_rows = await db.execute(
-        select(
-            func.coalesce(Result.client_mode, "unknown"),
-            func.count(),
-        )
-        .join(Task, Task.id == Result.task_id)
-        .where(Task.user_id == current_user.id)
-        .group_by(func.coalesce(Result.client_mode, "unknown"))
-    )
-    by_mode = {str(k): int(v) for k, v in mode_rows.all()}
+	# Contadores por client_mode / client (NULL -> unknown)
+	mode_rows = await db.execute(
+		select(Result.client_mode, func.count())
+		.join(Task, Task.id == Result.task_id)
+		.where(Task.user_id == current_user.id)
+		.group_by(Result.client_mode)
+	)
+	by_mode: dict[str, int] = {}
+	for key, cnt in mode_rows.all():
+		label = key if key else "unknown"
+		by_mode[label] = by_mode.get(label, 0) + int(cnt)
 
-    client_rows = await db.execute(
-        select(
-            func.coalesce(Result.client, "unknown"),
-            func.count(),
-        )
-        .join(Task, Task.id == Result.task_id)
-        .where(Task.user_id == current_user.id)
-        .group_by(func.coalesce(Result.client, "unknown"))
-    )
-    by_client = {str(k): int(v) for k, v in client_rows.all()}
-
-    return CreditsSummary(
-        user_id=current_user.id,
-        username=current_user.username,
-        total=total,
-        recent=[CreditOut.model_validate(c, from_attributes=True) for c in recent],
-        by_mode=by_mode,
-        by_client=by_client,
-    )
+	client_rows = await db.execute(
+		select(Result.client, func.count())
+		.join(Task, Task.id == Result.task_id)
+		.where(Task.user_id == current_user.id)
+		.group_by(Result.client)
+	)
+	by_client: dict[str, int] = {}
+	for key, cnt in client_rows.all():
+		label = key if key else "unknown"
+		by_client[label] = by_client.get(label, 0) + int(cnt)
