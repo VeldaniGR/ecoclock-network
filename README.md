@@ -14,6 +14,25 @@ Eco'clock combina tres pilares:
 
 Crear un **intermediario de confianza** entre quienes quieren contribuir al cuidado del medio ambiente y las organizaciones que realizan el trabajo de campo, reduciendo el riesgo de donar a proyectos opacos o no verificados.
 
+## Estado del servicio (producción)
+
+| Recurso | URL / nota |
+|---------|------------|
+| **API** | `https://api.ecoclock.org` (Contabo, Docker, Caddy + HTTPS) |
+| **Health** | `GET /health` → `{"status":"ok","service":"ecoclock-network",...}` |
+| **Descargas** | [download.ecoclock.org](https://download.ecoclock.org) (CLI, GUI, APK) |
+| **Landing** | [ecoclock.org](https://ecoclock.org) |
+
+Clientes (CLI, GUI, APK) apuntan por defecto a la API de producción.
+
+### Usar la red en producción (recomendado)
+
+```bash
+# Tras instalar CLI o desde el binario
+ecoclock --base-url https://api.ecoclock.org login --username TU_USER --password TU_PASS
+ecoclock --base-url https://api.ecoclock.org run --max-tasks 1
+# o: ecoclock-gui  (usa la misma API por defecto)
+
 ## 📐 Arquitectura (resumen)
 
 ```
@@ -50,6 +69,9 @@ La *Posidonia oceanica* es una planta marina endémica del Mediterráneo (no un 
 Eco'clock no se limita a aceptar lo que envía cada ordenador. El proceso tiene varias capas de control de calidad:
 
 1. **Revisión automática al enviar** — Cada resultado debe tener el formato correcto y valores plausibles (por ejemplo, un índice de vegetación en un rango posible, o una superficie coherente con la zona analizada).
+
+*Hoy en producción:* validación de formato/valores al submit y créditos por tarea.  
+*En evolución:* contraste multi-nodo y revisiones humanas sistemáticas (documentado en `docs/` al activarse).
 
 2. **Contraste entre varios participantes** — La misma unidad de trabajo puede calcularse en más de un equipo. Si los resultados coinciden de forma razonable, se consideran válidos. Si discrepan mucho, el sistema los marca para revisar o solicita otro cálculo.
 
@@ -136,28 +158,33 @@ ecoclock-network/
 └── README.md
 ```
 
-## 🚀 Estado del proyecto
+## Estado del proyecto
 
-| Fase | Descripción | Estado |
+| Área | Descripción | Estado |
 |------|-------------|--------|
-| **Fase 0** | Cimientos: repo, docs, entorno local | 🟢 Hecha |
-| **Fase 1** | Prototipo: servidor + cliente CLI | 🟢 Hecha |
-| **Fase 2** | GUI PyQt6 (login → next → submit E2E) | 🟢 Hecha |
-| **Fase 3** | Créditos, verificación estilo BOINC | 🟢 Hecha (tag v0.3.0-fase3) |
-| **Fase 4** | Beta: instaladores, auto-update | 🟢 Hecha (v0.5.0–v0.5.3) |
-| **v0.5.3** | Binarios onedir Linux/Windows, fix DLL, auto-update | 🟢 [Release](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.3) |
-| **Móvil** | Cliente Flutter + API ngrok / Railway api.ecoclock | 🟢 Hecha |
-| **CDSE / token** | Credenciales servidor + `get_cdse_token` | 🟢 Hecha (local) |
-| **Seed posidonia / NDVI** | Script STAC CDSE → Task pending | 🟢 Hecha (script manual) |
+| API producción | Contabo + Docker + Caddy (`api.ecoclock.org`) | Hecho |
+| Auth | Registro, login JWT, forgot/reset password (Resend) | Hecho |
+| Tareas | NDVI, Posidonia, biodiversidad; refill + cron | Hecho |
+| CDSE | Credenciales en servidor; seed STAC Copernicus | Hecho (operativo en VPS) |
+| Créditos | `/me/credits`; tracking `client` / `client_mode` | Hecho |
+| CLI + GUI | Submit manual/auto; default `api.ecoclock.org` | Hecho |
+| APK Flutter | Compute por tipo, créditos, reset password, contadores | Hecho |
+| download.ecoclock.org | Descargas + explicación Copernicus | Hecho |
+| Whitelist ONGs / donaciones € | Pilares de producto a medio plazo | Roadmap |
+| i18n clientes (12 idiomas) | Landing ya multi-idioma; CLI/GUI/APK pendiente | Roadmap |
+
+Fases 0–4 (prototipo → beta instaladores v0.5.x) están cerradas; el foco actual es **operación estable** y calidad de tareas reales.
 
 ## 📦 Descargas
 
-Binarios oficiales (GitHub Actions, formato **onedir**):
+- **Sitio de descargas:** [download.ecoclock.org](https://download.ecoclock.org)  
+  (CLI Linux/Windows, APK Android, explicación de las tareas Copernicus)
 
-- [ecoclock-cli v0.5.3 · Linux x86_64 (tar.gz)](https://github.com/VeldaniGR/ecoclock-network/releases/download/v0.5.3/ecoclock-cli-v0.5.3-linux-x86_64.tar.gz)
-- [ecoclock-cli v0.5.3 · Windows x86_64 (zip)](https://github.com/VeldaniGR/ecoclock-network/releases/download/v0.5.3/ecoclock-cli-v0.5.3-windows-x86_64.zip)
+- **Releases GitHub:** [ecoclock-network/releases](https://github.com/VeldaniGR/ecoclock-network/releases)  
+  Última estable de ejemplo: [v0.5.3](https://github.com/VeldaniGR/ecoclock-network/releases/tag/v0.5.3)
 
-Todos los releases: <https://github.com/VeldaniGR/ecoclock-network/releases>
+- **App móvil (código):** [ecoclock-mobile](https://github.com/VeldaniGR/ecoclock-mobile)
+
 
 ## 📥 Instalación (pip / pipx)
 
@@ -273,10 +300,10 @@ ecoclock update --check  # solo informa si hay release nuevo
 
 Eco'clock apuesta por la transparencia: código público, y a medio plazo cuentas y verificaciones de ONGs también públicas.
 
-## 🤝 Contribuir
+## Contribuir
 
-Por ahora el proyecto está en fase temprana (fundador + asistencia AI). Cuando la beta esté abierta al público general, se habilitarán issues y PRs de forma más amplia.
+La beta de **cómputo** está abierta: descarga en [download.ecoclock.org](https://download.ecoclock.org), prueba 10 minutos y reporta fallos en [Issues](https://github.com/VeldaniGR/ecoclock-network/issues).
 
----
+PRs y discusiones técnicas bienvenidas en el repo. El núcleo de donaciones económicas / whitelist de ONGs avanza en paralelo y se documentará cuando tenga superficie usable.
 
 **Hecho con 💚 para el planeta.**
