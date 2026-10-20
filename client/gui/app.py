@@ -927,7 +927,8 @@ class EcoClockWindow(QMainWindow):
         task_id = self._current_task.get("id")
         try:
             services.submit_task(
-                self._base_url, self._token, task_id, output, 0.0,
+                self._base_url, self._token, tid, output, dt,
+                client="gui", client_mode="manual",
             )
         except Exception as exc:  # noqa: BLE001
             QMessageBox.critical(self, "Enviar", f"Fallo al enviar:\n{exc}")
@@ -958,7 +959,7 @@ class EcoClockWindow(QMainWindow):
                 json.dumps(output, indent=2, ensure_ascii=False)
             )
             tid = self._current_task.get("id")
-            services.submit_task(self._base_url, self._token, tid, output, dt)
+            services.submit_task(self._base_url, self._token, tid, output, dt, client="gui", client_mode="manual")
         except Exception as exc:  # noqa: BLE001
             self.dash_progress.setRange(0, 100)
             self.dash_progress.setValue(0)

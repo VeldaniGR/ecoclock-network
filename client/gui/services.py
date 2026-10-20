@@ -24,13 +24,24 @@ def next_task(base_url: str, token: str) -> dict[str, Any]:
 
 
 def submit_task(
-	base_url: str, token: str, task_id: int, output: dict, compute_time_sec: float,
-	) -> dict[str, Any]:
+	base_url: str,
+	token: str,
+	task_id: int,
+	output: dict,
+	compute_time_sec: float,
+	client: str = "gui",
+	client_mode: str = "manual",
+) -> dict[str, Any]:
 	"""Envia el resultado de una tarea."""
 	import argparse
 	args = argparse.Namespace(
-		base_url=base_url, token=token, task_id=task_id,
-		output=json.dumps(output), compute_time_sec=compute_time_sec,
+		base_url=base_url,
+		token=token,
+		task_id=task_id,
+		output=json.dumps(output),
+		compute_time_sec=compute_time_sec,
+		client=client,
+		client_mode=client_mode,
 	)
 	return cli.cmd_submit(args)
 

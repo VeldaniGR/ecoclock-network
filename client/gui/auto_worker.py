@@ -47,6 +47,8 @@ class AutoWorker(QThread):
                     task["id"],
                     output,
                     dt,
+                    client="gui",
+                    client_mode="auto",
                 )
                 self._completed += 1
                 self.task_finished.emit(result, dt)
