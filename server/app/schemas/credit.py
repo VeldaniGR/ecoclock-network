@@ -20,7 +20,6 @@ class CreditsSummary(BaseModel):
         default_factory=list,
         description="Últimos créditos concedidos (más recientes primero)",
     )
-    # Contadores de resultados por modo / cliente (option B)
     by_mode: dict[str, int] = Field(
         default_factory=dict,
         description="Conteo de resultados: manual | auto | unknown",
@@ -28,4 +27,15 @@ class CreditsSummary(BaseModel):
     by_client: dict[str, int] = Field(
         default_factory=dict,
         description="Conteo de resultados: flutter_mobile | gui | cli | unknown",
+    )
+    # Dashboard / gamificación (fase A)
+    tasks_done: int = Field(0, ge=0, description="Resultados enviados por el usuario")
+    credits_this_week: float = Field(
+        0, ge=0, description="Créditos concedidos desde el lunes 00:00 UTC"
+    )
+    streak_days: int = Field(
+        0, ge=0, description="Días consecutivos UTC con al menos un crédito"
+    )
+    last_active_at: datetime | None = Field(
+        None, description="Última concesión de crédito"
     )
