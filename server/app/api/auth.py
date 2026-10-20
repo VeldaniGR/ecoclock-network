@@ -72,26 +72,41 @@ def _hash_token(token: str) -> str:
 
 @router.post("/forgot-password")
 async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
-    """Solicita reset. Siempre responde igual (no revela si el email existe)."""
-    result = await db.execute(select(User).where(User.email == payload.email))
-    user = result.scalar_one_or_none()
+    """Solicita reset. Siempre responde igual (no revela si la cuenta existe)."""
+    user = None
+    identifier = (payload.email_or_username or (str(payload.email) if payload.email else None) or payload.username or "").strip()
+
+    if payload.email:
+        result = await db.execute(select(User).where(User.email == str(payload.email)))
+        user = result.scalar_one_or_none()
+    elif payload.username:
+        result = await db.execute(select(User).where(User.username == payload.username))
+        user = result.scalar_one_or_none()
+    elif identifier:
+        if "@" in identifier:
+            result = await db.execute(select(User).where(User.email == identifier))
+            user = result.scalar_one_or_none()
+        if user is None:
+            result = await db.execute(select(User).where(User.username == identifier))
+            user = result.scalar_one_or_none()
+
     if user:
         raw = secrets.token_urlsafe(32)
-        expires = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
-            minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES
+        expires = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=30)
+        db.add(
+            PasswordResetToken(
+                user_id=user.id,
+                token_hash=_hash_token(raw),
+                expires_at=expires,
+            )
         )
-        db.add(PasswordResetToken(
-            user_id=user.id,
-            token_hash=_hash_token(raw),
-            expires_at=expires,
-        ))
         await db.commit()
         try:
             send_password_reset_email(user.email, raw)
         except Exception:
-            # No filtrar errores de email al cliente
             pass
-    return {"detail": "Si el email existe, recibirás instrucciones en breve."}
+    return {"detail": "Si la cuenta existe, recibirás instrucciones en breve."}
+
 
 
 @router.post("/reset-password")

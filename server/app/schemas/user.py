@@ -24,8 +24,13 @@ class Token(BaseModel):
 	token_type: str
 
 class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
+    """Acepta email, username o el campo legacy email_or_username (móvil)."""
+    email: EmailStr | None = None
+    username: str | None = None
+    email_or_username: str | None = None
 
+
+class ResetPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str = Field(..., min_length=20)
     new_password: str = Field(..., min_length=8)
