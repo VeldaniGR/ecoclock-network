@@ -31,7 +31,8 @@ Clientes (CLI, GUI, APK) apuntan por defecto a la API de producción.
 # Tras instalar CLI o desde el binario
 ecoclock --base-url https://api.ecoclock.org login --username TU_USER --password TU_PASS
 ecoclock --base-url https://api.ecoclock.org run --max-tasks 1
-# o: ecoclock-gui  (usa la misma API por defecto)
+o: ecoclock-gui  (usa la misma API por defecto)
+``` 
 
 ## 📐 Arquitectura (resumen)
 
