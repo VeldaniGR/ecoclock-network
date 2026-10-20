@@ -501,3 +501,28 @@ a:hover {
   color: var(--text-dim);
   font-family: var(--font-mono);
 }
+/* --- Science / Copernicus --- */
+.science { padding: 4rem 0; }
+.science-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin: 2rem 0 1.5rem;
+}
+.science-card {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg, #0d1117) 80%, #1a2332);
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+.science-card img {
+  width: 100%;
+  border-radius: 10px;
+  display: block;
+  margin-bottom: 0.75rem;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+.science-card figcaption { font-size: 0.95rem; line-height: 1.45; opacity: 0.92; }
+.science-note { font-size: 0.88rem; opacity: 0.72; line-height: 1.5; max-width: 52rem; }

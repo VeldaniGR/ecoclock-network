@@ -29,6 +29,7 @@
       <nav class="header-nav">
         <a href="#download">Descargar</a>
         <a href="#how">Cómo funciona</a>
+        <a href="#science">Las tareas</a>
         <a href="#beta">Beta</a>
         <a href="https://github.com/VeldaniGR/ecoclock-network" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
@@ -70,7 +71,7 @@
           <div class="step">                                                                                                                                                                                        
             <div class="step-num">2</div>                                                                                                                                                                           
             <h3>Recibe tareas</h3>                                                                                                                                                                                  
-            <p>La GUI obtiene una tarea del servidor (NDVI, biodiversidad). Tú decides si la ejecutas.</p>                                                                                                          
+            <p>La GUI o la APK reciben una tarea del servidor (NDVI, Posidonia, biodiversidad) basada en datos Copernicus. Tú decides si la ejecutas.</p>                                                                                                          
           </div>                                                                                                                                                                                                    
           <div class="step">                                                                                                                                                                                        
             <div class="step-num">3</div>                                                                                                                                                                           
@@ -81,6 +82,50 @@
       </div>                                                                                                                                                                                                        
     </section>                                                                                                                                                                                                      
                                                                                                                                                                                                                     
+
+    <section class="science" id="science">
+      <div class="container">
+        <h2 class="section-title">De dónde salen las tareas</h2>
+        <p class="section-subtitle">
+          No son tareas al azar. El servidor prepara trabajos a partir de datos abiertos de
+          <strong>Copernicus</strong> (ESA), sobre todo imágenes y productos derivados de satélite.
+          Tu máquina calcula un resultado verificable; tú ganas créditos Eco'clock simbólicos.
+        </p>
+        <div class="science-grid">
+          <figure class="science-card">
+            <img src="assets/ndvi-vegetation.jpg" alt="Cobertura vegetal / vegetación (Copernicus)" loading="lazy"
+                 onerror="this.style.display='none'"/>
+            <figcaption>
+              <strong>NDVI / vegetación</strong> — índice a partir de bandas roja e infrarroja cercana
+              (o productos CLMS de densidad de cubierta arbórea). Sirve para seguir salud de bosques,
+              cultivos y cambios de cobertura.
+            </figcaption>
+          </figure>
+          <figure class="science-card">
+            <img src="assets/posidonia-baleares.jpg" alt="Costa mediterránea / Baleares" loading="lazy"
+                 onerror="this.style.display='none'"/>
+            <figcaption>
+              <strong>Posidonia</strong> — praderas marinas en el Mediterráneo (p. ej. entorno de
+              Baleares). La tarea estima superficie o presencia a partir de escenas costeras.
+            </figcaption>
+          </figure>
+          <figure class="science-card">
+            <figcaption>
+              <strong>Biodiversidad</strong> — indicadores auxiliares (p. ej. presencia o scores)
+              sobre unidades geográficas definidas en el payload de la tarea.
+            </figcaption>
+          </figure>
+        </div>
+        <p class="science-note">
+          Contains modified Copernicus Sentinel / CLMS data.
+          Vista de ejemplo centrada en Mallorca (Baleares).
+          Si el catálogo CDSE no responde, el servidor puede generar tareas de relleno del mismo tipo;
+          el cliente siempre calcula un output validable (NDVI, superficie, métricas, etc.).
+          <a href="https://browser.dataspace.copernicus.eu/" target="_blank" rel="noopener">Abrir Copernicus Browser ↗</a>
+        </p>
+      </div>
+    </section>
+
     <section class="beta" id="beta">                                                                                                                                                                                
       <div class="container beta-inner">                                                                                                                                                                            
         <h2 class="section-title">¿Te animas a la beta?</h2>                                                                                                                                                        

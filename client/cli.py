@@ -31,9 +31,7 @@ except Exception:  # PyQt6 ausente o GUI a medias: CLI sigue funcionando
 
 # --- Constants ---------------------------------------------------------------
 
-# Default to ngrok tunnel for local development.
-# Override with --base-url or ECOCLOCK_BASE_URL env var.
-# Production will use https://api.ecoclock.org when available.
+# Producción por defecto. Override: --base-url o ECOCLOCK_BASE_URL.
 DEFAULT_BASE_URL = "https://api.ecoclock.org"
 TIMEOUT = float(os.environ.get("ECOCLOCK_TIMEOUT", "10"))
 
@@ -148,9 +146,15 @@ def cmd_submit(args: argparse.Namespace) -> dict[str, Any]:
         "task_id": args.task_id,
         "output": json.loads(args.output),
         "compute_time_sec": args.compute_time_sec,
+        "client": getattr(args, "client", None) or "cli",
+        "client_mode": getattr(args, "client_mode", None) or "manual",
     }
-    r = requests.post(_url(args.base_url, "/tasks/submit"), json=payload,
-                      headers=auth_headers(token), timeout=TIMEOUT)
+    r = requests.post(
+        _url(args.base_url, "/tasks/submit"),
+        json=payload,
+        headers=auth_headers(token),
+        timeout=TIMEOUT,
+    )
     _raise_for_status(r)
     return r.json()
 
@@ -358,7 +362,7 @@ def cmd_logout(args: argparse.Namespace) -> dict[str, Any]:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="ecoclock", description="Eco'clock Network CLI (Fase 1)")
     p.add_argument("--base-url", default=None,
-                   help="URL del servidor (default: ngrok tunnel for dev; set ECOCLOCK_BASE_URL or --base-url for production)")
+                   help="URL del servidor (default: https://api.ecoclock.org; override con ECOCLOCK_BASE_URL o --base-url)")
 
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -387,6 +391,8 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--compute-time-sec", type=float, default=0.0)
     s.add_argument("--token", help="Token (si no, usa el guardado)")
     s.set_defaults(func=cmd_submit)
+    s.add_argument("--client", default="cli")
+    s.add_argument("--client-mode", default="manual", choices=["manual", "auto"])
 
     s = sub.add_parser("run", help="Flujo completo: auth + next + compute + submit")
     s.add_argument("--email", default=os.environ.get("ECOCLOCK_EMAIL", ""))
@@ -397,6 +403,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--force-register", action="store_true",
                    help="Ignorar token guardado y registrar de nuevo")
     s.add_argument("--token", help="Token (si no, usa el guardado)")
+    s.add_argument("--client", default="cli")
+    s.add_argument("--client-mode", default="manual", choices=["manual", "auto"])
+    
     # --- modo automático ---
     s.add_argument("--auto", action="store_true",
                    help="Bucle continuo: next → compute → submit (Ctrl+C para parar)")

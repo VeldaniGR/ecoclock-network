@@ -86,7 +86,7 @@ class EcoClockWindow(QMainWindow):
         self._load_stylesheet()
 
         # Prioridad:
-        # 1) export ECOCLOCK_BASE_URL=https://tu-ngrok...  (recomendado con APK)
+        # 1) export ECOCLOCK_BASE_URL=https://api.ecoclock.org
         # 2) si no hay env → misma URL que usabas antes
         self._base_url: str = (
             os.environ.get("ECOCLOCK_BASE_URL") or "https://api.ecoclock.org"
