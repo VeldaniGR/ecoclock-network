@@ -3,25 +3,27 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class UserBase(BaseModel):
-	email: EmailStr
-	username: str = Field(min_length=3, max_length=50)
+    email: EmailStr
+    username: str = Field(min_length=3, max_length=50)
 
 
 class UserCreate(UserBase):
-	password: str = Field(min_length=8)
+    password: str = Field(min_length=8)
+
 
 class UserLogin(BaseModel):
-	username: str
-	password: str
+    username: str
+    password: str
 
 
 class UserResponse(UserBase):
-	id: int
+    id: int
 
 
 class Token(BaseModel):
-	access_token: str
-	token_type: str
+    access_token: str
+    token_type: str
+
 
 class ForgotPasswordRequest(BaseModel):
     """Acepta email, username o el campo legacy email_or_username (móvil)."""
@@ -30,7 +32,6 @@ class ForgotPasswordRequest(BaseModel):
     email_or_username: str | None = None
 
 
-class ResetPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str = Field(..., min_length=20)
     new_password: str = Field(..., min_length=8)
