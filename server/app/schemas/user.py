@@ -10,7 +10,6 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
 
-
 class UserLogin(BaseModel):
     username: str
     password: str
@@ -22,15 +21,16 @@ class UserResponse(UserBase):
 
 class Token(BaseModel):
     access_token: str
-    token_type: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
 
 class ForgotPasswordRequest(BaseModel):
-    """Acepta email, username o el campo legacy email_or_username (móvil)."""
-    email: EmailStr | None = None
-    username: str | None = None
-    email_or_username: str | None = None
-
+    email: EmailStr
 
 class ResetPasswordRequest(BaseModel):
     token: str = Field(..., min_length=20)

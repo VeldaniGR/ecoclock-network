@@ -6,7 +6,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24   # 24 horas
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30          # 30 días
     CREDITS_PER_TASK: float = 1.0
     # Créditos extra por segundo de cómputo (tope anti-abuso)
     CREDITS_PER_COMPUTE_SEC: float = 0.1
