@@ -52,25 +52,51 @@ class CLIError(RuntimeError):
 
 # --- Token store -------------------------------------------------------------
 
-def save_token(token: str) -> None:
+def save_tokens(access_token: str, refresh_token: str | None = None) -> None:
+    """Guarda access + refresh token en ~/.config/ecoclock/token.json."""
     p = _token_path()
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps({"access_token": token}, indent=2))
+    data = {"access_token": access_token}
+    if refresh_token:
+        data["refresh_token"] = refresh_token
+    p.write_text(json.dumps(data, indent=2))
     try:
         os.chmod(p, 0o600)
     except OSError:
         pass
 
 
+def save_token(token: str) -> None:
+    """Compatibilidad: guarda solo access_token (mantiene refresh si existe)."""
+    p = _token_path()
+    refresh = None
+    if p.exists():
+        try:
+            old = json.loads(p.read_text())
+            refresh = old.get("refresh_token")
+        except (OSError, json.JSONDecodeError):
+            pass
+    save_tokens(token, refresh)
+
+
 def load_token() -> str | None:
+    """Devuelve el access_token (o None)."""
+    data = load_tokens()
+    return data.get("access_token") if data else None
+
+
+def load_tokens() -> dict | None:
+    """Devuelve {"access_token": ..., "refresh_token": ...} o None."""
     p = _token_path()
     if not p.exists():
         return None
     try:
         data = json.loads(p.read_text())
+        if not isinstance(data, dict) or "access_token" not in data:
+            return None
+        return data
     except (OSError, json.JSONDecodeError):
         return None
-    return data.get("access_token")
 
 
 def clear_token() -> None:
@@ -100,6 +126,71 @@ def auth_headers(token: str | None) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
+def try_refresh(base_url: str) -> str | None:
+    """Intenta renovar tokens con el refresh_token guardado.
+    Devuelve el nuevo access_token o None si falla.
+    """
+    data = load_tokens()
+    if not data or not data.get("refresh_token"):
+        return None
+    try:
+        r = requests.post(
+            _url(base_url, "/auth/refresh"),
+            json={"refresh_token": data["refresh_token"]},
+            timeout=TIMEOUT,
+        )
+        if r.status_code >= 400:
+            clear_token()
+            return None
+        body = r.json()
+        access = body.get("access_token")
+        refresh = body.get("refresh_token")
+        if not access:
+            clear_token()
+            return None
+        save_tokens(access, refresh)
+        return access
+    except requests.RequestException:
+        return None
+
+
+def authenticated_get(base_url: str, path: str, token: str | None = None) -> requests.Response:
+    """GET autenticado con reintento automático en 401 vía refresh."""
+    tok = token or load_token()
+    r = requests.get(_url(base_url, path), headers=auth_headers(tok), timeout=TIMEOUT)
+    if r.status_code == 401:
+        new_tok = try_refresh(base_url)
+        if new_tok:
+            r = requests.get(_url(base_url, path), headers=auth_headers(new_tok), timeout=TIMEOUT)
+    return r
+
+
+def authenticated_post(
+    base_url: str,
+    path: str,
+    json_body: dict | None = None,
+    token: str | None = None,
+) -> requests.Response:
+    """POST autenticado con reintento automático en 401 vía refresh."""
+    tok = token or load_token()
+    r = requests.post(
+        _url(base_url, path),
+        json=json_body,
+        headers=auth_headers(tok),
+        timeout=TIMEOUT,
+    )
+    if r.status_code == 401:
+        new_tok = try_refresh(base_url)
+        if new_tok:
+            r = requests.post(
+                _url(base_url, path),
+                json=json_body,
+                headers=auth_headers(new_tok),
+                timeout=TIMEOUT,
+            )
+    return r
+
+
 # --- Sub-commands ------------------------------------------------------------
 
 def cmd_register(args: argparse.Namespace) -> dict[str, Any]:
@@ -116,31 +207,31 @@ def cmd_login(args: argparse.Namespace) -> dict[str, Any]:
     body = r.json()
     if "access_token" not in body:
         raise CLIError("Login OK pero el cuerpo no trae 'access_token'.")
-    save_token(body["access_token"])
+    save_tokens(body["access_token"], body.get("refresh_token"))
     return body
 
 
 def cmd_me(args: argparse.Namespace) -> dict[str, Any]:
     token = args.token or load_token()
-    if not token:
+    if not token and not load_tokens():
         raise CLIError("No hay token. Ejecuta `login` o `register` primero.")
-    r = requests.get(_url(args.base_url, "/auth/me"), headers=auth_headers(token), timeout=TIMEOUT)
+    r = authenticated_get(args.base_url, "/auth/me", token=token)
     _raise_for_status(r)
     return r.json()
 
 
 def cmd_next(args: argparse.Namespace) -> dict[str, Any]:
     token = args.token or load_token()
-    if not token:
+    if not token and not load_tokens():
         raise CLIError("No hay token. Ejecuta `login` o `register` primero.")
-    r = requests.get(_url(args.base_url, "/tasks/next"), headers=auth_headers(token), timeout=TIMEOUT)
+    r = authenticated_get(args.base_url, "/tasks/next", token=token)
     _raise_for_status(r)
     return r.json()
 
 
 def cmd_submit(args: argparse.Namespace) -> dict[str, Any]:
     token = args.token or load_token()
-    if not token:
+    if not token and not load_tokens():
         raise CLIError("No hay token. Ejecuta `login` o `register` primero.")
     payload = {
         "task_id": args.task_id,
@@ -149,12 +240,7 @@ def cmd_submit(args: argparse.Namespace) -> dict[str, Any]:
         "client": getattr(args, "client", None) or "cli",
         "client_mode": getattr(args, "client_mode", None) or "manual",
     }
-    r = requests.post(
-        _url(args.base_url, "/tasks/submit"),
-        json=payload,
-        headers=auth_headers(token),
-        timeout=TIMEOUT,
-    )
+    r = authenticated_post(args.base_url, "/tasks/submit", json_body=payload, token=token)
     _raise_for_status(r)
     return r.json()
 

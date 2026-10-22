@@ -7,17 +7,13 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24   # 24 horas
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 30          # 30 días
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     CREDITS_PER_TASK: float = 1.0
-    # Créditos extra por segundo de cómputo (tope anti-abuso)
     CREDITS_PER_COMPUTE_SEC: float = 0.1
-    CREDITS_COMPUTE_CAP_SEC: float = 60.0  # máx. segundos que cuentan
-    # Resend (password reset)
+    CREDITS_COMPUTE_CAP_SEC: float = 60.0
     RESEND_API_KEY: str = ""
     RESEND_FROM_EMAIL: str = "noreply@ecoclock.org"
     PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
-
-    # Copernicus Data Space Ecosystem
     CDSE_USERNAME: str = ""
     CDSE_PASSWORD: str = ""
     CDSE_TOKEN_URL: str = (

@@ -32,7 +32,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 
 def create_refresh_token() -> str:
-    """Genera un refresh token opaco (no JWT) seguro."""
     return secrets.token_urlsafe(48)
 
 
