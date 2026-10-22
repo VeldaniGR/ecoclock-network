@@ -9,6 +9,7 @@ from app.api.auth import get_current_user
 from app.db.database import get_db
 from app.db.models import Credit, Result, Task, User
 from app.schemas import CreditsSummary, CreditOut
+from app.services.gamification import compute_level, compute_achievements
 
 router = APIRouter()
 
@@ -130,6 +131,38 @@ async def get_my_credits(
 
     streak_days = _compute_streak(active_dates)
 
+    active_days = len(active_dates)
+
+    # Tipos de tarea (desde payload JSON o nombre de task)
+    type_rows = await db.execute(
+        select(Task.payload, Task.name)
+        .join(Result, Result.task_id == Task.id)
+        .where(Task.user_id == current_user.id)
+    )
+    task_types_set: set[str] = set()
+    for payload, name in type_rows.all():
+        t = None
+        if isinstance(payload, str):
+            try:
+                import json
+                data = json.loads(payload)
+                t = data.get("type")
+            except Exception:
+                pass
+        elif isinstance(payload, dict):
+            t = payload.get("type")
+        if not t and name:
+            # fallback: posidonia-auto-... → posidonia
+            t = str(name).split("-")[0].lower()
+        if t:
+            task_types_set.add(str(t).lower())
+    task_types = sorted(task_types_set)
+
+    level = compute_level(tasks_done, active_days, streak_days, task_types)
+    achievements = compute_achievements(
+        tasks_done, streak_days, task_types, last_active_at
+    )
+
     return CreditsSummary(
         user_id=current_user.id,
         username=current_user.username,
@@ -141,4 +174,8 @@ async def get_my_credits(
         credits_this_week=credits_this_week,
         streak_days=streak_days,
         last_active_at=last_active_at,
+        active_days=active_days,
+        task_types=task_types,
+        level=level,
+        achievements=achievements,
     )
