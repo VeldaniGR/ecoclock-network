@@ -291,24 +291,31 @@ async def leave_node(
     if not membership:
         raise HTTPException(status_code=404, detail="No perteneces a ningún nodo")
 
-    if membership.role == "admin":
-        # Contar otros miembros
-        count_result = await db.execute(
-            select(func.count()).select_from(NodeMember).where(NodeMember.node_id == membership.node_id)
-        )
-        total = count_result.scalar_one()
-        if total > 1:
-            raise HTTPException(
-                status_code=400,
-                detail="Eres el admin. Transfiere el liderazgo antes de salir o elimina el nodo.",
-            )
-
     node = membership.node
+    node_id = node.id
+
+    # Contar miembros
+    count_result = await db.execute(
+        select(func.count()).select_from(NodeMember).where(NodeMember.node_id == node_id)
+    )
+    total = count_result.scalar_one()
+
+    if total <= 1:
+        # Último miembro → eliminar el nodo completo
+        await db.delete(node)
+        await db.commit()
+        return {"detail": "Has salido y el nodo ha sido eliminado (eras el último miembro)"}
+
+    if membership.role == "admin":
+        raise HTTPException(
+            status_code=400,
+            detail="Eres el admin. Transfiere el liderazgo antes de salir.",
+        )
+
     node.member_count = max(0, node.member_count - 1)
     await db.delete(membership)
     await db.commit()
     return {"detail": "Has salido del nodo"}
-
 
 @router.post("/{node_id}/transfer")
 async def transfer_leadership(
@@ -366,6 +373,27 @@ async def kick_member(
     await db.delete(target)
     await db.commit()
     return {"detail": "Miembro expulsado"}
+
+@router.post("/me/claim-admin")
+async def claim_admin(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    membership = await _get_user_node(db, current_user.id)
+    if not membership:
+        raise HTTPException(status_code=404, detail="No perteneces a ningún nodo")
+
+    count_result = await db.execute(
+        select(func.count()).select_from(NodeMember).where(NodeMember.node_id == membership.node_id)
+    )
+    total = count_result.scalar_one()
+
+    if total != 1:
+        raise HTTPException(status_code=400, detail="Solo puedes reclamar admin si eres el único miembro")
+
+    membership.role = "admin"
+    await db.commit()
+    return {"detail": "Ahora eres administrador del nodo"}
 
 
 # ========== Subida de logo ==========
