@@ -71,3 +71,49 @@ class RefreshToken(Base):
     revoked_at = Column(DateTime, nullable=True)
 
     user = relationship("User", backref="refresh_tokens")
+
+# === Nodos Ciudadanos ===
+
+from sqlalchemy import Boolean  # si no está ya importado arriba
+
+class Node(Base):
+    __tablename__ = "nodes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(80), nullable=False)
+    invite_code = Column(String(12), unique=True, index=True, nullable=False)
+    logo_url = Column(String, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=utcnow)
+    member_count = Column(Integer, default=1, nullable=False)
+    is_public = Column(Boolean, default=True, nullable=False)
+
+    members = relationship("NodeMember", back_populates="node", cascade="all, delete-orphan")
+    join_requests = relationship("NodeJoinRequest", back_populates="node", cascade="all, delete-orphan")
+    creator = relationship("User", foreign_keys=[created_by])
+
+
+class NodeMember(Base):
+    __tablename__ = "node_members"
+
+    id = Column(Integer, primary_key=True, index=True)
+    node_id = Column(Integer, ForeignKey("nodes.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    role = Column(String(20), nullable=False, default="member")  # "admin" | "member"
+    joined_at = Column(DateTime, default=utcnow)
+
+    node = relationship("Node", back_populates="members")
+    user = relationship("User")
+
+
+class NodeJoinRequest(Base):
+    __tablename__ = "node_join_requests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    node_id = Column(Integer, ForeignKey("nodes.id"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    status = Column(String(20), nullable=False, default="pending")  # pending | accepted | rejected
+    created_at = Column(DateTime, default=utcnow)
+
+    node = relationship("Node", back_populates="join_requests")
+    user = relationship("User")
