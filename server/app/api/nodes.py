@@ -410,6 +410,20 @@ MAX_SIZE = 1 * 1024 * 1024  # 1 MB
 ALLOWED_CONTENT_TYPES = {"image/png"}
 
 
+
+# ========== Subida de logo ==========
+
+from pathlib import Path
+from fastapi import File, UploadFile
+from fastapi.responses import FileResponse
+
+UPLOAD_DIR = Path("uploads/nodes")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+MAX_SIZE = 2 * 1024 * 1024  # 2 MB
+ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
+ALLOWED_CONTENT_TYPES = {"image/png", "image/jpeg", "image/jpg"}
+
+
 @router.post("/{node_id}/logo")
 async def upload_logo(
     node_id: int,
@@ -417,44 +431,52 @@ async def upload_logo(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # Solo el admin del nodo puede subir logo
     membership = await _get_user_node(db, current_user.id)
     if not membership or membership.node_id != node_id or membership.role != "admin":
         raise HTTPException(status_code=403, detail="Solo el admin puede subir el logo")
 
-    # Validaciones
-    if file.content_type not in ALLOWED_CONTENT_TYPES:
-        raise HTTPException(status_code=400, detail="Solo se permiten imágenes PNG")
+    filename = (file.filename or "logo.png").lower()
+    ext = Path(filename).suffix
+    if ext not in ALLOWED_EXTENSIONS and (file.content_type or "") not in ALLOWED_CONTENT_TYPES:
+        raise HTTPException(status_code=400, detail="Solo se permiten imágenes PNG o JPEG")
 
     content = await file.read()
     if len(content) > MAX_SIZE:
-        raise HTTPException(status_code=400, detail="El archivo no puede superar 1 MB")
+        raise HTTPException(status_code=400, detail="El archivo no puede superar 2 MB")
+    if len(content) < 100:
+        raise HTTPException(status_code=400, detail="Archivo vacío o inválido")
 
-    # Guardar archivo
+    # Guardar siempre como logo.png o logo.jpg según extensión
+    save_ext = ext if ext in ALLOWED_EXTENSIONS else ".png"
+    if save_ext == ".jpeg":
+        save_ext = ".jpg"
+
     node_dir = UPLOAD_DIR / str(node_id)
     node_dir.mkdir(parents=True, exist_ok=True)
-    filename = "logo.png"
-    filepath = node_dir / filename
+    filepath = node_dir / f"logo{save_ext}"
+
+    # Borrar logos anteriores
+    for old in node_dir.glob("logo.*"):
+        old.unlink(missing_ok=True)
 
     with open(filepath, "wb") as f:
         f.write(content)
 
-    # Actualizar URL en la base de datos
     result = await db.execute(select(Node).where(Node.id == node_id))
     node = result.scalar_one()
-    node.logo_url = f"/uploads/nodes/{node_id}/logo.png"
+    node.logo_url = f"/uploads/nodes/{node_id}/logo{save_ext}"
     await db.commit()
 
     return {"logo_url": node.logo_url, "detail": "Logo actualizado"}
 
 
-@router.get("/uploads/nodes/{node_id}/logo.png")
-async def get_logo(node_id: int):
-    """Sirve el logo del nodo (público)."""
-    filepath = UPLOAD_DIR / str(node_id) / "logo.png"
+@router.get("/uploads/nodes/{node_id}/{filename}")
+async def get_logo(node_id: int, filename: str):
+    filepath = UPLOAD_DIR / str(node_id) / filename
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="Logo no encontrado")
-    return FileResponse(filepath, media_type="image/png")
+    media = "image/png" if filename.endswith(".png") else "image/jpeg"
+    return FileResponse(filepath, media_type=media)
 
 
 @router.delete("/{node_id}")
