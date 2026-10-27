@@ -427,3 +427,24 @@ async def get_logo(node_id: int):
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="Logo no encontrado")
     return FileResponse(filepath, media_type="image/png")
+
+
+@router.delete("/{node_id}")
+async def delete_node(
+    node_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Elimina el nodo completo (solo admin)."""
+    membership = await _get_user_node(db, current_user.id)
+    if not membership or membership.node_id != node_id or membership.role != "admin":
+        raise HTTPException(status_code=403, detail="Solo el admin puede eliminar el nodo")
+
+    result = await db.execute(select(Node).where(Node.id == node_id))
+    node = result.scalar_one_or_none()
+    if not node:
+        raise HTTPException(status_code=404, detail="Nodo no encontrado")
+
+    await db.delete(node)
+    await db.commit()
+    return {"detail": "Nodo eliminado"}
