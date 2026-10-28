@@ -688,7 +688,7 @@ class EcoClockWindow(QMainWindow):
         menu.addAction(credits_action)
         nodes_action = QAction("Nodo / Equipo", self)
         nodes_action.triggered.connect(self._go_nodes)
-        # archivo_menu.addAction(nodes_action)  # junto a Créditos
+        menu.addAction(nodes_action)
 
         menu.addSeparator()
 
