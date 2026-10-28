@@ -8,8 +8,8 @@
         POSTGRES_DB: ecoclock
       volumes:
         - postgres-data:/var/lib/postgresql/data
-     #  ports:
-       # - "5432:5432"
+      ports:
+        - "5432:5432"
       healthcheck:
         test: ["CMD-SHELL", "pg_isready -U ecoclock -d ecoclock"]
         interval: 5s
@@ -48,6 +48,8 @@
         ENVIRONMENT: production
       ports:
         - "8000:8000"
+      volumes:
+        - api-uploads:/app/uploads
       depends_on:
         db:
           condition: service_healthy
