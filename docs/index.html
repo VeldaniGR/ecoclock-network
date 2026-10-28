@@ -30,6 +30,7 @@
         <a href="#download">Descargar</a>
         <a href="#how">Cómo funciona</a>
         <a href="#science">Las tareas</a>
+        <a href="#ranking">Ranking</a>
         <a href="#beta">Beta</a>
         <a href="https://github.com/VeldaniGR/ecoclock-network" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
@@ -126,7 +127,23 @@
       </div>
     </section>
 
-    <section class="beta" id="beta">                                                                                                                                                                                
+    
+    <section class="ranking-section" id="ranking">
+      <div class="container">
+        <h2 class="section-title">Top nodos ciudadanos</h2>
+        <p class="section-subtitle">
+          Los 5 equipos con más miembros en la red. Únete o crea el tuyo desde la app o la GUI.
+        </p>
+        <div id="nodes-ranking" class="ranking-grid">
+          <p class="ranking-loading">Cargando ranking…</p>
+        </div>
+        <p class="ranking-foot">
+          <small>Actualizado al cargar la página · Solo nombre, logo y número de miembros</small>
+        </p>
+      </div>
+    </section>
+
+<section class="beta" id="beta">                                                                                                                                                                                
       <div class="container beta-inner">                                                                                                                                                                            
         <h2 class="section-title">¿Te animas a la beta?</h2>                                                                                                                                                        
         <p>                                                                                                                                                                                                         
@@ -183,5 +200,45 @@
     </div>
   </footer>                                                                                                                                                                                                         
                                                                                                                                                                                                                     
-  </body>                                                                                                                                                                                                           
+  
+  <script>
+  (function () {
+    var API = "https://api.ecoclock.org/nodes/ranking?limit=5";
+    var el = document.getElementById("nodes-ranking");
+    if (!el) return;
+    fetch(API)
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (nodes) {
+        if (!nodes || !nodes.length) {
+          el.innerHTML = '<p class="ranking-empty">Aún no hay nodos públicos. ¡Sé el primero!</p>';
+          return;
+        }
+        el.innerHTML = nodes.map(function (n, i) {
+          var medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1) + ".";
+          var logo = n.logo_url
+            ? '<img class="ranking-logo" src="https://api.ecoclock.org' + n.logo_url + '" alt="" width="40" height="40" loading="lazy">'
+            : '<span class="ranking-logo ranking-logo-fallback">👥</span>';
+          var name = (n.name || "Nodo").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          return (
+            '<div class="ranking-card">' +
+              '<span class="ranking-pos">' + medal + "</span>" +
+              logo +
+              '<div class="ranking-info">' +
+                '<div class="ranking-name">' + name + "</div>" +
+                '<div class="ranking-meta">' + (n.member_count || 0) + " miembros</div>" +
+              "</div>" +
+            "</div>"
+          );
+        }).join("");
+      })
+      .catch(function () {
+        el.innerHTML = '<p class="ranking-empty">No se pudo cargar el ranking. Inténtalo más tarde.</p>';
+      });
+  })();
+  </script>
+
+</body>                                                                                                                                                                                                           
   </html>
