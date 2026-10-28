@@ -47,3 +47,7 @@ class JoinRequestOut(BaseModel):
 
 class TransferLeadership(BaseModel):
     new_admin_user_id: int
+
+
+class NodeUpdate(BaseModel):
+    name: str | None = Field(None, min_length=3, max_length=80)

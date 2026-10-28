@@ -12,6 +12,7 @@ from app.api.auth import get_current_user
 from app.db.database import get_db
 from app.db.models import User, Node, NodeMember, NodeJoinRequest
 from app.schemas.node import (
+    NodeUpdate,
     NodeCreate,
     NodePublic,
     NodeDetail,
@@ -498,3 +499,39 @@ async def delete_node(
     await db.delete(node)
     await db.commit()
     return {"detail": "Nodo eliminado"}
+
+
+@router.patch("/{node_id}", response_model=NodeDetail)
+async def update_node(
+    node_id: int,
+    payload: NodeUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Renombrar nodo (solo admin)."""
+    membership = await _get_user_node(db, current_user.id)
+    if not membership or membership.node_id != node_id or membership.role != "admin":
+        raise HTTPException(status_code=403, detail="Solo el admin puede editar el nodo")
+
+    result = await db.execute(select(Node).where(Node.id == node_id))
+    node = result.scalar_one_or_none()
+    if not node:
+        raise HTTPException(status_code=404, detail="Nodo no encontrado")
+
+    if payload.name is not None:
+        node.name = payload.name.strip()
+
+    await db.commit()
+    await db.refresh(node)
+
+    return NodeDetail(
+        id=node.id,
+        name=node.name,
+        logo_url=node.logo_url,
+        member_count=node.member_count,
+        is_public=node.is_public,
+        invite_code=node.invite_code if membership.role == "admin" else "",
+        created_at=node.created_at,
+        my_role=membership.role,
+    )
+
