@@ -108,6 +108,51 @@ async def _ensure_pending_tasks(db: AsyncSession, min_pending: int = 3) -> None:
     await db.commit()
 
 
+
+async def _bump_expedition_progress(db: AsyncSession, task_payload: dict | str | None) -> None:
+    """Si hay expedición activa cuyo task_type coincide, incrementa current_value."""
+    from datetime import datetime, timezone
+    from app.db.models import Expedition
+
+    payload = task_payload
+    if isinstance(payload, str):
+        try:
+            payload = json.loads(payload)
+        except Exception:
+            payload = {}
+    if not isinstance(payload, dict):
+        payload = {}
+    task_type = payload.get("type") or payload.get("task_type")
+    if not task_type:
+        return
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    result = await db.execute(
+        select(Expedition)
+        .where(
+            Expedition.is_active == True,  # noqa: E712
+            Expedition.starts_at <= now,
+            Expedition.ends_at >= now,
+            Expedition.completed_at.is_(None),
+        )
+        .order_by(Expedition.starts_at.desc())
+        .limit(1)
+    )
+    exp = result.scalar_one_or_none()
+    if not exp:
+        return
+    # task_type None en expedición = cuenta cualquier tarea
+    if exp.task_type and exp.task_type != task_type:
+        return
+
+    exp.current_value = int(exp.current_value or 0) + 1
+    if exp.current_value >= exp.goal_value and exp.completed_at is None:
+        exp.completed_at = now
+        # Desbloqueo de marcos en nodos: se puede hacer en un job posterior;
+        # por ahora solo marcamos la expedición completada.
+    await db.commit()
+
+
 @router.get("/next", response_model=TaskResponse)
 async def get_next_task(
     db: AsyncSession = Depends(get_db),
@@ -203,6 +248,11 @@ async def submit_result(
 	db.add(credit)
 	await db.commit()
 	await db.refresh(result_row)
+	# Progreso expedición mensual (no bloquea la respuesta si falla)
+	try:
+		await _bump_expedition_progress(db, task.payload)
+	except Exception:
+		pass
 	if isinstance(result_row.output, str):
 		result_row.output = json.loads(result_row.output)
 	return result_row
