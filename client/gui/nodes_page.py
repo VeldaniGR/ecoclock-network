@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (
+    QFileDialog,
     QFrame,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QLineEdit,
     QMessageBox,
@@ -18,9 +21,7 @@ from client.gui import services
 
 
 class NodesPage(QWidget):
-    """Pantalla completa de nodos (crear / unirse / mi nodo / explorar)."""
-
-    back_requested = pyqtSignal()  # para volver al dashboard
+    back_requested = pyqtSignal()
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -34,13 +35,11 @@ class NodesPage(QWidget):
         root.setContentsMargins(24, 18, 24, 18)
         root.setSpacing(12)
 
-        # Cabecera
         header = QHBoxLayout()
         title = QLabel("Nodos Ciudadanos")
         title.setProperty("class", "brandTitle")
         header.addWidget(title)
         header.addStretch(1)
-
         self.back_btn = QPushButton("← Volver")
         self.back_btn.setProperty("secondary", True)
         self.back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -48,7 +47,6 @@ class NodesPage(QWidget):
         header.addWidget(self.back_btn)
         root.addLayout(header)
 
-        # Área con scroll
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
@@ -62,7 +60,6 @@ class NodesPage(QWidget):
         self.status_label.setWordWrap(True)
         root.addWidget(self.status_label)
 
-    # ------------------------------------------------------------------
     def configure(self, base_url: str, token: str | None) -> None:
         self._base_url = base_url
         self._token = token
@@ -75,16 +72,13 @@ class NodesPage(QWidget):
             self._my_node = None
             self.status_label.setText(f"Error: {e}")
             return
-
         try:
             self._public_nodes = services.list_public_nodes(self._base_url, self._token)
         except Exception:
             self._public_nodes = []
-
         self._rebuild_content()
         self.status_label.setText("")
 
-    # ------------------------------------------------------------------
     def _clear_content(self) -> None:
         while self.content_layout.count():
             item = self.content_layout.takeAt(0)
@@ -99,10 +93,36 @@ class NodesPage(QWidget):
         else:
             self._build_no_node_view()
 
-    # ========== Con nodo ==========
+    def _load_logo_pixmap(self, logo_url: str | None) -> QPixmap:
+        pix = QPixmap(64, 64)
+        pix.fill(Qt.GlobalColor.transparent)
+        if not logo_url:
+            return pix
+        full = logo_url if logo_url.startswith("http") else f"{self._base_url.rstrip('/')}{logo_url}"
+        try:
+            import requests
+            data = requests.get(full, timeout=10).content
+            pix.loadFromData(data)
+        except Exception:
+            pass
+        return pix
+
     def _build_my_node_view(self) -> None:
         node = self._my_node or {}
         is_admin = node.get("my_role") == "admin"
+
+        logo_label = QLabel()
+        logo_label.setFixedSize(64, 64)
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        pix = self._load_logo_pixmap(node.get("logo_url"))
+        if not pix.isNull() and not pix.size().isEmpty() and pix.width() > 1:
+            logo_label.setPixmap(
+                pix.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            )
+        else:
+            logo_label.setText("👥")
+            logo_label.setStyleSheet("font-size: 32px;")
+        self.content_layout.addWidget(logo_label)
 
         name = QLabel(node.get("name", ""))
         name.setStyleSheet("font-size: 18px; font-weight: 700;")
@@ -125,6 +145,16 @@ class NodesPage(QWidget):
             row.layout().addWidget(copy_btn)
             self.content_layout.addWidget(row)
 
+            logo_btn = QPushButton("Cambiar logo")
+            logo_btn.setProperty("secondary", True)
+            logo_btn.clicked.connect(self._on_change_logo)
+            self.content_layout.addWidget(logo_btn)
+
+            rename_btn = QPushButton("Renombrar nodo")
+            rename_btn.setProperty("secondary", True)
+            rename_btn.clicked.connect(self._on_rename)
+            self.content_layout.addWidget(rename_btn)
+
             del_btn = QPushButton("Eliminar nodo")
             del_btn.setStyleSheet("color: #e05555;")
             del_btn.clicked.connect(self._on_delete)
@@ -134,45 +164,35 @@ class NodesPage(QWidget):
         leave_btn.setStyleSheet("color: #e0a050;")
         leave_btn.clicked.connect(self._on_leave)
         self.content_layout.addWidget(leave_btn)
-
         self.content_layout.addStretch(1)
 
-    # ========== Sin nodo ==========
     def _build_no_node_view(self) -> None:
-        intro = QLabel(
-            "Únete a un nodo o crea el tuyo para colaborar con otros ciudadanos."
-        )
+        intro = QLabel("Únete a un nodo o crea el tuyo para colaborar con otros ciudadanos.")
         intro.setWordWrap(True)
         intro.setProperty("class", "subtitle")
         self.content_layout.addWidget(intro)
 
-        # Crear
         self.content_layout.addWidget(QLabel("Crear un nodo"))
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Nombre del nodo")
         self.content_layout.addWidget(self.name_input)
-
         create_btn = QPushButton("Crear nodo")
         create_btn.setProperty("primary", True)
         create_btn.clicked.connect(self._on_create)
         self.content_layout.addWidget(create_btn)
 
-        # Unirse por código
         self.content_layout.addSpacing(12)
         self.content_layout.addWidget(QLabel("Unirse con enlace de unión"))
         self.code_input = QLineEdit()
         self.code_input.setPlaceholderText("Ej: QY8RY5LD")
         self.content_layout.addWidget(self.code_input)
-
         join_btn = QPushButton("Unirse al nodo")
         join_btn.setProperty("secondary", True)
         join_btn.clicked.connect(self._on_join)
         self.content_layout.addWidget(join_btn)
 
-        # Públicos
         self.content_layout.addSpacing(12)
         self.content_layout.addWidget(QLabel("Explorar nodos públicos"))
-
         if not self._public_nodes:
             empty = QLabel("No hay nodos públicos todavía.")
             empty.setProperty("class", "subtitle")
@@ -180,21 +200,18 @@ class NodesPage(QWidget):
         else:
             for n in self._public_nodes:
                 self.content_layout.addWidget(self._public_card(n))
-
         self.content_layout.addStretch(1)
 
     def _public_card(self, n: dict) -> QWidget:
         frame = QFrame()
         frame.setProperty("class", "statCard")
         lay = QHBoxLayout(frame)
-
         info = QVBoxLayout()
         info.addWidget(QLabel(n.get("name", "")))
         members = QLabel(f"{n.get('member_count', 0)} miembros")
         members.setProperty("class", "sectionLabel")
         info.addWidget(members)
         lay.addLayout(info, stretch=1)
-
         req_btn = QPushButton("Solicitar")
         req_btn.setProperty("secondary", True)
         node_id = n.get("id")
@@ -215,7 +232,6 @@ class NodesPage(QWidget):
         lay.addLayout(col, stretch=1)
         return frame
 
-    # ---------- acciones ----------
     def _copy(self, text: str) -> None:
         from PyQt6.QtWidgets import QApplication
         QApplication.clipboard().setText(text)
@@ -258,8 +274,7 @@ class NodesPage(QWidget):
     def _on_delete(self) -> None:
         node = self._my_node or {}
         if QMessageBox.question(
-            self, "Eliminar",
-            f"¿Eliminar permanentemente \"{node.get('name')}\"?",
+            self, "Eliminar", f"¿Eliminar permanentemente \"{node.get('name')}\"?"
         ) != QMessageBox.StandardButton.Yes:
             return
         try:
@@ -274,5 +289,39 @@ class NodesPage(QWidget):
         try:
             services.request_join_node(self._base_url, node_id, self._token)
             self.status_label.setText(f'Solicitud enviada a "{name}"')
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+    def _on_change_logo(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Elegir logo", "", "Imágenes (*.png *.jpg *.jpeg)"
+        )
+        if not path:
+            return
+        node = self._my_node or {}
+        try:
+            result = services.upload_node_logo(
+                self._base_url, node["id"], path, self._token
+            )
+            self._my_node = {**node, "logo_url": result.get("logo_url")}
+            self._rebuild_content()
+            self.status_label.setText("Logo actualizado (se sincroniza con la app)")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+    def _on_rename(self) -> None:
+        node = self._my_node or {}
+        name, ok = QInputDialog.getText(
+            self, "Renombrar nodo", "Nuevo nombre:", text=node.get("name", "")
+        )
+        if not ok or len(name.strip()) < 3:
+            return
+        try:
+            updated = services.rename_node(
+                self._base_url, node["id"], name.strip(), self._token
+            )
+            self._my_node = updated
+            self._rebuild_content()
+            self.status_label.setText("Nombre actualizado")
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))

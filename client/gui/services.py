@@ -172,3 +172,43 @@ def request_join_node(base_url: str, node_id: int, token: str | None = None) -> 
     r = cli.authenticated_post(base_url, f"/nodes/{node_id}/request", token=token)
     r.raise_for_status()
     return r.json() if r.content else {"detail": "ok"}
+
+
+def rename_node(base_url: str, node_id: int, name: str, token: str | None = None) -> dict:
+    r = cli.authenticated_request(
+        "PATCH", base_url, f"/nodes/{node_id}", token=token, json={"name": name}
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+def upload_node_logo(
+    base_url: str, node_id: int, file_path: str, token: str | None = None
+) -> dict:
+    """POST multipart /nodes/{id}/logo"""
+    import mimetypes
+    import requests
+    from client.cli import load_token, auth_headers, try_refresh, _url, TIMEOUT
+
+    tok = token or load_token()
+    url = _url(base_url, f"/nodes/{node_id}/logo")
+    headers = {k: v for k, v in auth_headers(tok).items() if k.lower() != "content-type"}
+    mime, _ = mimetypes.guess_type(file_path)
+    if mime not in ("image/png", "image/jpeg"):
+        mime = "image/png"
+    fname = file_path.replace("\\", "/").split("/")[-1]
+
+    with open(file_path, "rb") as f:
+        files = {"file": (fname, f, mime)}
+        r = requests.post(url, headers=headers, files=files, timeout=TIMEOUT)
+
+    if r.status_code == 401:
+        new_tok = try_refresh(base_url)
+        if new_tok:
+            headers = {k: v for k, v in auth_headers(new_tok).items() if k.lower() != "content-type"}
+            with open(file_path, "rb") as f:
+                files = {"file": (fname, f, mime)}
+                r = requests.post(url, headers=headers, files=files, timeout=TIMEOUT)
+
+    r.raise_for_status()
+    return r.json()
