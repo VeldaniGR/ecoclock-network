@@ -286,6 +286,28 @@ class EcoClockWindow(QMainWindow):
 
         return page
 
+    def _load_expedition(self) -> None:
+        try:
+            self._expedition = services.get_current_expedition(self._base_url, self._token)
+        except Exception:
+            self._expedition = None
+        self._update_expedition_card()
+
+    def _update_expedition_card(self) -> None:
+        if not hasattr(self, "expedition_card"):
+            return
+        e = getattr(self, "_expedition", None)
+        if not e:
+            self.expedition_card.setVisible(False)
+            return
+        goal = max(int(e.get("goal_value") or 1), 1)
+        current = int(e.get("current_value") or 0)
+        pct = min(current / goal, 1.0)
+        self.expedition_title.setText(e.get("name") or "Expedición")
+        self.expedition_meta.setText(f"{current} / {goal} tareas · {pct*100:.1f}%")
+        self.expedition_bar.setValue(int(pct * 100))
+        self.expedition_card.setVisible(True)
+
     def _build_dashboard_page(self) -> QWidget:
         """Dashboard: layout horizontal con panel izquierdo (stats, tarea, formulario manual)
         y panel derecho (sonar + toggle)."""
@@ -367,6 +389,27 @@ class EcoClockWindow(QMainWindow):
 
         self.node_card.mousePressEvent = lambda e: self._go_nodes()
         left_layout.addWidget(self.node_card)
+        left_layout.addSpacing(12)
+
+        # --- Card expedición ---
+        self.expedition_card = QFrame(left_widget)
+        self.expedition_card.setObjectName("expeditionCard")
+        self.expedition_card.setVisible(False)
+        exp_lay = QVBoxLayout(self.expedition_card)
+        exp_lay.setContentsMargins(12, 10, 12, 10)
+        self.expedition_title = QLabel("Expedición")
+        self.expedition_title.setStyleSheet("font-weight: 700;")
+        exp_lay.addWidget(self.expedition_title)
+        self.expedition_meta = QLabel("")
+        self.expedition_meta.setProperty("class", "sectionLabel")
+        exp_lay.addWidget(self.expedition_meta)
+        from PyQt6.QtWidgets import QProgressBar
+        self.expedition_bar = QProgressBar()
+        self.expedition_bar.setRange(0, 100)
+        self.expedition_bar.setTextVisible(False)
+        self.expedition_bar.setFixedHeight(8)
+        exp_lay.addWidget(self.expedition_bar)
+        left_layout.addWidget(self.expedition_card)
         left_layout.addSpacing(12)
 
         # ---- Tarjetas de stats (grid 2x2): Sesión + Total ----

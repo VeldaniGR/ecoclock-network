@@ -212,3 +212,13 @@ def upload_node_logo(
 
     r.raise_for_status()
     return r.json()
+
+
+def get_current_expedition(base_url: str, token: str | None = None) -> dict | None:
+    """GET /expeditions/current (público; token opcional)."""
+    r = cli.authenticated_get(base_url, "/expeditions/current", token=token)
+    if r.status_code == 404 or not r.content or r.text.strip() in ("", "null"):
+        return None
+    r.raise_for_status()
+    data = r.json()
+    return data if data else None
