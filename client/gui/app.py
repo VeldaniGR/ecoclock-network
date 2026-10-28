@@ -53,6 +53,8 @@ except ImportError:  # pragma: no cover
     QScrollArea = object  # type: ignore[assignment]
     QDesktopServices = QPixmap = QSvgRenderer = object  # type: ignore[assignment]
 
+from client.gui.nodes_page import NodesPage
+
 
 def main(argv: list[str] | None = None) -> int:
     if QApplication is None:
@@ -74,6 +76,7 @@ class EcoClockWindow(QMainWindow):
     PAGE_DASHBOARD = 1
     PAGE_REGISTER = 2
     PAGE_CREDITS = 3
+    PAGE_NODES = 4
 
     def __init__(self) -> None:
         super().__init__()
@@ -111,11 +114,16 @@ class EcoClockWindow(QMainWindow):
         self.dashboard_page = self._build_dashboard_page()
         self.register_page = self._build_register_page()
         self.credits_page = self._build_credits_page()
+        self.nodes_page = NodesPage(self)
+        self.nodes_page.back_requested.connect(lambda: self.stack.setCurrentIndex(self.PAGE_DASHBOARD))
+        self._my_node: dict | None = None
 
         self.stack.addWidget(self.login_page)      # index 0
         self.stack.addWidget(self.dashboard_page)  # index 1
         self.stack.addWidget(self.register_page)   # index 2
         self.stack.addWidget(self.credits_page)    # index 3
+        self.stack.addWidget(self.nodes_page)  # index 4
+
 
         self.setCentralWidget(self.stack)
 
@@ -251,6 +259,8 @@ class EcoClockWindow(QMainWindow):
         self.login_button.setProperty("primary", True)
         self.login_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.login_button.clicked.connect(self._on_login_clicked)
+        self._load_my_node()
+        self._update_node_card()  # si añades la tarjeta en dashboard
         layout.addWidget(self.login_button)
         layout.addSpacing(14)
 
@@ -329,6 +339,35 @@ class EcoClockWindow(QMainWindow):
         brand_row.addWidget(self.dash_greeting, stretch=1)
         left_layout.addLayout(brand_row)
         left_layout.addSpacing(18)
+
+        # --- Card: Miembro del Nodo ---
+        self.node_card = QFrame(left_widget)
+        self.node_card.setObjectName("nodeCard")
+        self.node_card.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.node_card.setVisible(False)  # se muestra solo si hay nodo
+        node_card_layout = QHBoxLayout(self.node_card)
+        node_card_layout.setContentsMargins(12, 10, 12, 10)
+
+        self.node_card_icon = QLabel("👥")
+        self.node_card_icon.setFixedWidth(28)
+        node_card_layout.addWidget(self.node_card_icon)
+
+        node_text = QVBoxLayout()
+        self.node_card_label = QLabel("Miembro del Nodo")
+        self.node_card_label.setProperty("class", "sectionLabel")
+        self.node_card_name = QLabel("")
+        self.node_card_name.setStyleSheet("font-weight: 600;")
+        node_text.addWidget(self.node_card_label)
+        node_text.addWidget(self.node_card_name)
+        node_card_layout.addLayout(node_text, stretch=1)
+
+        arrow = QLabel("›")
+        arrow.setStyleSheet("font-size: 18px; color: #888;")
+        node_card_layout.addWidget(arrow)
+
+        self.node_card.mousePressEvent = lambda e: self._go_nodes()
+        left_layout.addWidget(self.node_card)
+        left_layout.addSpacing(12)
 
         # ---- Tarjetas de stats (grid 2x2): Sesión + Total ----
         cards_grid = QGridLayout()
@@ -647,6 +686,9 @@ class EcoClockWindow(QMainWindow):
         credits_action.setShortcut("Ctrl+R")
         credits_action.triggered.connect(self._show_credits_page)
         menu.addAction(credits_action)
+        nodes_action = QAction("Nodo / Equipo", self)
+        nodes_action.triggered.connect(self._go_nodes)
+        # archivo_menu.addAction(nodes_action)  # junto a Créditos
 
         menu.addSeparator()
 
@@ -1088,3 +1130,24 @@ class EcoClockWindow(QMainWindow):
         if self._auto_worker is not None and self._auto_worker.isRunning():
             self._auto_worker.wait(3000)
         super().closeEvent(event)
+
+    def _go_nodes(self) -> None:
+        self.nodes_page.configure(self._base_url, self._token)
+        self.nodes_page.refresh()
+        self.stack.setCurrentIndex(self.PAGE_NODES)
+
+    def _load_my_node(self) -> None:
+        try:
+            self._my_node = services.get_my_node(self._base_url, self._token)
+        except Exception:
+            self._my_node = None
+
+    def _update_node_card(self) -> None:
+    #Muestra u oculta la card de nodo en el dashboard.
+        if not hasattr(self, "node_card"):
+            return
+        if self._my_node:
+            self.node_card_name.setText(self._my_node.get("name", ""))
+            self.node_card.setVisible(True)
+        else:
+            self.node_card.setVisible(False)
