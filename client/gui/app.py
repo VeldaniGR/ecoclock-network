@@ -260,6 +260,7 @@ class EcoClockWindow(QMainWindow):
         self.login_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.login_button.clicked.connect(self._on_login_clicked)
         self._load_my_node()
+        self._load_expedition()
         self._update_node_card()  # si añades la tarjeta en dashboard
         layout.addWidget(self.login_button)
         layout.addSpacing(14)
