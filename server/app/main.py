@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api import expeditions
 from app.api import auth, me, tasks, nodes
 from app.db.database import engine, Base
 
@@ -43,5 +44,6 @@ Path("uploads").mkdir(exist_ok=True)
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(me.router, prefix="/me", tags=["me"])
 app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
+app.include_router(expeditions.router, prefix="/expeditions", tags=["expeditions"])
 app.include_router(nodes.router, prefix="/nodes", tags=["nodes"])
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

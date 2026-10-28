@@ -83,6 +83,8 @@ class Node(Base):
     name = Column(String(80), nullable=False)
     invite_code = Column(String(12), unique=True, index=True, nullable=False)
     logo_url = Column(String, nullable=True)
+    logo_frame = Column(String(40), nullable=True)
+    unlocked_frames = Column(Text, nullable=True)  # JSON list
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=utcnow)
     member_count = Column(Integer, default=1, nullable=False)
@@ -117,3 +119,23 @@ class NodeJoinRequest(Base):
 
     node = relationship("Node", back_populates="join_requests")
     user = relationship("User")
+
+
+class Expedition(Base):
+    """Expedición mensual / meta colectiva de la red."""
+    __tablename__ = "expeditions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    slug = Column(String(40), unique=True, nullable=False, index=True)
+    name = Column(String(120), nullable=False)
+    description = Column(Text, nullable=True)
+    task_type = Column(String(40), nullable=True)  # biodiversity | None = todas
+    goal_value = Column(Integer, nullable=False)
+    current_value = Column(Integer, nullable=False, default=0)
+    reward_frame = Column(String(40), nullable=True)
+    reward_badge_id = Column(String(40), nullable=True)
+    starts_at = Column(DateTime, nullable=False)
+    ends_at = Column(DateTime, nullable=False)
+    completed_at = Column(DateTime, nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+
