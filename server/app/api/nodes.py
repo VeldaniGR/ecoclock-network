@@ -124,6 +124,25 @@ async def list_public_nodes(
     return nodes
 
 
+
+@router.get("/ranking", response_model=list[NodePublic])
+async def public_ranking(
+    limit: int = 5,
+    db: AsyncSession = Depends(get_db),
+):
+    """Ranking público de nodos (sin autenticación). Solo nombre, miembros y logo."""
+    if limit < 1:
+        limit = 1
+    if limit > 20:
+        limit = 20
+    result = await db.execute(
+        select(Node)
+        .where(Node.is_public == True)
+        .order_by(Node.member_count.desc(), Node.created_at.asc())
+        .limit(limit)
+    )
+    return result.scalars().all()
+
 @router.post("/join/{code}", response_model=NodeDetail)
 async def join_by_code(
     code: str,
