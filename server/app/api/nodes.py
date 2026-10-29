@@ -1,3 +1,4 @@
+import json
 """Endpoints de Nodos Ciudadanos."""
 import secrets
 import string

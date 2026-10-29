@@ -109,10 +109,15 @@ async def _ensure_pending_tasks(db: AsyncSession, min_pending: int = 3) -> None:
 
 
 
-async def _bump_expedition_progress(db: AsyncSession, task_payload: dict | str | None) -> None:
-    """Si hay expedición activa cuyo task_type coincide, incrementa current_value."""
+
+async def _bump_expedition_progress(
+    db: AsyncSession,
+    task_payload: dict | str | None,
+    user_id: int | None = None,
+) -> dict | None:
+    """Incrementa expedición activa; si se completa, desbloquea marco en el nodo del user."""
     from datetime import datetime, timezone
-    from app.db.models import Expedition
+    from app.db.models import Expedition, Node, NodeMember
 
     payload = task_payload
     if isinstance(payload, str):
@@ -124,7 +129,7 @@ async def _bump_expedition_progress(db: AsyncSession, task_payload: dict | str |
         payload = {}
     task_type = payload.get("type") or payload.get("task_type")
     if not task_type:
-        return
+        return None
 
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     result = await db.execute(
@@ -140,17 +145,49 @@ async def _bump_expedition_progress(db: AsyncSession, task_payload: dict | str |
     )
     exp = result.scalar_one_or_none()
     if not exp:
-        return
-    # task_type None en expedición = cuenta cualquier tarea
+        return None
     if exp.task_type and exp.task_type != task_type:
-        return
+        return None
 
     exp.current_value = int(exp.current_value or 0) + 1
+    celebration = None
+
     if exp.current_value >= exp.goal_value and exp.completed_at is None:
         exp.completed_at = now
-        # Desbloqueo de marcos en nodos: se puede hacer en un job posterior;
-        # por ahora solo marcamos la expedición completada.
+        celebration = {
+            "expedition_slug": exp.slug,
+            "expedition_name": exp.name,
+            "reward_frame": exp.reward_frame,
+            "reward_badge_id": exp.reward_badge_id,
+            "just_completed": True,
+        }
+        if user_id and exp.reward_frame:
+            mem = await db.execute(
+                select(NodeMember).where(NodeMember.user_id == user_id).limit(1)
+            )
+            membership = mem.scalar_one_or_none()
+            if membership:
+                node_r = await db.execute(select(Node).where(Node.id == membership.node_id))
+                node = node_r.scalar_one_or_none()
+                if node:
+                    frames = []
+                    if node.unlocked_frames:
+                        try:
+                            frames = json.loads(node.unlocked_frames)
+                        except Exception:
+                            frames = []
+                    if not isinstance(frames, list):
+                        frames = []
+                    if exp.reward_frame not in frames:
+                        frames.append(exp.reward_frame)
+                        node.unlocked_frames = json.dumps(frames)
+                    if not node.logo_frame:
+                        node.logo_frame = exp.reward_frame
+                    celebration["node_id"] = node.id
+                    celebration["unlocked_frame"] = exp.reward_frame
+
     await db.commit()
+    return celebration
 
 
 @router.get("/next", response_model=TaskResponse)
@@ -250,7 +287,7 @@ async def submit_result(
 	await db.refresh(result_row)
 	# Progreso expedición mensual (no bloquea la respuesta si falla)
 	try:
-		await _bump_expedition_progress(db, task.payload)
+		await _bump_expedition_progress(db, task.payload, user_id=current_user.id)
 	except Exception:
 		pass
 	if isinstance(result_row.output, str):
