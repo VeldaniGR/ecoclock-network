@@ -54,6 +54,7 @@ except ImportError:  # pragma: no cover
     QDesktopServices = QPixmap = QSvgRenderer = object  # type: ignore[assignment]
 
 from client.gui.nodes_page import NodesPage
+from client.gui import services
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -284,27 +285,46 @@ class EcoClockWindow(QMainWindow):
 
         return page
 
+
     def _load_expedition(self) -> None:
+        from client.gui import services
         try:
             self._expedition = services.get_current_expedition(self._base_url, self._token)
-        except Exception:
+        except Exception as ex:
+            print("[expedition] error:", ex)
             self._expedition = None
+        print(
+            "[expedition] data:",
+            None if not getattr(self, "_expedition", None) else self._expedition.get("name"),
+            "token:",
+            bool(self._token),
+        )
         self._update_expedition_card()
+
 
     def _update_expedition_card(self) -> None:
         if not hasattr(self, "expedition_card"):
+            print("[expedition] no expedition_card aún")
             return
         e = getattr(self, "_expedition", None)
         if not e:
             self.expedition_card.setVisible(False)
+            print("[expedition] sin datos → hide")
             return
-        goal = max(int(e.get("goal_value") or 1), 1)
-        current = int(e.get("current_value") or 0)
-        pct = min(current / goal, 1.0)
-        self.expedition_title.setText(e.get("name") or "Expedición")
-        self.expedition_meta.setText(f"{current} / {goal} tareas · {pct*100:.1f}%")
-        self.expedition_bar.setValue(int(pct * 100))
-        self.expedition_card.setVisible(True)
+        try:
+            goal = max(int(e.get("goal_value") or 1), 1)
+            current = int(e.get("current_value") or 0)
+            pct = min(current / goal, 1.0)
+            self.expedition_title.setText(str(e.get("name") or "Expedición"))
+            self.expedition_meta.setText(f"{current} / {goal} tareas · {pct*100:.1f}%")
+            self.expedition_bar.setValue(int(pct * 100))
+            self.expedition_card.setVisible(True)
+            self.expedition_card.show()
+            print("[expedition] visible OK", current, "/", goal)
+        except Exception as ex:
+            print("[expedition] update error:", ex)
+            self.expedition_card.setVisible(False)
+
 
     def _build_dashboard_page(self) -> QWidget:
         """Dashboard: layout horizontal con panel izquierdo (stats, tarea, formulario manual)
@@ -810,6 +830,8 @@ class EcoClockWindow(QMainWindow):
         self._session_credits = 0
         self._session_timer.start(1000)  # Actualizar cada segundo
         self._update_session_stats()
+        self._load_my_node()
+        self._update_node_card()
         self._load_my_node()
         self._update_node_card()
         self._load_expedition()
