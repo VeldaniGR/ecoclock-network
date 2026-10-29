@@ -541,6 +541,26 @@ async def update_node(
     if payload.name is not None:
         node.name = payload.name.strip()
 
+    if payload.logo_frame is not None:
+        frame = (payload.logo_frame or "").strip()
+        if frame and frame != "none":
+            frames = []
+            if node.unlocked_frames:
+                try:
+                    frames = json.loads(node.unlocked_frames)
+                except Exception:
+                    frames = []
+            if not isinstance(frames, list):
+                frames = []
+            if frame not in frames:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Marco no desbloqueado para este nodo",
+                )
+            node.logo_frame = frame
+        else:
+            node.logo_frame = None
+
     await db.commit()
     await db.refresh(node)
 
