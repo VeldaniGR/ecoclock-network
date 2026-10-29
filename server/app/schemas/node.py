@@ -22,6 +22,8 @@ class NodeDetail(NodePublic):
     invite_code: str
     created_at: datetime
     my_role: str  # "admin" | "member"
+    logo_frame: str | None = None
+    unlocked_frames: str | None = None  # JSON list en texto
 
 
 class NodeMemberOut(BaseModel):
