@@ -527,6 +527,38 @@ async def delete_node(
     return {"detail": "Nodo eliminado"}
 
 
+
+
+@router.get("/{node_id}/members", response_model=list[NodeMemberOut])
+async def list_members(
+    node_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lista miembros del nodo (solo miembros del mismo nodo)."""
+    membership = await _get_user_node(db, current_user.id)
+    if not membership or membership.node_id != node_id:
+        raise HTTPException(status_code=403, detail="No perteneces a este nodo")
+
+    result = await db.execute(
+        select(NodeMember, User)
+        .join(User, User.id == NodeMember.user_id)
+        .where(NodeMember.node_id == node_id)
+        .order_by(NodeMember.role.desc(), NodeMember.joined_at)
+    )
+    rows = result.all()
+    out = []
+    for mem, user in rows:
+        out.append(
+            NodeMemberOut(
+                user_id=user.id,
+                username=user.username,
+                role=mem.role,
+                joined_at=mem.joined_at or mem.created_at if hasattr(mem, "created_at") else mem.joined_at,
+            )
+        )
+    return out
+
 @router.patch("/{node_id}", response_model=NodeDetail)
 async def update_node(
     node_id: int,
