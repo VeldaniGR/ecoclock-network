@@ -222,3 +222,98 @@ def get_current_expedition(base_url: str, token: str | None = None) -> dict | No
     r.raise_for_status()
     data = r.json()
     return data if data else None
+
+
+def update_node(
+    base_url: str,
+    node_id: int,
+    token: str | None = None,
+    name: str | None = None,
+    logo_frame: str | None = None,
+) -> dict:
+    """PATCH /nodes/{id}"""
+    import requests
+    from client.cli import load_token, auth_headers, try_refresh, _url, TIMEOUT
+
+    body = {}
+    if name is not None:
+        body["name"] = name
+    if logo_frame is not None:
+        body["logo_frame"] = logo_frame
+
+    tok = token or load_token()
+    url = _url(base_url, f"/nodes/{node_id}")
+    r = requests.patch(url, headers=auth_headers(tok), json=body, timeout=TIMEOUT)
+    if r.status_code == 401:
+        new_tok = try_refresh(base_url)
+        if new_tok:
+            r = requests.patch(
+                url, headers=auth_headers(new_tok), json=body, timeout=TIMEOUT
+            )
+    r.raise_for_status()
+    return r.json()
+
+
+def list_node_members(base_url: str, node_id: int, token: str | None = None) -> list:
+    r = cli.authenticated_get(base_url, f"/nodes/{node_id}/members", token=token)
+    r.raise_for_status()
+    return r.json()
+
+
+def list_join_requests(base_url: str, node_id: int, token: str | None = None) -> list:
+    r = cli.authenticated_get(base_url, f"/nodes/{node_id}/requests", token=token)
+    r.raise_for_status()
+    return r.json()
+
+
+def accept_join_request(
+    base_url: str, node_id: int, request_id: int, token: str | None = None
+) -> None:
+    r = cli.authenticated_post(
+        base_url, f"/nodes/{node_id}/requests/{request_id}/accept", token=token
+    )
+    r.raise_for_status()
+
+
+def reject_join_request(
+    base_url: str, node_id: int, request_id: int, token: str | None = None
+) -> None:
+    r = cli.authenticated_post(
+        base_url, f"/nodes/{node_id}/requests/{request_id}/reject", token=token
+    )
+    r.raise_for_status()
+
+
+def kick_member(
+    base_url: str, node_id: int, user_id: int, token: str | None = None
+) -> None:
+    import requests
+    from client.cli import load_token, auth_headers, try_refresh, _url, TIMEOUT
+
+    tok = token or load_token()
+    url = _url(base_url, f"/nodes/{node_id}/members/{user_id}")
+    r = requests.delete(url, headers=auth_headers(tok), timeout=TIMEOUT)
+    if r.status_code == 401:
+        new_tok = try_refresh(base_url)
+        if new_tok:
+            r = requests.delete(url, headers=auth_headers(new_tok), timeout=TIMEOUT)
+    r.raise_for_status()
+
+
+def transfer_leadership(
+    base_url: str, node_id: int, new_admin_user_id: int, token: str | None = None
+) -> None:
+    import requests
+    from client.cli import load_token, auth_headers, try_refresh, _url, TIMEOUT
+
+    tok = token or load_token()
+    url = _url(base_url, f"/nodes/{node_id}/transfer")
+    body = {"new_admin_user_id": new_admin_user_id}
+    r = requests.post(url, headers=auth_headers(tok), json=body, timeout=TIMEOUT)
+    if r.status_code == 401:
+        new_tok = try_refresh(base_url)
+        if new_tok:
+            r = requests.post(
+                url, headers=auth_headers(new_tok), json=body, timeout=TIMEOUT
+            )
+    r.raise_for_status()
