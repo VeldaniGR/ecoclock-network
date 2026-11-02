@@ -241,628 +241,27 @@
   </div>
 </footer>
 
+<!-- i18next (versiones fijadas) -->
+<script src="https://cdn.jsdelivr.net/npm/i18next@23.16.8/i18next.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/i18next-http-backend@2.6.2/i18nextHttpBackend.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/i18next-browser-languagedetector@8.0.0/dist/umd/i18nextBrowserLanguageDetector.min.js"></script>
 <script>
 /* ============================================================
-   i18n — 12 idiomas: ca es eu en fr de it pt zh ja ru ar
-   Atributos soportados:
-     data-i18n="clave"        → textContent
-     data-i18n-html="clave"   → innerHTML (solo cadenas propias, de confianza)
-     data-i18n-alt="clave"    → atributo alt
-     data-i18n-aria="clave"   → atributo aria-label
-   Prioridad de idioma: ?lang=xx → localStorage → navegador → es
+   i18n con i18next — traducciones en locales/<lng>/translation.json
+   12 idiomas: ca es eu en fr de it pt zh ja ru ar
+   Atributos: data-i18n (texto) · data-i18n-html (HTML propio)
+              data-i18n-alt · data-i18n-aria
+   Prioridad: ?lang=xx → localStorage → idioma del navegador → es
    ============================================================ */
 (function () {
   var LANGS = ["ca", "es", "eu", "en", "fr", "de", "it", "pt", "zh", "ja", "ru", "ar"];
   var RTL = { ar: true };
-  var DEFAULT = "es";
-  var STORE_KEY = "ecoclock_lang";
-
-  var I18N = {
-
-    /* ---------------------------------------------------- */
-    es: {
-      lang_label: "Idioma",
-      title: "Ecoclock Network — Cliente GUI",
-      desc: "Ecoclock Network — cliente GUI para contribuir con cómputo distribuido a proyectos de monitorización ambiental.",
-      nav_dl: "Descargar", nav_how: "Cómo funciona", nav_sci: "Las tareas", nav_rank: "Ranking", nav_beta: "Beta",
-      eyebrow: "v0.5.3 · Beta abierta",
-      h1: "Cómputo distribuido para monitorización ambiental",
-      sub: "Contribuye con capacidad de cálculo ociosa de tu máquina a proyectos verificados de análisis de imágenes satélite y biodiversidad. Sin mineros. Sin blockchain. Sin humo.",
-      meta1: "macOS no soportado en beta · iOS: planeado (requiere certificado Apple) · ",
-      meta2: "ver todas las releases",
-      how_t: "Cómo funciona",
-      how_s: "Tres pasos. Sin instalar nada en consola.",
-      s1t: "Crea cuenta",
-      s1p: "Email y contraseña. Un solo usuario por máquina. Sin tarjeta, sin tracking.",
-      s2t: "Recibe tareas",
-      s2p: "La GUI o la APK reciben una tarea del servidor (NDVI, Posidonia, biodiversidad) basada en datos Copernicus. Tú decides si la ejecutas.",
-      s3t: "Gana créditos",
-      s3p: "Cada tarea resuelta concede crédito Eco'clock. Sin valor monetario, pero con valor simbólico.",
-      sci_t: "De dónde salen las tareas",
-      sci_s: "No son tareas al azar. El servidor prepara trabajos a partir de datos abiertos de <strong>Copernicus</strong> (ESA), sobre todo imágenes y productos derivados de satélite. Tu máquina calcula un resultado verificable; tú ganas créditos Eco'clock simbólicos.",
-      ndvi_alt: "Cobertura vegetal / vegetación (Copernicus)",
-      ndvi: "<strong>NDVI / vegetación</strong> — índice a partir de bandas roja e infrarroja cercana (o productos CLMS de densidad de cubierta arbórea). Sirve para seguir salud de bosques, cultivos y cambios de cobertura.",
-      pos_alt: "Costa mediterránea / Baleares",
-      pos: "<strong>Posidonia</strong> — praderas marinas en el Mediterráneo (p. ej. entorno de Baleares). La tarea estima superficie o presencia a partir de escenas costeras.",
-      bio: "<strong>Biodiversidad</strong> — indicadores auxiliares (p. ej. presencia o scores) sobre unidades geográficas definidas en el payload de la tarea.",
-      note: " Vista de ejemplo centrada en Mallorca (Baleares). Si el catálogo CDSE no responde, el servidor puede generar tareas de relleno del mismo tipo; el cliente siempre calcula un output validable (NDVI, superficie, métricas, etc.).",
-      note_link: "Abrir Copernicus Browser ↗",
-      rank_t: "Top nodos ciudadanos",
-      rank_s: "Los 5 equipos con más miembros en la red. Únete o crea el tuyo desde la app o la GUI.",
-      rank_load: "Cargando ranking…",
-      rank_foot: "Actualizado al cargar la página · Solo nombre, logo y número de miembros",
-      rank_empty: "Aún no hay nodos públicos. ¡Sé el primero!",
-      rank_err: "No se pudo cargar el ranking. Inténtalo más tarde.",
-      rank_mem: "{n} miembros",
-      rank_node: "Nodo",
-      beta_t: "¿Te animas a la beta?",
-      beta_p: "Buscamos 5-50 beta-testers que se instalen el cliente, lo prueben 10 minutos y nos den feedback. Nos interesa especialmente cómo falla, no cómo funciona.",
-      beta_join: "Apúntate a la beta →",
-      beta_gh: "Ver issues en GitHub",
-      q1: "¿Preguntas técnicas? ", q2: " · ¿Bug? ", q3: "abre un issue",
-      f_text: "Cliente GUI para contribución cómputo distribuido a proyectos ambientales.",
-      f_proj: "Proyecto", f_src: "Código fuente", f_road: "Roadmap Fase 4", f_mob: "Código APK móvil",
-      f_also: "También de Eco'clock", f_eco: "Eco'clock 2026 · monitor ambiental",
-      f_made: "Hecho con Octo 🐙 en Catalunya"
-    },
-
-    /* ---------------------------------------------------- */
-    ca: {
-      lang_label: "Idioma",
-      title: "Ecoclock Network — Client GUI",
-      desc: "Ecoclock Network — client GUI per contribuir amb còmput distribuït a projectes de monitoratge ambiental.",
-      nav_dl: "Descarrega", nav_how: "Com funciona", nav_sci: "Les tasques", nav_rank: "Rànquing", nav_beta: "Beta",
-      eyebrow: "v0.5.3 · Beta oberta",
-      h1: "Còmput distribuït per al monitoratge ambiental",
-      sub: "Contribueix amb la capacitat de càlcul ociosa de la teva màquina a projectes verificats d'anàlisi d'imatges de satèl·lit i biodiversitat. Sense miners. Sense blockchain. Sense fum.",
-      meta1: "macOS no suportat en beta · iOS: planificat (requereix certificat d'Apple) · ",
-      meta2: "veure totes les releases",
-      how_t: "Com funciona",
-      how_s: "Tres passos. Sense instal·lar res per consola.",
-      s1t: "Crea un compte",
-      s1p: "Correu electrònic i contrasenya. Un sol usuari per màquina. Sense targeta, sense tracking.",
-      s2t: "Rep tasques",
-      s2p: "La GUI o l'APK reben una tasca del servidor (NDVI, Posidònia, biodiversitat) basada en dades de Copernicus. Tu decideixes si l'executes.",
-      s3t: "Guanya crèdits",
-      s3p: "Cada tasca resolta atorga crèdit Eco'clock. Sense valor monetari, però amb valor simbòlic.",
-      sci_t: "D'on surten les tasques",
-      sci_s: "No són tasques a l'atzar. El servidor prepara feines a partir de dades obertes de <strong>Copernicus</strong> (ESA), sobretot imatges i productes derivats de satèl·lit. La teva màquina calcula un resultat verificable; tu guanyes crèdits Eco'clock simbòlics.",
-      ndvi_alt: "Coberta vegetal / vegetació (Copernicus)",
-      ndvi: "<strong>NDVI / vegetació</strong> — índex a partir de bandes vermella i infraroja propera (o productes CLMS de densitat de coberta arbòria). Serveix per seguir la salut de boscos, cultius i canvis de coberta.",
-      pos_alt: "Costa mediterrània / Balears",
-      pos: "<strong>Posidònia</strong> — praderies marines a la Mediterrània (p. ex. entorn de les Balears). La tasca estima superfície o presència a partir d'escenes costaneres.",
-      bio: "<strong>Biodiversitat</strong> — indicadors auxiliars (p. ex. presència o puntuacions) sobre unitats geogràfiques definides al payload de la tasca.",
-      note: " Vista d'exemple centrada a Mallorca (Balears). Si el catàleg CDSE no respon, el servidor pot generar tasques de farciment del mateix tipus; el client sempre calcula un output validable (NDVI, superfície, mètriques, etc.).",
-      note_link: "Obrir Copernicus Browser ↗",
-      rank_t: "Top nodes ciutadans",
-      rank_s: "Els 5 equips amb més membres a la xarxa. Uneix-te'n a un o crea el teu des de l'app o la GUI.",
-      rank_load: "Carregant el rànquing…",
-      rank_foot: "Actualitzat en carregar la pàgina · Només nom, logo i nombre de membres",
-      rank_empty: "Encara no hi ha nodes públics. Sigues el primer!",
-      rank_err: "No s'ha pogut carregar el rànquing. Torna-ho a provar més tard.",
-      rank_mem: "{n} membres",
-      rank_node: "Node",
-      beta_t: "T'animes a la beta?",
-      beta_p: "Busquem de 5 a 50 beta-testers que s'instal·lin el client, el provin 10 minuts i ens donin feedback. Ens interessa especialment com falla, no com funciona.",
-      beta_join: "Apunta't a la beta →",
-      beta_gh: "Veure issues a GitHub",
-      q1: "Preguntes tècniques? ", q2: " · Bug? ", q3: "obre un issue",
-      f_text: "Client GUI per contribuir amb còmput distribuït a projectes ambientals.",
-      f_proj: "Projecte", f_src: "Codi font", f_road: "Full de ruta Fase 4", f_mob: "Codi de l'APK mòbil",
-      f_also: "També d'Eco'clock", f_eco: "Eco'clock 2026 · monitor ambiental",
-      f_made: "Fet amb Octo 🐙 a Catalunya"
-    },
-
-    /* ---------------------------------------------------- */
-    eu: {
-      lang_label: "Hizkuntza",
-      title: "Ecoclock Network — GUI bezeroa",
-      desc: "Ecoclock Network — GUI bezeroa, ingurumena monitorizatzeko proiektuei konputazio banatuaren bidez laguntzeko.",
-      nav_dl: "Deskargatu", nav_how: "Nola funtzionatzen du", nav_sci: "Zereginak", nav_rank: "Sailkapena", nav_beta: "Beta",
-      eyebrow: "v0.5.3 · Beta irekia",
-      h1: "Konputazio banatua ingurumena monitorizatzeko",
-      sub: "Eman zure makinaren kalkulu-ahalmen alferra satelite-irudien eta biodibertsitatearen azterketa egiaztatuko proiektuei. Meatzaririk gabe. Blockchainik gabe. Hutsaldekeriarik gabe.",
-      meta1: "macOS ez da onartzen betan · iOS: planifikatuta (Apple ziurtagiria behar da) · ",
-      meta2: "ikusi release guztiak",
-      how_t: "Nola funtzionatzen du",
-      how_s: "Hiru urrats. Kontsolatik ezer instalatu gabe.",
-      s1t: "Sortu kontua",
-      s1p: "E-posta eta pasahitza. Erabiltzaile bakarra makina bakoitzeko. Txartelik gabe, tracking-ik gabe.",
-      s2t: "Jaso zereginak",
-      s2p: "GUIak edo APKak zerbitzariaren zeregin bat jasotzen du (NDVI, Posidonia, biodibertsitatea), Copernicus datuetan oinarrituta. Zuk erabakitzen duzu exekutatu ala ez.",
-      s3t: "Irabazi kredituak",
-      s3p: "Ebatzitako zeregin bakoitzak Eco'clock kreditua ematen du. Balio monetariorik gabe, baina balio sinbolikoarekin.",
-      sci_t: "Nondik datoz zereginak",
-      sci_s: "Ez dira ausazko zereginak. Zerbitzariak <strong>Copernicus</strong> (ESA) datu irekietatik prestatzen ditu lanak, batez ere satelite-irudietatik eta eratorritako produktuetatik. Zure makinak emaitza egiaztagarri bat kalkulatzen du; zuk Eco'clock kreditu sinbolikoak irabazten dituzu.",
-      ndvi_alt: "Landare-estaldura / landaredia (Copernicus)",
-      ndvi: "<strong>NDVI / landaredia</strong> — banda gorri eta infragorri hurbilen araberako indizea (edo zuhaiztiaren dentsitatearen CLMS produktuak). Basoen, laborantzen eta estaldura-aldaketen osasuna jarraitzeko balio du.",
-      pos_alt: "Mediterraneoko kostaldea / Balearrak",
-      pos: "<strong>Posidonia</strong> — Mediterraneoko itsas belardiak (adib. Balearren inguruan). Zereginak azalera edo presentzia kalkulatzen du kostaldeko eszenetatik.",
-      bio: "<strong>Biodibertsitatea</strong> — adierazle osagarriak (adib. presentzia edo puntuazioak) zereginaren payload-ean definitutako unitate geografikoen gainean.",
-      note: " Adibide-bista Mallorcan zentratuta (Balearrak). CDSE katalogoak erantzuten ez badu, zerbitzariak mota bereko betetze-zereginak sor ditzake; bezeroak beti kalkulatzen du balioztatu daitekeen irteera bat (NDVI, azalera, metrikak, etab.).",
-      note_link: "Ireki Copernicus Browser ↗",
-      rank_t: "Nodo hiritarren top-a",
-      rank_s: "Sareko kide gehien dituzten 5 taldeak. Batu zaitez edo sortu zurea aplikaziotik edo GUItik.",
-      rank_load: "Sailkapena kargatzen…",
-      rank_foot: "Orria kargatzean eguneratua · Izena, logoa eta kide kopurua soilik",
-      rank_empty: "Oraindik ez dago nodo publikorik. Izan zaitez lehena!",
-      rank_err: "Ezin izan da sailkapena kargatu. Saiatu berriro geroago.",
-      rank_mem: "{n} kide",
-      rank_node: "Nodoa",
-      beta_t: "Betan parte hartu nahi duzu?",
-      beta_p: "5-50 beta-tester bilatzen ditugu, bezeroa instalatu, 10 minutuz probatu eta feedbacka emango digutenak. Bereziki interesatzen zaigu nola huts egiten duen, ez nola funtzionatzen duen.",
-      beta_join: "Eman izena betan →",
-      beta_gh: "Ikusi issue-ak GitHuben",
-      q1: "Galdera teknikoak? ", q2: " · Errorea? ", q3: "ireki issue bat",
-      f_text: "GUI bezeroa ingurumen-proiektuei konputazio banatuaren bidez laguntzeko.",
-      f_proj: "Proiektua", f_src: "Iturburu-kodea", f_road: "4. fasearen bide-orria", f_mob: "Mugikorreko APK kodea",
-      f_also: "Eco'clock-en beste proiektuak", f_eco: "Eco'clock 2026 · ingurumen-monitorea",
-      f_made: "Octo 🐙 rekin eginda Katalunian"
-    },
-
-    /* ---------------------------------------------------- */
-    en: {
-      lang_label: "Language",
-      title: "Ecoclock Network — GUI Client",
-      desc: "Ecoclock Network — GUI client to contribute distributed computing to environmental monitoring projects.",
-      nav_dl: "Download", nav_how: "How it works", nav_sci: "The tasks", nav_rank: "Ranking", nav_beta: "Beta",
-      eyebrow: "v0.5.3 · Open beta",
-      h1: "Distributed computing for environmental monitoring",
-      sub: "Donate your machine's idle computing power to verified satellite imagery and biodiversity analysis projects. No miners. No blockchain. No hype.",
-      meta1: "macOS not supported in beta · iOS: planned (requires an Apple certificate) · ",
-      meta2: "see all releases",
-      how_t: "How it works",
-      how_s: "Three steps. Nothing to install from the console.",
-      s1t: "Create an account",
-      s1p: "Email and password. One user per machine. No card, no tracking.",
-      s2t: "Receive tasks",
-      s2p: "The GUI or the APK receives a task from the server (NDVI, Posidonia, biodiversity) based on Copernicus data. You decide whether to run it.",
-      s3t: "Earn credits",
-      s3p: "Every solved task grants Eco'clock credit. No monetary value, but with symbolic value.",
-      sci_t: "Where the tasks come from",
-      sci_s: "They are not random tasks. The server prepares jobs from open <strong>Copernicus</strong> (ESA) data, mostly satellite imagery and derived products. Your machine computes a verifiable result; you earn symbolic Eco'clock credits.",
-      ndvi_alt: "Vegetation cover (Copernicus)",
-      ndvi: "<strong>NDVI / vegetation</strong> — index derived from red and near-infrared bands (or CLMS tree cover density products). Used to track the health of forests, crops and land cover changes.",
-      pos_alt: "Mediterranean coast / Balearic Islands",
-      pos: "<strong>Posidonia</strong> — seagrass meadows in the Mediterranean (e.g. around the Balearic Islands). The task estimates area or presence from coastal scenes.",
-      bio: "<strong>Biodiversity</strong> — auxiliary indicators (e.g. presence or scores) over geographic units defined in the task payload.",
-      note: " Sample view centered on Mallorca (Balearic Islands). If the CDSE catalogue does not respond, the server may generate filler tasks of the same type; the client always computes a verifiable output (NDVI, area, metrics, etc.).",
-      note_link: "Open Copernicus Browser ↗",
-      rank_t: "Top citizen nodes",
-      rank_s: "The 5 teams with the most members in the network. Join one or create your own from the app or the GUI.",
-      rank_load: "Loading ranking…",
-      rank_foot: "Updated when the page loads · Name, logo and member count only",
-      rank_empty: "No public nodes yet. Be the first!",
-      rank_err: "Could not load the ranking. Please try again later.",
-      rank_mem: "{n} members",
-      rank_node: "Node",
-      beta_t: "Up for the beta?",
-      beta_p: "We are looking for 5–50 beta testers to install the client, try it for 10 minutes and give us feedback. We care especially about how it fails, not how it works.",
-      beta_join: "Join the beta →",
-      beta_gh: "See issues on GitHub",
-      q1: "Technical questions? ", q2: " · Bug? ", q3: "open an issue",
-      f_text: "GUI client to contribute distributed computing to environmental projects.",
-      f_proj: "Project", f_src: "Source code", f_road: "Phase 4 roadmap", f_mob: "Mobile APK code",
-      f_also: "Also from Eco'clock", f_eco: "Eco'clock 2026 · environmental monitor",
-      f_made: "Made with Octo 🐙 in Catalonia"
-    },
-
-    /* ---------------------------------------------------- */
-    fr: {
-      lang_label: "Langue",
-      title: "Ecoclock Network — Client GUI",
-      desc: "Ecoclock Network — client GUI pour contribuer par le calcul distribué à des projets de surveillance environnementale.",
-      nav_dl: "Télécharger", nav_how: "Comment ça marche", nav_sci: "Les tâches", nav_rank: "Classement", nav_beta: "Bêta",
-      eyebrow: "v0.5.3 · Bêta ouverte",
-      h1: "Calcul distribué pour la surveillance environnementale",
-      sub: "Mettez la puissance de calcul inutilisée de votre machine au service de projets vérifiés d'analyse d'images satellite et de biodiversité. Sans mineurs. Sans blockchain. Sans esbroufe.",
-      meta1: "macOS non pris en charge en bêta · iOS : prévu (nécessite un certificat Apple) · ",
-      meta2: "voir toutes les releases",
-      how_t: "Comment ça marche",
-      how_s: "Trois étapes. Rien à installer en console.",
-      s1t: "Créez un compte",
-      s1p: "E-mail et mot de passe. Un seul utilisateur par machine. Sans carte, sans tracking.",
-      s2t: "Recevez des tâches",
-      s2p: "La GUI ou l'APK reçoit une tâche du serveur (NDVI, posidonie, biodiversité) fondée sur les données Copernicus. C'est vous qui décidez de l'exécuter.",
-      s3t: "Gagnez des crédits",
-      s3p: "Chaque tâche résolue rapporte un crédit Eco'clock. Sans valeur monétaire, mais avec une valeur symbolique.",
-      sci_t: "D'où viennent les tâches",
-      sci_s: "Ce ne sont pas des tâches au hasard. Le serveur prépare des travaux à partir des données ouvertes de <strong>Copernicus</strong> (ESA), surtout des images et produits dérivés de satellite. Votre machine calcule un résultat vérifiable ; vous gagnez des crédits Eco'clock symboliques.",
-      ndvi_alt: "Couvert végétal / végétation (Copernicus)",
-      ndvi: "<strong>NDVI / végétation</strong> — indice calculé à partir des bandes rouge et proche infrarouge (ou des produits CLMS de densité du couvert arboré). Il sert à suivre la santé des forêts, des cultures et les changements de couverture.",
-      pos_alt: "Côte méditerranéenne / Baléares",
-      pos: "<strong>Posidonie</strong> — herbiers marins de Méditerranée (p. ex. autour des Baléares). La tâche estime la surface ou la présence à partir de scènes côtières.",
-      bio: "<strong>Biodiversité</strong> — indicateurs auxiliaires (p. ex. présence ou scores) sur des unités géographiques définies dans le payload de la tâche.",
-      note: " Vue d'exemple centrée sur Majorque (Baléares). Si le catalogue CDSE ne répond pas, le serveur peut générer des tâches de remplissage du même type ; le client calcule toujours une sortie validable (NDVI, surface, métriques, etc.).",
-      note_link: "Ouvrir le Copernicus Browser ↗",
-      rank_t: "Top des nœuds citoyens",
-      rank_s: "Les 5 équipes comptant le plus de membres sur le réseau. Rejoignez-en une ou créez la vôtre depuis l'app ou la GUI.",
-      rank_load: "Chargement du classement…",
-      rank_foot: "Mis à jour au chargement de la page · Nom, logo et nombre de membres uniquement",
-      rank_empty: "Aucun nœud public pour l'instant. Soyez le premier !",
-      rank_err: "Impossible de charger le classement. Réessayez plus tard.",
-      rank_mem: "{n} membres",
-      rank_node: "Nœud",
-      beta_t: "Envie de rejoindre la bêta ?",
-      beta_p: "Nous cherchons de 5 à 50 bêta-testeurs qui installent le client, l'essaient 10 minutes et nous donnent leur avis. Ce qui nous intéresse surtout, c'est comment ça plante, pas comment ça marche.",
-      beta_join: "Inscrivez-vous à la bêta →",
-      beta_gh: "Voir les issues sur GitHub",
-      q1: "Questions techniques ? ", q2: " · Un bug ? ", q3: "ouvrez une issue",
-      f_text: "Client GUI pour contribuer par le calcul distribué à des projets environnementaux.",
-      f_proj: "Projet", f_src: "Code source", f_road: "Feuille de route phase 4", f_mob: "Code de l'APK mobile",
-      f_also: "Aussi chez Eco'clock", f_eco: "Eco'clock 2026 · moniteur environnemental",
-      f_made: "Fait avec Octo 🐙 en Catalogne"
-    },
-
-    /* ---------------------------------------------------- */
-    de: {
-      lang_label: "Sprache",
-      title: "Ecoclock Network — GUI-Client",
-      desc: "Ecoclock Network — GUI-Client, um mit verteilter Rechenleistung zu Projekten der Umweltüberwachung beizutragen.",
-      nav_dl: "Herunterladen", nav_how: "So funktioniert's", nav_sci: "Die Aufgaben", nav_rank: "Rangliste", nav_beta: "Beta",
-      eyebrow: "v0.5.3 · Offene Beta",
-      h1: "Verteiltes Rechnen für die Umweltüberwachung",
-      sub: "Stelle die ungenutzte Rechenleistung deines Rechners verifizierten Projekten zur Analyse von Satellitenbildern und Biodiversität zur Verfügung. Keine Miner. Keine Blockchain. Kein Hype.",
-      meta1: "macOS wird in der Beta nicht unterstützt · iOS: geplant (erfordert ein Apple-Zertifikat) · ",
-      meta2: "alle Releases ansehen",
-      how_t: "So funktioniert's",
-      how_s: "Drei Schritte. Nichts über die Konsole zu installieren.",
-      s1t: "Konto erstellen",
-      s1p: "E-Mail und Passwort. Ein Nutzer pro Rechner. Keine Karte, kein Tracking.",
-      s2t: "Aufgaben erhalten",
-      s2p: "Die GUI oder die APK erhält vom Server eine Aufgabe (NDVI, Posidonia, Biodiversität) auf Basis von Copernicus-Daten. Du entscheidest, ob du sie ausführst.",
-      s3t: "Credits verdienen",
-      s3p: "Jede gelöste Aufgabe bringt Eco'clock-Credits. Ohne Geldwert, aber mit symbolischem Wert.",
-      sci_t: "Woher die Aufgaben kommen",
-      sci_s: "Das sind keine zufälligen Aufgaben. Der Server bereitet Jobs aus offenen Daten von <strong>Copernicus</strong> (ESA) vor, vor allem Satellitenbilder und abgeleitete Produkte. Dein Rechner berechnet ein überprüfbares Ergebnis; du verdienst symbolische Eco'clock-Credits.",
-      ndvi_alt: "Vegetationsbedeckung / Vegetation (Copernicus)",
-      ndvi: "<strong>NDVI / Vegetation</strong> — Index aus roten und nahinfraroten Bändern (oder CLMS-Produkten zur Baumbedeckungsdichte). Dient dazu, die Gesundheit von Wäldern, Anbauflächen und Änderungen der Landbedeckung zu verfolgen.",
-      pos_alt: "Mittelmeerküste / Balearen",
-      pos: "<strong>Posidonia</strong> — Seegraswiesen im Mittelmeer (z. B. rund um die Balearen). Die Aufgabe schätzt Fläche oder Vorkommen anhand von Küstenszenen.",
-      bio: "<strong>Biodiversität</strong> — Hilfsindikatoren (z. B. Vorkommen oder Scores) für geografische Einheiten, die im Payload der Aufgabe definiert sind.",
-      note: " Beispielansicht mit Fokus auf Mallorca (Balearen). Antwortet der CDSE-Katalog nicht, kann der Server Füllaufgaben desselben Typs erzeugen; der Client berechnet immer eine validierbare Ausgabe (NDVI, Fläche, Metriken usw.).",
-      note_link: "Copernicus Browser öffnen ↗",
-      rank_t: "Top Bürger-Knoten",
-      rank_s: "Die 5 Teams mit den meisten Mitgliedern im Netzwerk. Tritt einem bei oder gründe dein eigenes über die App oder die GUI.",
-      rank_load: "Rangliste wird geladen…",
-      rank_foot: "Beim Laden der Seite aktualisiert · Nur Name, Logo und Mitgliederzahl",
-      rank_empty: "Noch keine öffentlichen Knoten. Sei der Erste!",
-      rank_err: "Die Rangliste konnte nicht geladen werden. Bitte versuche es später erneut.",
-      rank_mem: "{n} Mitglieder",
-      rank_node: "Knoten",
-      beta_t: "Lust auf die Beta?",
-      beta_p: "Wir suchen 5–50 Beta-Tester, die den Client installieren, 10 Minuten ausprobieren und uns Feedback geben. Uns interessiert vor allem, wie er scheitert, nicht, wie er funktioniert.",
-      beta_join: "Zur Beta anmelden →",
-      beta_gh: "Issues auf GitHub ansehen",
-      q1: "Technische Fragen? ", q2: " · Bug? ", q3: "Issue eröffnen",
-      f_text: "GUI-Client, um mit verteilter Rechenleistung zu Umweltprojekten beizutragen.",
-      f_proj: "Projekt", f_src: "Quellcode", f_road: "Roadmap Phase 4", f_mob: "Code der mobilen APK",
-      f_also: "Auch von Eco'clock", f_eco: "Eco'clock 2026 · Umweltmonitor",
-      f_made: "Gemacht mit Octo 🐙 in Katalonien"
-    },
-
-    /* ---------------------------------------------------- */
-    it: {
-      lang_label: "Lingua",
-      title: "Ecoclock Network — Client GUI",
-      desc: "Ecoclock Network — client GUI per contribuire con il calcolo distribuito a progetti di monitoraggio ambientale.",
-      nav_dl: "Scarica", nav_how: "Come funziona", nav_sci: "I task", nav_rank: "Classifica", nav_beta: "Beta",
-      eyebrow: "v0.5.3 · Beta aperta",
-      h1: "Calcolo distribuito per il monitoraggio ambientale",
-      sub: "Metti la potenza di calcolo inutilizzata della tua macchina al servizio di progetti verificati di analisi di immagini satellitari e biodiversità. Niente miner. Niente blockchain. Niente fumo.",
-      meta1: "macOS non supportato nella beta · iOS: pianificato (richiede un certificato Apple) · ",
-      meta2: "vedi tutte le release",
-      how_t: "Come funziona",
-      how_s: "Tre passaggi. Nulla da installare da console.",
-      s1t: "Crea un account",
-      s1p: "Email e password. Un solo utente per macchina. Senza carta, senza tracking.",
-      s2t: "Ricevi task",
-      s2p: "La GUI o l'APK ricevono un task dal server (NDVI, Posidonia, biodiversità) basato su dati Copernicus. Sei tu a decidere se eseguirlo.",
-      s3t: "Guadagna crediti",
-      s3p: "Ogni task risolto assegna crediti Eco'clock. Senza valore monetario, ma con valore simbolico.",
-      sci_t: "Da dove arrivano i task",
-      sci_s: "Non sono task casuali. Il server prepara lavori a partire dai dati aperti di <strong>Copernicus</strong> (ESA), soprattutto immagini e prodotti derivati da satellite. La tua macchina calcola un risultato verificabile; tu guadagni crediti Eco'clock simbolici.",
-      ndvi_alt: "Copertura vegetale / vegetazione (Copernicus)",
-      ndvi: "<strong>NDVI / vegetazione</strong> — indice ricavato dalle bande del rosso e del vicino infrarosso (o dai prodotti CLMS di densità della copertura arborea). Serve a seguire la salute di boschi, colture e i cambiamenti di copertura.",
-      pos_alt: "Costa mediterranea / Baleari",
-      pos: "<strong>Posidonia</strong> — praterie marine nel Mediterraneo (ad es. attorno alle Baleari). Il task stima superficie o presenza a partire da scene costiere.",
-      bio: "<strong>Biodiversità</strong> — indicatori ausiliari (ad es. presenza o punteggi) su unità geografiche definite nel payload del task.",
-      note: " Vista di esempio centrata su Maiorca (Baleari). Se il catalogo CDSE non risponde, il server può generare task di riempimento dello stesso tipo; il client calcola sempre un output validabile (NDVI, superficie, metriche, ecc.).",
-      note_link: "Apri il Copernicus Browser ↗",
-      rank_t: "Top nodi cittadini",
-      rank_s: "I 5 team con più membri nella rete. Unisciti a uno o crea il tuo dall'app o dalla GUI.",
-      rank_load: "Caricamento della classifica…",
-      rank_foot: "Aggiornato al caricamento della pagina · Solo nome, logo e numero di membri",
-      rank_empty: "Ancora nessun nodo pubblico. Sii il primo!",
-      rank_err: "Impossibile caricare la classifica. Riprova più tardi.",
-      rank_mem: "{n} membri",
-      rank_node: "Nodo",
-      beta_t: "Ti va di provare la beta?",
-      beta_p: "Cerchiamo da 5 a 50 beta tester che installino il client, lo provino per 10 minuti e ci diano un feedback. Ci interessa soprattutto come si rompe, non come funziona.",
-      beta_join: "Iscriviti alla beta →",
-      beta_gh: "Vedi le issue su GitHub",
-      q1: "Domande tecniche? ", q2: " · Un bug? ", q3: "apri una issue",
-      f_text: "Client GUI per contribuire con il calcolo distribuito a progetti ambientali.",
-      f_proj: "Progetto", f_src: "Codice sorgente", f_road: "Roadmap Fase 4", f_mob: "Codice dell'APK mobile",
-      f_also: "Anche di Eco'clock", f_eco: "Eco'clock 2026 · monitor ambientale",
-      f_made: "Fatto con Octo 🐙 in Catalogna"
-    },
-
-    /* ---------------------------------------------------- */
-    pt: {
-      lang_label: "Idioma",
-      title: "Ecoclock Network — Cliente GUI",
-      desc: "Ecoclock Network — cliente GUI para contribuir com computação distribuída a projetos de monitorização ambiental.",
-      nav_dl: "Descarregar", nav_how: "Como funciona", nav_sci: "As tarefas", nav_rank: "Ranking", nav_beta: "Beta",
-      eyebrow: "v0.5.3 · Beta aberta",
-      h1: "Computação distribuída para monitorização ambiental",
-      sub: "Contribua com a capacidade de cálculo ociosa da sua máquina para projetos verificados de análise de imagens de satélite e biodiversidade. Sem mineradores. Sem blockchain. Sem promessas vazias.",
-      meta1: "macOS não suportado na beta · iOS: planeado (requer certificado Apple) · ",
-      meta2: "ver todas as releases",
-      how_t: "Como funciona",
-      how_s: "Três passos. Sem instalar nada na consola.",
-      s1t: "Crie uma conta",
-      s1p: "E-mail e palavra-passe. Um único utilizador por máquina. Sem cartão, sem tracking.",
-      s2t: "Receba tarefas",
-      s2p: "A GUI ou o APK recebem uma tarefa do servidor (NDVI, Posidónia, biodiversidade) baseada em dados Copernicus. A decisão de a executar é sua.",
-      s3t: "Ganhe créditos",
-      s3p: "Cada tarefa resolvida concede crédito Eco'clock. Sem valor monetário, mas com valor simbólico.",
-      sci_t: "De onde vêm as tarefas",
-      sci_s: "Não são tarefas aleatórias. O servidor prepara trabalhos a partir de dados abertos do <strong>Copernicus</strong> (ESA), sobretudo imagens e produtos derivados de satélite. A sua máquina calcula um resultado verificável; você ganha créditos Eco'clock simbólicos.",
-      ndvi_alt: "Cobertura vegetal / vegetação (Copernicus)",
-      ndvi: "<strong>NDVI / vegetação</strong> — índice calculado a partir das bandas vermelha e do infravermelho próximo (ou de produtos CLMS de densidade de copa). Serve para acompanhar a saúde de florestas, culturas e mudanças de cobertura.",
-      pos_alt: "Costa mediterrânica / Baleares",
-      pos: "<strong>Posidónia</strong> — pradarias marinhas no Mediterrâneo (p. ex. na zona das Baleares). A tarefa estima a superfície ou a presença a partir de cenas costeiras.",
-      bio: "<strong>Biodiversidade</strong> — indicadores auxiliares (p. ex. presença ou pontuações) sobre unidades geográficas definidas no payload da tarefa.",
-      note: " Vista de exemplo centrada em Maiorca (Baleares). Se o catálogo CDSE não responder, o servidor pode gerar tarefas de preenchimento do mesmo tipo; o cliente calcula sempre um output validável (NDVI, superfície, métricas, etc.).",
-      note_link: "Abrir o Copernicus Browser ↗",
-      rank_t: "Top de nós cidadãos",
-      rank_s: "As 5 equipas com mais membros na rede. Junte-se a uma ou crie a sua a partir da app ou da GUI.",
-      rank_load: "A carregar o ranking…",
-      rank_foot: "Atualizado ao carregar a página · Apenas nome, logótipo e número de membros",
-      rank_empty: "Ainda não há nós públicos. Seja o primeiro!",
-      rank_err: "Não foi possível carregar o ranking. Tente novamente mais tarde.",
-      rank_mem: "{n} membros",
-      rank_node: "Nó",
-      beta_t: "Quer participar na beta?",
-      beta_p: "Procuramos 5 a 50 beta-testers que instalem o cliente, o experimentem durante 10 minutos e nos deem feedback. Interessa-nos sobretudo como falha, não como funciona.",
-      beta_join: "Inscreva-se na beta →",
-      beta_gh: "Ver issues no GitHub",
-      q1: "Dúvidas técnicas? ", q2: " · Um bug? ", q3: "abra uma issue",
-      f_text: "Cliente GUI para contribuir com computação distribuída a projetos ambientais.",
-      f_proj: "Projeto", f_src: "Código-fonte", f_road: "Roadmap da Fase 4", f_mob: "Código do APK móvel",
-      f_also: "Também da Eco'clock", f_eco: "Eco'clock 2026 · monitor ambiental",
-      f_made: "Feito com Octo 🐙 na Catalunha"
-    },
-
-    /* ---------------------------------------------------- */
-    zh: {
-      lang_label: "语言",
-      title: "Ecoclock Network — GUI 客户端",
-      desc: "Ecoclock Network — 通过分布式计算为环境监测项目贡献算力的 GUI 客户端。",
-      nav_dl: "下载", nav_how: "工作原理", nav_sci: "任务", nav_rank: "排行榜", nav_beta: "测试版",
-      eyebrow: "v0.5.3 · 公开测试",
-      h1: "面向环境监测的分布式计算",
-      sub: "把你电脑闲置的算力贡献给经过验证的卫星影像分析和生物多样性项目。没有矿工,没有区块链,没有噱头。",
-      meta1: "测试版暂不支持 macOS · iOS:计划中(需要 Apple 证书)· ",
-      meta2: "查看所有版本",
-      how_t: "工作原理",
-      how_s: "三步完成,无需在命令行安装任何东西。",
-      s1t: "创建账号",
-      s1p: "邮箱和密码。每台机器仅限一个用户。无需银行卡,无追踪。",
-      s2t: "接收任务",
-      s2p: "GUI 或 APK 会从服务器接收基于哥白尼(Copernicus)数据的任务(NDVI、波西多尼亚海草、生物多样性)。是否执行由你决定。",
-      s3t: "赚取积分",
-      s3p: "每完成一个任务即可获得 Eco'clock 积分。没有货币价值,但具有象征意义。",
-      sci_t: "任务从哪里来",
-      sci_s: "这些并非随机任务。服务器基于 <strong>Copernicus</strong>(ESA)的开放数据准备工作,主要是卫星影像及其衍生产品。你的机器计算出可验证的结果;你获得象征性的 Eco'clock 积分。",
-      ndvi_alt: "植被覆盖 / 植被(Copernicus)",
-      ndvi: "<strong>NDVI / 植被</strong> — 由红光和近红外波段计算得出的指数(或 CLMS 树木覆盖密度产品)。用于跟踪森林、农作物的健康状况以及地表覆盖变化。",
-      pos_alt: "地中海海岸 / 巴利阿里群岛",
-      pos: "<strong>波西多尼亚海草</strong> — 地中海的海草草甸(例如巴利阿里群岛一带)。该任务根据沿海场景估算面积或分布情况。",
-      bio: "<strong>生物多样性</strong> — 针对任务 payload 中定义的地理单元的辅助指标(例如是否存在或评分)。",
-      note: " 示例视图以马略卡岛(巴利阿里群岛)为中心。如果 CDSE 目录无响应,服务器可能会生成同类型的补位任务;客户端始终会计算出可验证的输出(NDVI、面积、指标等)。",
-      note_link: "打开 Copernicus Browser ↗",
-      rank_t: "公民节点榜",
-      rank_s: "网络中成员最多的 5 个团队。可通过应用或 GUI 加入,或创建你自己的团队。",
-      rank_load: "正在加载排行榜…",
-      rank_foot: "页面加载时更新 · 仅显示名称、徽标和成员数量",
-      rank_empty: "暂无公开节点。成为第一个吧!",
-      rank_err: "无法加载排行榜,请稍后再试。",
-      rank_mem: "{n} 名成员",
-      rank_node: "节点",
-      beta_t: "想参加测试版吗?",
-      beta_p: "我们正在寻找 5–50 名 beta 测试员:安装客户端,试用 10 分钟,并给我们反馈。我们尤其关心它是怎么出问题的,而不是怎么运行的。",
-      beta_join: "报名参加测试 →",
-      beta_gh: "在 GitHub 查看 issues",
-      q1: "技术问题?请到 ", q2: " · 发现 Bug?请", q3: "提交 issue",
-      f_text: "通过分布式计算为环境项目贡献算力的 GUI 客户端。",
-      f_proj: "项目", f_src: "源代码", f_road: "第 4 阶段路线图", f_mob: "移动端 APK 代码",
-      f_also: "Eco'clock 其他项目", f_eco: "Eco'clock 2026 · 环境监测",
-      f_made: "由 Octo 🐙 在加泰罗尼亚制作"
-    },
-
-    /* ---------------------------------------------------- */
-    ja: {
-      lang_label: "言語",
-      title: "Ecoclock Network — GUIクライアント",
-      desc: "Ecoclock Network — 分散コンピューティングで環境モニタリングプロジェクトに貢献するGUIクライアント。",
-      nav_dl: "ダウンロード", nav_how: "仕組み", nav_sci: "タスク", nav_rank: "ランキング", nav_beta: "ベータ",
-      eyebrow: "v0.5.3 · オープンベータ",
-      h1: "環境モニタリングのための分散コンピューティング",
-      sub: "お使いのマシンの余っている計算能力を、検証済みの衛星画像解析・生物多様性プロジェクトに提供しましょう。マイナーなし。ブロックチェーンなし。誇大広告なし。",
-      meta1: "ベータ版ではmacOSは非対応 · iOS:計画中(Appleの証明書が必要)· ",
-      meta2: "すべてのリリースを見る",
-      how_t: "仕組み",
-      how_s: "3つのステップ。コンソールで何もインストールする必要はありません。",
-      s1t: "アカウントを作成",
-      s1p: "メールアドレスとパスワードだけ。1台につき1ユーザー。カード不要、トラッキングなし。",
-      s2t: "タスクを受け取る",
-      s2p: "GUIまたはAPKが、Copernicusのデータに基づくタスク(NDVI、ポシドニア、生物多様性)をサーバーから受け取ります。実行するかどうかはあなた次第です。",
-      s3t: "クレジットを獲得",
-      s3p: "タスクを1つ完了するごとにEco'clockクレジットが付与されます。金銭的価値はありませんが、象徴的な価値があります。",
-      sci_t: "タスクの出どころ",
-      sci_s: "タスクは無作為ではありません。サーバーは<strong>Copernicus</strong>(ESA)のオープンデータ、主に衛星画像とその派生プロダクトからジョブを用意します。あなたのマシンが検証可能な結果を計算し、象徴的なEco'clockクレジットを獲得します。",
-      ndvi_alt: "植生被覆 / 植生(Copernicus)",
-      ndvi: "<strong>NDVI / 植生</strong> — 赤と近赤外のバンドから求める指数(またはCLMSの樹冠被覆密度プロダクト)。森林や作物の健康状態、被覆の変化を追跡するのに使います。",
-      pos_alt: "地中海沿岸 / バレアレス諸島",
-      pos: "<strong>ポシドニア</strong> — 地中海の海草藻場(例:バレアレス諸島周辺)。このタスクは沿岸のシーンから面積や有無を推定します。",
-      bio: "<strong>生物多様性</strong> — タスクのpayloadで定義された地理単位に対する補助指標(例:在否やスコア)。",
-      note: " 例示ビューはマヨルカ島(バレアレス諸島)を中心にしています。CDSEカタログが応答しない場合、サーバーは同種の代替タスクを生成することがあります。クライアントは常に検証可能な出力(NDVI、面積、指標など)を計算します。",
-      note_link: "Copernicus Browserを開く ↗",
-      rank_t: "市民ノード トップ",
-      rank_s: "ネットワークでメンバー数が最も多い5チーム。アプリまたはGUIから参加、または自分のチームを作成できます。",
-      rank_load: "ランキングを読み込み中…",
-      rank_foot: "ページ読み込み時に更新 · 名前、ロゴ、メンバー数のみ",
-      rank_empty: "公開ノードはまだありません。最初の1つになりましょう!",
-      rank_err: "ランキングを読み込めませんでした。後でもう一度お試しください。",
-      rank_mem: "メンバー {n} 人",
-      rank_node: "ノード",
-      beta_t: "ベータに参加しませんか?",
-      beta_p: "クライアントをインストールして10分ほど試し、フィードバックをくださるベータテスターを5〜50名募集しています。特に知りたいのは、どう動くかではなく、どう壊れるかです。",
-      beta_join: "ベータに申し込む →",
-      beta_gh: "GitHubでissueを見る",
-      q1: "技術的な質問は ", q2: " へ · バグは ", q3: "issueを作成",
-      f_text: "分散コンピューティングで環境プロジェクトに貢献するGUIクライアント。",
-      f_proj: "プロジェクト", f_src: "ソースコード", f_road: "フェーズ4ロードマップ", f_mob: "モバイルAPKのコード",
-      f_also: "Eco'clockのその他", f_eco: "Eco'clock 2026 · 環境モニター",
-      f_made: "カタルーニャでOcto 🐙と一緒に作りました"
-    },
-
-    /* ---------------------------------------------------- */
-    ru: {
-      lang_label: "Язык",
-      title: "Ecoclock Network — GUI-клиент",
-      desc: "Ecoclock Network — GUI-клиент для вклада распределённых вычислений в проекты экологического мониторинга.",
-      nav_dl: "Скачать", nav_how: "Как это работает", nav_sci: "Задачи", nav_rank: "Рейтинг", nav_beta: "Бета",
-      eyebrow: "v0.5.3 · Открытая бета",
-      h1: "Распределённые вычисления для экологического мониторинга",
-      sub: "Отдайте неиспользуемые вычислительные мощности вашего компьютера проверенным проектам по анализу спутниковых снимков и биоразнообразия. Без майнеров. Без блокчейна. Без пустых обещаний.",
-      meta1: "macOS в бете не поддерживается · iOS: запланировано (нужен сертификат Apple) · ",
-      meta2: "все релизы",
-      how_t: "Как это работает",
-      how_s: "Три шага. Ничего не нужно устанавливать через консоль.",
-      s1t: "Создайте аккаунт",
-      s1p: "E-mail и пароль. Один пользователь на машину. Без карты, без трекинга.",
-      s2t: "Получайте задачи",
-      s2p: "GUI или APK получает от сервера задачу (NDVI, посидония, биоразнообразие) на основе данных Copernicus. Запускать её или нет — решаете вы.",
-      s3t: "Зарабатывайте кредиты",
-      s3p: "За каждую решённую задачу начисляется кредит Eco'clock. Денежной ценности нет, но есть символическая.",
-      sci_t: "Откуда берутся задачи",
-      sci_s: "Это не случайные задачи. Сервер готовит работы на основе открытых данных <strong>Copernicus</strong> (ESA), прежде всего спутниковых снимков и производных продуктов. Ваша машина вычисляет проверяемый результат, а вы получаете символические кредиты Eco'clock.",
-      ndvi_alt: "Растительный покров / растительность (Copernicus)",
-      ndvi: "<strong>NDVI / растительность</strong> — индекс по красному и ближнему инфракрасному диапазонам (или продукты CLMS по плотности древесного покрова). Помогает следить за состоянием лесов, посевов и изменениями покрова.",
-      pos_alt: "Средиземноморское побережье / Балеарские острова",
-      pos: "<strong>Посидония</strong> — морские луга в Средиземном море (например, у Балеарских островов). Задача оценивает площадь или наличие по прибрежным сценам.",
-      bio: "<strong>Биоразнообразие</strong> — вспомогательные показатели (например, наличие или оценки) для географических единиц, заданных в payload задачи.",
-      note: " Пример вида с центром на Майорке (Балеарские острова). Если каталог CDSE не отвечает, сервер может создавать задачи-заполнители того же типа; клиент всегда вычисляет проверяемый результат (NDVI, площадь, метрики и т. д.).",
-      note_link: "Открыть Copernicus Browser ↗",
-      rank_t: "Топ гражданских узлов",
-      rank_s: "5 команд с наибольшим числом участников в сети. Вступайте в одну из них или создайте свою в приложении или GUI.",
-      rank_load: "Загрузка рейтинга…",
-      rank_foot: "Обновляется при загрузке страницы · Только название, логотип и число участников",
-      rank_empty: "Публичных узлов пока нет. Станьте первым!",
-      rank_err: "Не удалось загрузить рейтинг. Повторите попытку позже.",
-      rank_mem: "Участников: {n}",
-      rank_node: "Узел",
-      beta_t: "Хотите попробовать бету?",
-      beta_p: "Мы ищем от 5 до 50 бета-тестеров: установите клиент, попробуйте его 10 минут и поделитесь отзывом. Нас особенно интересует, как он ломается, а не как работает.",
-      beta_join: "Записаться в бету →",
-      beta_gh: "Смотреть issues на GitHub",
-      q1: "Технические вопросы? ", q2: " · Баг? ", q3: "создайте issue",
-      f_text: "GUI-клиент для вклада распределённых вычислений в экологические проекты.",
-      f_proj: "Проект", f_src: "Исходный код", f_road: "Дорожная карта фазы 4", f_mob: "Код мобильного APK",
-      f_also: "Ещё от Eco'clock", f_eco: "Eco'clock 2026 · экомонитор",
-      f_made: "Сделано с Octo 🐙 в Каталонии"
-    },
-
-    /* ---------------------------------------------------- */
-    ar: {
-      lang_label: "اللغة",
-      title: "Ecoclock Network — عميل واجهة رسومية",
-      desc: "Ecoclock Network — عميل بواجهة رسومية للمساهمة بالحوسبة الموزعة في مشاريع المراقبة البيئية.",
-      nav_dl: "تنزيل", nav_how: "كيف يعمل", nav_sci: "المهام", nav_rank: "الترتيب", nav_beta: "النسخة التجريبية",
-      eyebrow: "v0.5.3 · نسخة تجريبية مفتوحة",
-      h1: "حوسبة موزعة للمراقبة البيئية",
-      sub: "ساهم بقدرة المعالجة غير المستخدمة في جهازك في مشاريع موثّقة لتحليل صور الأقمار الصناعية والتنوع البيولوجي. بلا معدِّنين. بلا بلوكتشين. بلا ضجيج.",
-      meta1: "macOS غير مدعوم في النسخة التجريبية · iOS: مخطط له (يتطلب شهادة Apple) · ",
-      meta2: "عرض جميع الإصدارات",
-      how_t: "كيف يعمل",
-      how_s: "ثلاث خطوات. دون تثبيت أي شيء عبر سطر الأوامر.",
-      s1t: "أنشئ حسابًا",
-      s1p: "بريد إلكتروني وكلمة مرور. مستخدم واحد لكل جهاز. بلا بطاقة، وبلا تتبّع.",
-      s2t: "استلم المهام",
-      s2p: "تستلم الواجهة الرسومية أو تطبيق APK مهمة من الخادم (NDVI، بوسيدونيا، التنوع البيولوجي) اعتمادًا على بيانات Copernicus. وأنت من يقرر تنفيذها.",
-      s3t: "اكسب الأرصدة",
-      s3p: "كل مهمة تُنجَز تمنحك رصيد Eco'clock. بلا قيمة مالية، لكن بقيمة رمزية.",
-      sci_t: "من أين تأتي المهام",
-      sci_s: "ليست مهام عشوائية. يُعدّ الخادم الأعمال انطلاقًا من البيانات المفتوحة لبرنامج <strong>Copernicus</strong> (ESA)، وخاصة صور الأقمار الصناعية والمنتجات المشتقة منها. يحسب جهازك نتيجة يمكن التحقق منها، وتكسب أنت أرصدة Eco'clock رمزية.",
-      ndvi_alt: "الغطاء النباتي (Copernicus)",
-      ndvi: "<strong>NDVI / الغطاء النباتي</strong> — مؤشر مستخرج من النطاقين الأحمر وتحت الأحمر القريب (أو من منتجات CLMS لكثافة الغطاء الشجري). يُستخدم لمتابعة صحة الغابات والمحاصيل وتغيّرات الغطاء الأرضي.",
-      pos_alt: "ساحل البحر المتوسط / جزر البليار",
-      pos: "<strong>بوسيدونيا</strong> — مروج الأعشاب البحرية في البحر المتوسط (مثل محيط جزر البليار). تقدّر المهمة المساحة أو الوجود انطلاقًا من مشاهد ساحلية.",
-      bio: "<strong>التنوع البيولوجي</strong> — مؤشرات مساعدة (مثل الوجود أو الدرجات) على وحدات جغرافية محددة في payload المهمة.",
-      note: " العرض التوضيحي متمركز حول مايوركا (جزر البليار). إذا لم يستجب كتالوج CDSE، فقد يولّد الخادم مهام بديلة من النوع نفسه؛ ويحسب العميل دائمًا ناتجًا قابلًا للتحقق (NDVI، المساحة، المقاييس، إلخ).",
-      note_link: "افتح Copernicus Browser ↗",
-      rank_t: "أفضل العُقد المدنية",
-      rank_s: "أكبر 5 فرق من حيث عدد الأعضاء في الشبكة. انضم إلى أحدها أو أنشئ فريقك من التطبيق أو الواجهة الرسومية.",
-      rank_load: "جارٍ تحميل الترتيب…",
-      rank_foot: "يُحدَّث عند تحميل الصفحة · الاسم والشعار وعدد الأعضاء فقط",
-      rank_empty: "لا توجد عُقد عامة بعد. كن الأول!",
-      rank_err: "تعذّر تحميل الترتيب. حاول مرة أخرى لاحقًا.",
-      rank_mem: "الأعضاء: {n}",
-      rank_node: "عقدة",
-      beta_t: "هل تود الانضمام إلى النسخة التجريبية؟",
-      beta_p: "نبحث عن 5 إلى 50 مختبِرًا يثبّتون العميل ويجرّبونه 10 دقائق ويقدّمون لنا ملاحظاتهم. ما يهمنا بالأخص هو كيف يفشل، لا كيف يعمل.",
-      beta_join: "سجّل في النسخة التجريبية ←",
-      beta_gh: "عرض المشكلات على GitHub",
-      q1: "أسئلة تقنية؟ ", q2: " · خطأ برمجي؟ ", q3: "افتح issue",
-      f_text: "عميل بواجهة رسومية للمساهمة بالحوسبة الموزعة في المشاريع البيئية.",
-      f_proj: "المشروع", f_src: "الشيفرة المصدرية", f_road: "خارطة طريق المرحلة 4", f_mob: "شيفرة تطبيق APK للجوال",
-      f_also: "المزيد من Eco'clock", f_eco: "Eco'clock 2026 · مراقب بيئي",
-      f_made: "صُنع مع Octo 🐙 في كاتالونيا"
-    }
-  };
-
-  /* ---------- utilidades ---------- */
-  function isLang(l) { return LANGS.indexOf(l) !== -1; }
-
-  function t(key, lang) {
-    var l = lang || current;
-    var d = I18N[l] || {};
-    if (d[key] != null) return d[key];
-    if (I18N.en[key] != null) return I18N.en[key];
-    return I18N[DEFAULT][key] != null ? I18N[DEFAULT][key] : key;
-  }
-
-  function fromUrl() {
-    try {
-      var p = new URLSearchParams(location.search).get("lang");
-      return p && isLang(p.toLowerCase()) ? p.toLowerCase() : null;
-    } catch (e) { return null; }
-  }
-  function fromStorage() {
-    try {
-      var s = localStorage.getItem(STORE_KEY);
-      return s && isLang(s) ? s : null;
-    } catch (e) { return null; }
-  }
-  function fromBrowser() {
-    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
-    for (var i = 0; i < list.length; i++) {
-      var base = String(list[i]).toLowerCase().split("-")[0];
-      if (base === "nb" || base === "nn") base = "no"; // no soportado, cae al siguiente
-      if (isLang(base)) return base;
-    }
-    return null;
-  }
-
-  var current = fromUrl() || fromStorage() || fromBrowser() || DEFAULT;
 
   function qsa(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
 
-  function apply(lang) {
-    current = lang;
+  function localize() {
+    var t = i18next.t.bind(i18next);
+    var lang = (i18next.resolvedLanguage || i18next.language || "es").split("-")[0];
     var root = document.documentElement;
     root.setAttribute("lang", lang);
     root.setAttribute("dir", RTL[lang] ? "rtl" : "ltr");
@@ -879,30 +278,52 @@
     var sel = document.getElementById("lang-select");
     if (sel && sel.value !== lang) sel.value = lang;
 
-    try {
-      document.dispatchEvent(new CustomEvent("ecoclock:langchange", { detail: { lang: lang } }));
-    } catch (e) {}
+    document.dispatchEvent(new CustomEvent("ecoclock:langchange", { detail: { lang: lang } }));
   }
 
-  function setLang(lang, persist) {
-    if (!isLang(lang)) return;
-    apply(lang);
-    if (persist !== false) {
-      try { localStorage.setItem(STORE_KEY, lang); } catch (e) {}
-      try {
-        var u = new URL(location.href);
-        u.searchParams.set("lang", lang);
-        history.replaceState(null, "", u.toString());
-      } catch (e) {}
-    }
-  }
+  // Puente para el script del ranking
+  window.EcoI18n = {
+    t: function (key, opts) { return window.i18next && i18next.isInitialized ? i18next.t(key, opts) : key; },
+    setLang: function (lng) { return i18next.changeLanguage(lng); }
+  };
 
-  window.EcoI18n = { t: t, setLang: setLang, get lang() { return current; }, langs: LANGS };
+  i18next
+    .use(i18nextHttpBackend)
+    .use(i18nextBrowserLanguageDetector)
+    .init({
+      supportedLngs: LANGS,
+      nonExplicitSupportedLngs: true,   // es-ES → es, pt-BR → pt, zh-CN → zh...
+      fallbackLng: "es",
+      load: "languageOnly",
+      backend: { loadPath: "locales/{{lng}}/translation.json" },
+      detection: {
+        order: ["querystring", "localStorage", "navigator"],
+        lookupQuerystring: "lang",
+        lookupLocalStorage: "ecoclock_lang",
+        caches: ["localStorage"]
+      },
+      interpolation: { escapeValue: false }  // solo cadenas propias, de confianza
+    })
+    .then(localize)
+    .catch(function (e) { console.warn("i18next no pudo iniciarse; se mantiene el texto en español.", e); });
+
+  i18next.on("languageChanged", function () {
+    if (!i18next.isInitialized) return;
+    localize();
+  });
 
   var select = document.getElementById("lang-select");
-  if (select) select.addEventListener("change", function () { setLang(select.value); });
-
-  apply(current);
+  if (select) {
+    select.addEventListener("change", function () {
+      var lng = select.value;
+      i18next.changeLanguage(lng);
+      try {
+        var u = new URL(location.href);
+        u.searchParams.set("lang", lng);
+        history.replaceState(null, "", u.toString());
+      } catch (e) {}
+    });
+  }
 })();
 </script>
 
@@ -915,7 +336,7 @@
 
   var state = { status: "loading", nodes: [] };
 
-  function T(key) { return window.EcoI18n ? window.EcoI18n.t(key) : key; }
+  function T(key, opts) { return window.EcoI18n ? window.EcoI18n.t(key, opts) : key; }
 
   function escapeHtml(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -940,7 +361,7 @@
         ? '<img class="ranking-logo" src="https://api.ecoclock.org' + n.logo_url + '" alt="" width="40" height="40" loading="lazy">'
         : '<span class="ranking-logo ranking-logo-fallback">👥</span>';
       var name = escapeHtml(n.name || T("rank_node"));
-      var members = T("rank_mem").replace("{n}", String(n.member_count || 0));
+      var members = T("rank_mem", { n: n.member_count || 0 });
       return (
         '<div class="ranking-card">' +
           '<span class="ranking-pos">' + medal + "</span>" +
