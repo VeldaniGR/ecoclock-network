@@ -290,6 +290,19 @@ async def submit_result(
 		await _bump_expedition_progress(db, task.payload, user_id=current_user.id)
 	except Exception:
 		pass
+
+	# Mapa de impacto: asignar hexágono si la tarea cae en una loseta
+	try:
+		from app.services.impact_assign import try_assign_hex_from_task
+		await try_assign_hex_from_task(
+			db,
+			user_id=current_user.id,
+			task_payload=task.payload,
+			tile_slug="arctic",
+			color="glacier",
+		)
+	except Exception:
+		pass
 	if isinstance(result_row.output, str):
 		result_row.output = json.loads(result_row.output)
 	return result_row
