@@ -103,6 +103,41 @@ async def _ensure_pending_tasks(db: AsyncSession, min_pending: int = 3) -> None:
             )
         )
 
+
+    # Ártico (mapa de impacto / Navegantes del hielo)
+    arctic_aois = [
+        {"id": "svalbard", "label": "Svalbard", "min_lon": 15.3, "min_lat": 78.15, "max_lon": 15.9, "max_lat": 78.35},
+        {"id": "ilulissat", "label": "Groenlandia Ilulissat", "min_lon": -51.5, "min_lat": 69.0, "max_lon": -50.5, "max_lat": 69.5},
+        {"id": "bjornoya", "label": "Bjornoya", "min_lon": 18.5, "min_lat": 74.3, "max_lon": 19.5, "max_lat": 74.6},
+    ]
+    for i, aoi in enumerate(arctic_aois):
+        batch.append(
+            Task(
+                name=f"arctic-auto-{aoi['id']}-{int(now.timestamp())}",
+                payload=json.dumps(
+                    {
+                        "type": "ndvi",
+                        "version": 1,
+                        "tile_id": f"AUTO_ARCTIC_{aoi['id'].upper()}_{i}",
+                        "bbox": {
+                            "min_lon": aoi["min_lon"],
+                            "min_lat": aoi["min_lat"],
+                            "max_lon": aoi["max_lon"],
+                            "max_lat": aoi["max_lat"],
+                            "crs": "EPSG:4326",
+                        },
+                        "aoi_label": aoi["label"],
+                        "region": "arctic",
+                        "bands": {"red": 0.05 + i * 0.01, "nir": 0.20 + i * 0.02},
+                        "description": f"NDVI auto Artico (API refill): {aoi['label']}",
+                        "params": {"theme": "arctic_ice_melt"},
+                    }
+                ),
+                status="pending",
+                created_at=now,
+            )
+        )
+
     for t in batch:
         db.add(t)
     await db.commit()
