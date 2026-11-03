@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import expeditions
 from app.api import auth, me, tasks, nodes
+from app.api import impact
 from app.db.database import engine, Base
 
 from fastapi.staticfiles import StaticFiles
@@ -47,3 +48,4 @@ app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 app.include_router(expeditions.router, prefix="/expeditions", tags=["expeditions"])
 app.include_router(nodes.router, prefix="/nodes", tags=["nodes"])
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.include_router(impact.router)

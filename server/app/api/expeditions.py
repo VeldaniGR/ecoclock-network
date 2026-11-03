@@ -58,3 +58,82 @@ async def list_expeditions(db: AsyncSession = Depends(get_db)):
     """Listado de expediciones (público)."""
     result = await db.execute(select(Expedition).order_by(Expedition.starts_at.desc()))
     return [_to_out(e) for e in result.scalars().all()]
+
+
+# ---------------------------------------------------------------------------
+# Endpoints personales de expedición (claim + submit-photo)
+# ---------------------------------------------------------------------------
+
+from app.api.auth import get_current_user
+from app.db.models import User, UserImpactHex
+from app.schemas.impact import ClaimExpeditionOut, ImpactHexOut, SubmitPhotoOut
+
+
+@router.post("/{slug}/claim", response_model=ClaimExpeditionOut)
+async def claim_expedition(
+    slug: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Reclama una expedición (marca como claimed).
+    Por ahora NO asigna hexágono de forma inteligente (se hará más adelante
+    con coordenadas reales de las tareas). Solo registra el claim.
+    """
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    # Verificar que la expedición existe y está activa
+    result = await db.execute(
+        select(Expedition).where(Expedition.slug == slug)
+    )
+    expedition = result.scalar_one_or_none()
+    if not expedition:
+        raise HTTPException(status_code=404, detail="Expedición no encontrada")
+    if not expedition.is_active:
+        raise HTTPException(status_code=400, detail="Expedición no activa")
+    if expedition.starts_at > now or expedition.ends_at < now:
+        raise HTTPException(status_code=400, detail="Expedición fuera de fechas")
+
+    # TODO: aquí irá la lógica inteligente de asignación de hexágono
+    # por coordenadas de tareas reales. De momento devolvemos sin hex.
+
+    return ClaimExpeditionOut(
+        expedition_slug=slug,
+        status="claimed",
+        assigned_hex=None,
+        message=(
+            "Expedición reclamada. "
+            "La asignación de hexágono por coordenadas se activará en una próxima versión."
+        ),
+    )
+
+
+@router.post("/{slug}/submit-photo", response_model=SubmitPhotoOut)
+async def submit_photo(
+    slug: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Registra que el usuario ha enviado la foto de la actividad exterior.
+    (La validación real se hace manualmente / por admin de momento.)
+    """
+    result = await db.execute(
+        select(Expedition).where(Expedition.slug == slug)
+    )
+    expedition = result.scalar_one_or_none()
+    if not expedition:
+        raise HTTPException(status_code=404, detail="Expedición no encontrada")
+
+    # Por ahora solo confirmamos la recepción.
+    # Más adelante: crear/actualizar UserImpactHex con validated_at = None
+    # y un estado "submitted".
+
+    return SubmitPhotoOut(
+        expedition_slug=slug,
+        status="submitted",
+        message=(
+            "Foto registrada. "
+            "Cuando el equipo la valide recibirás el hexágono y el logro."
+        ),
+    )

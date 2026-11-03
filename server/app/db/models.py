@@ -1,6 +1,9 @@
 """Modelos de la base de datos: User, Task, Result, Credit."""
 from datetime import datetime, timezone
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    Column, DateTime, Float, ForeignKey, Integer, String, Text,
+    Boolean, UniqueConstraint
+)
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -138,4 +141,43 @@ class Expedition(Base):
     ends_at = Column(DateTime, nullable=False)
     completed_at = Column(DateTime, nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
+
+class ImpactTile(Base):
+    """Loseta geográfica del mapa de impacto (Ártico, Mediterráneo, etc.)."""
+    __tablename__ = "impact_tiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    slug = Column(String(40), unique=True, nullable=False, index=True)  # "arctic", "mediterranean"...
+    name = Column(String(120), nullable=False)
+    description = Column(Text, nullable=True)
+    # Opcional: bbox o metadatos de la proyección para asignación por coordenadas
+    # min_lat = Column(Float, nullable=True)
+    # max_lat = Column(Float, nullable=True)
+    # min_lon = Column(Float, nullable=True)
+    # max_lon = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=utcnow)
+
+
+class UserImpactHex(Base):
+    """Hexágono desbloqueado por un usuario dentro de una loseta."""
+    __tablename__ = "user_impact_hexes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    tile_slug = Column(String(40), nullable=False, index=True)      # "arctic"
+    hex_code = Column(String(10), nullable=False)                   # "D7", "E5"...
+    color = Column(String(20), nullable=False)                      # "glacier", "gold"...
+    source = Column(String(40), nullable=False)                     # "expedition_claim" | "photo_validated" | "task_geo"
+    expedition_slug = Column(String(40), nullable=True, index=True)
+    # Coordenadas de origen (cuando la asignación sea inteligente por tarea real)
+    lat = Column(Float, nullable=True)
+    lon = Column(Float, nullable=True)
+    unlocked_at = Column(DateTime, default=utcnow, nullable=False)
+    validated_at = Column(DateTime, nullable=True)                  # cuando se valida la foto exterior
+
+    user = relationship("User")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "tile_slug", "hex_code", name="uq_user_tile_hex"),
+    )
 
