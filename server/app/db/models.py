@@ -181,3 +181,26 @@ class UserImpactHex(Base):
         UniqueConstraint("user_id", "tile_slug", "hex_code", name="uq_user_tile_hex"),
     )
 
+
+class NavigatorEnvelope(Base):
+    """Sobre de navegante (actividad exterior) por usuario + expedición."""
+    __tablename__ = "navigator_envelopes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    expedition_slug = Column(String(40), nullable=False, index=True)
+    tile_slug = Column(String(40), nullable=False, default="arctic")
+    # ready | sent | validated  (locked no se persiste)
+    status = Column(String(20), nullable=False, default="ready")
+    trigger = Column(String(20), nullable=True)  # hexes | tasks
+    hex_count_at_ready = Column(Integer, nullable=True)
+    task_count_at_ready = Column(Integer, nullable=True)
+    ready_at = Column(DateTime, default=utcnow, nullable=False)
+    sent_at = Column(DateTime, nullable=True)
+    validated_at = Column(DateTime, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "expedition_slug", name="uq_user_expedition_envelope"
+        ),
+    )

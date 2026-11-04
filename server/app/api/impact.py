@@ -1,10 +1,9 @@
-"""Endpoints del mapa de impacto (hexágonos personales)."""
+"""Endpoints del mapa de impacto (hexágonos personales) y sobre de navegante."""
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,6 +14,7 @@ from app.schemas.impact import (
     ImpactHexOut,
     ImpactTileSummaryOut,
     MeImpactOut,
+    NavigatorEnvelopeOut,
 )
 
 router = APIRouter(prefix="/me/impact", tags=["impact"])
@@ -33,12 +33,10 @@ async def get_my_impact(
     )
     hexes = result.scalars().all()
 
-    # Agrupar por tile_slug
     by_tile: dict[str, list[UserImpactHex]] = defaultdict(list)
     for h in hexes:
         by_tile[h.tile_slug].append(h)
 
-    # Nombres de losetas (si existen en ImpactTile)
     tile_names: dict[str, str] = {}
     if by_tile:
         tiles_result = await db.execute(
@@ -63,6 +61,42 @@ async def get_my_impact(
 
     return MeImpactOut(tiles=summaries, total_hexes=total)
 
+
+# ---------------------------------------------------------------------------
+# Sobre de navegante (DEBE ir ANTES de /{tile_slug})
+# ---------------------------------------------------------------------------
+
+@router.get("/navigator-envelope", response_model=NavigatorEnvelopeOut)
+async def get_navigator_envelope(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Estado del Sobre de navegante (5 hex / 25 tareas personales)."""
+    from app.services.navigator_envelope import get_envelope_state
+
+    data = await get_envelope_state(db, current_user.id)
+    return NavigatorEnvelopeOut(**data)
+
+
+@router.post("/navigator-envelope/ack-sent", response_model=NavigatorEnvelopeOut)
+async def ack_navigator_envelope_sent(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Confirma que el usuario ha solicitado / recibido el correo del sobre."""
+    from app.services.navigator_envelope import get_envelope_state, mark_envelope_sent
+
+    state = await get_envelope_state(db, current_user.id)
+    slug = state.get("expedition_slug")
+    if not slug:
+        return NavigatorEnvelopeOut(**state)
+    data = await mark_envelope_sent(db, current_user.id, slug)
+    return NavigatorEnvelopeOut(**data)
+
+
+# ---------------------------------------------------------------------------
+# Loseta concreta (ruta genérica: la última)
+# ---------------------------------------------------------------------------
 
 @router.get("/{tile_slug}", response_model=ImpactTileSummaryOut)
 async def get_my_impact_tile(

@@ -61,3 +61,4 @@
   volumes:
     postgres-data:
     redis-data:
+    api-uploads:

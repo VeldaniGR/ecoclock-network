@@ -61,3 +61,17 @@ class ImpactTileOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class NavigatorEnvelopeOut(BaseModel):
+    """Estado del Sobre de navegante (5 hex / 25 tareas)."""
+    status: str  # locked | ready | sent | validated
+    expedition_slug: Optional[str] = None
+    tile_slug: str = "arctic"
+    hex_count: int = 0
+    hex_threshold: int = 5
+    personal_task_count: int = 0
+    task_threshold: int = 25
+    message: Optional[str] = None
+    trigger: Optional[str] = None
+
