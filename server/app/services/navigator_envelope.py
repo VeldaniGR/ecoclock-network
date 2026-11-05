@@ -162,4 +162,18 @@ async def mark_envelope_sent(
         row.status = "sent"
         row.sent_at = datetime.now(timezone.utc).replace(tzinfo=None)
         await db.commit()
+
+    # ── Enviar el email con el ZIP ──────────────────────────────────
+    try:
+        from app.db.models import User
+        from app.services.email import send_navigator_envelope_email
+
+        user_result = await db.execute(select(User).where(User.id == user_id))
+        user = user_result.scalar_one_or_none()
+        if user and user.email:
+            send_navigator_envelope_email(user.email, user.username)
+    except Exception as e:
+        # No fallamos el endpoint si el email falla (ya hemos marcado sent)
+        print(f"[navigator_envelope] Error enviando email: {e}")
+
     return await get_envelope_state(db, user_id)
