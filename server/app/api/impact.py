@@ -93,6 +93,57 @@ async def ack_navigator_envelope_sent(
     data = await mark_envelope_sent(db, current_user.id, slug)
     return NavigatorEnvelopeOut(**data)
 
+#----------------------------------------------------------------------------
+# Validación loseta
+#----------------------------------------------------------------------------
+from pydantic import BaseModel, Field
+
+
+class ValidateEnvelopeBody(BaseModel):
+    username: str | None = None
+    user_id: int | None = None
+    hex_code: str | None = Field(default=None, max_length=10)
+    expedition_slug: str | None = None
+
+
+# Usuarios que pueden validar (ajusta a tus admins)
+_VALIDATORS = {"Veldani", "Sgadh"}  # usernames
+
+
+@router.post("/navigator-envelope/validate", response_model=NavigatorEnvelopeOut)
+async def validate_navigator_envelope(
+    body: ValidateEnvelopeBody,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Valida la actividad exterior y otorga hexágono dorado.
+    Solo usuarios en _VALIDATORS (v1 manual tras revisar validacion@).
+    """
+    if current_user.username not in _VALIDATORS:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="No autorizado a validar sobres")
+
+    target_id = body.user_id
+    if target_id is None and body.username:
+        r = await db.execute(select(User).where(User.username == body.username))
+        u = r.scalar_one_or_none()
+        if not u:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        target_id = u.id
+    if target_id is None:
+        target_id = current_user.id  # validarse a sí mismo en pruebas
+
+    from app.services.navigator_envelope import validate_envelope
+
+    data = await validate_envelope(
+        db,
+        target_id,
+        expedition_slug=body.expedition_slug,
+        hex_code=body.hex_code,
+    )
+    return NavigatorEnvelopeOut(**data)
 
 # ---------------------------------------------------------------------------
 # Loseta concreta (ruta genérica: la última)
