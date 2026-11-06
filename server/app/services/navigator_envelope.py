@@ -243,6 +243,12 @@ async def mark_envelope_sent(
         user_result = await db.execute(select(User).where(User.id == user_id))
         user = user_result.scalar_one_or_none()
         if user and user.email:
+            lang = getattr(user, "preferred_language", None) or "es"
+            send_navigator_envelope_email(
+                user.email,
+                user.username,
+                lang=lang,
+            )        if user and user.email:
             send_navigator_envelope_email(user.email, user.username)
     except Exception as e:
         print(f"[navigator_envelope] Error enviando email: {e}")
