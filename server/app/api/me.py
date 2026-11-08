@@ -10,6 +10,7 @@ from app.db.database import get_db
 from app.db.models import Credit, Result, Task, User
 from app.schemas import CreditsSummary, CreditOut
 from app.services.gamification import compute_level, compute_achievements
+from pydantic import BaseModel, Field
 
 router = APIRouter()
 
@@ -179,3 +180,20 @@ async def get_my_credits(
         level=level,
         achievements=achievements,
     )
+
+class PreferredLanguageUpdate(BaseModel):
+    preferred_language: str = Field(..., min_length=2, max_length=10)
+
+
+@router.patch("/preferred-language")
+async def update_preferred_language(
+    payload: PreferredLanguageUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Guarda el idioma preferido del usuario (para emails y mensajes del sobre)."""
+    lang = payload.preferred_language.lower().strip()[:10]
+    current_user.preferred_language = lang
+    await db.commit()
+    await db.refresh(current_user)
+    return {"preferred_language": current_user.preferred_language}
