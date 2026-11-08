@@ -73,4 +73,12 @@ async def try_assign_hex_from_task(
     db.add(row)
     await db.commit()
     await db.refresh(row)
+
+    # Si alcanza el umbral del sobre de navegante, crear estado ready
+    try:
+        from app.services.navigator_envelope import get_envelope_state
+        await get_envelope_state(db, user_id)
+    except Exception as e:
+        print(f"[impact_assign] navigator envelope: {e}")
+
     return row
