@@ -16,6 +16,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    preferred_language = Column(String(10), nullable=True, default="es")
     created_at = Column(DateTime, default=utcnow)
     tasks = relationship("Task", back_populates="user")
     credits = relationship("Credit", back_populates="user")
