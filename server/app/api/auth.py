@@ -181,7 +181,8 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Dep
         ))
         await db.commit()
         try:
-            send_password_reset_email(user.email, raw)
+            lang = getattr(user, "preferred_language", None) or "es"
+            send_password_reset_email(user.email, raw, lang=lang)
         except Exception:
             pass
     return {"detail": "Si el email existe, recibirás instrucciones en breve."}

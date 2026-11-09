@@ -6,28 +6,162 @@ import resend
 from app.core.config import settings
 
 
-def send_password_reset_email(to_email: str, token: str) -> None:
+_PASSWORD_RESET_EMAIL = {
+    "es": {
+        "subject": "Eco'clock — restablecer contraseña",
+        "body": (
+            "Has solicitado restablecer la contraseña de Eco'clock.\n\n"
+            "Usa este token en la app o API (válido {minutes} min):\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<nueva>"}}\n\n'
+            "Si no fuiste tú, ignora este correo."
+        ),
+    },
+    "en": {
+        "subject": "Eco'clock — reset password",
+        "body": (
+            "You requested a password reset for Eco'clock.\n\n"
+            "Use this token in the app or API (valid {minutes} min):\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<new>"}}\n\n'
+            "If this wasn't you, ignore this email."
+        ),
+    },
+    "ca": {
+        "subject": "Eco'clock — restablir contrasenya",
+        "body": (
+            "Has sol·licitat restablir la contrasenya d'Eco'clock.\n\n"
+            "Usa aquest token a l'app o API (vàlid {minutes} min):\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<nova>"}}\n\n'
+            "Si no has estat tu, ignora aquest correu."
+        ),
+    },
+    "ja": {
+        "subject": "Eco'clock — パスワード再設定",
+        "body": (
+            "Eco'clock のパスワード再設定がリクエストされました。\n\n"
+            "アプリまたは API でこのトークンを使ってください（有効期限 {minutes} 分）:\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<新しいパスワード>"}}\n\n'
+            "心当たりがない場合はこのメールを無視してください。"
+        ),
+    },
+    "ar": {
+        "subject": "Eco'clock — إعادة تعيين كلمة المرور",
+        "body": (
+            "تم طلب إعادة تعيين كلمة مرور Eco'clock.\n\n"
+            "استخدم هذا الرمز في التطبيق أو واجهة API (صالح لمدة {minutes} دقيقة):\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<كلمة مرور جديدة>"}}\n\n'
+            "إذا لم تطلب ذلك، تجاهل هذا البريد."
+        ),
+    },
+    "fr": {
+        "subject": "Eco'clock — réinitialiser le mot de passe",
+        "body": (
+            "Vous avez demandé la réinitialisation du mot de passe Eco'clock.\n\n"
+            "Utilisez ce jeton dans l'app ou l'API (valide {minutes} min):\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<nouveau>"}}\n\n'
+            "Si ce n'était pas vous, ignorez cet e-mail."
+        ),
+    },
+    "de": {
+        "subject": "Eco'clock — Passwort zurücksetzen",
+        "body": (
+            "Du hast das Zurücksetzen des Eco'clock-Passworts angefordert.\n\n"
+            "Nutze dieses Token in der App oder API (gültig {minutes} Min.):\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<neu>"}}\n\n'
+            "Falls du das nicht warst, ignoriere diese E-Mail."
+        ),
+    },
+    "pt": {
+        "subject": "Eco'clock — redefinir palavra-passe",
+        "body": (
+            "Pediu a redefinição da palavra-passe do Eco'clock.\n\n"
+            "Use este token na app ou API (válido {minutes} min):\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<nova>"}}\n\n'
+            "Se não foi você, ignore este e-mail."
+        ),
+    },
+    "it": {
+        "subject": "Eco'clock — reimposta password",
+        "body": (
+            "Hai richiesto il reset della password di Eco'clock.\n\n"
+            "Usa questo token nell'app o API (valido {minutes} min):\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<nuova>"}}\n\n'
+            "Se non sei stato tu, ignora questa email."
+        ),
+    },
+    "zh": {
+        "subject": "Eco'clock — 重置密码",
+        "body": (
+            "您请求重置 Eco'clock 密码。\n\n"
+            "请在应用或 API 中使用此令牌（有效期 {minutes} 分钟）:\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<新密码>"}}\n\n'
+            "如非本人操作，请忽略此邮件。"
+        ),
+    },
+    "eu": {
+        "subject": "Eco'clock — Pasahitza berrezarri",
+        "body": (
+            "Eco'clock-erako pasahitza berrezartzea eskatu duzu.\n\n"
+            "Erabili token hau aplikazioan edo APIan (baliozko {minutes} min):\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<berria>"}}\n\n'
+            "Hau ez bazara zu, ezikusi mezu elektroniko hau."
+        ),
+    },
+    "ru": {
+        "subject": "Eco'clock — сбросить пароль",
+        "body": (
+            "Вы запросили сброс пароля для Eco'clock.\n\n"
+            "Используйте этот токен в приложении или API (действительный {minutes} минуты):\n\n"
+            "{token}\n\n"
+            "Endpoint: POST /auth/reset-password\n"
+            'Body: {{"token": "<token>", "new_password": "<новый>"}}\n\n'
+            "Если это были не вы, проигнорируйте это письмо."
+        ),
+    },
+}
+
+
+def send_password_reset_email(
+    to_email: str,
+    token: str,
+    lang: str | None = "es",
+) -> None:
     if not settings.RESEND_API_KEY:
         raise RuntimeError("RESEND_API_KEY no configurada")
 
     resend.api_key = settings.RESEND_API_KEY
-    reset_hint = (
-        f"Usa este token en la app o API (válido {settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES} min):\n\n"
-        f"{token}\n\n"
-        "Endpoint: POST /auth/reset-password\n"
-        'Body: {"token": "<token>", "new_password": "<nueva>"}'
-    )
+    code = (lang or "es").lower()[:2]
+    t = _PASSWORD_RESET_EMAIL.get(code) or _PASSWORD_RESET_EMAIL["es"]
+    minutes = settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES
+    body = t["body"].format(token=token, minutes=minutes)
+
     resend.Emails.send({
         "from": settings.RESEND_FROM_EMAIL,
         "to": [to_email],
-        "subject": "Eco'clock — restablecer contraseña",
-        "text": (
-            "Has solicitado restablecer la contraseña de Eco'clock.\n\n"
-            f"{reset_hint}\n\n"
-            "Si no fuiste tú, ignora este correo."
-        ),
+        "subject": t["subject"],
+        "text": body,
     })
-
 
 # ---------------------------------------------------------------------------
 # Sobre de Navegante (multi-idioma)
