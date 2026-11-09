@@ -174,6 +174,11 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Dep
         expires = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
             minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES
         )
+        # Idioma: pantalla Auth (body) > preferencia guardada > es
+        body_lang = (payload.preferred_language or "").strip().lower()[:10] or None
+        if body_lang:
+            user.preferred_language = body_lang
+
         db.add(PasswordResetToken(
             user_id=user.id,
             token_hash=_hash_token(raw),
@@ -181,7 +186,7 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Dep
         ))
         await db.commit()
         try:
-            lang = getattr(user, "preferred_language", None) or "es"
+            lang = body_lang or getattr(user, "preferred_language", None) or "es"
             send_password_reset_email(user.email, raw, lang=lang)
         except Exception:
             pass

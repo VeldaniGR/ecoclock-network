@@ -35,6 +35,8 @@ class ForgotPasswordRequest(BaseModel):
     email: EmailStr | None = None
     username: str | None = None
     email_or_username: str | None = None
+    # Idioma de la pantalla Auth (sin login); p.ej. "ja", "ca", "es"
+    preferred_language: str | None = Field(default=None, max_length=10)
 
 
 class ResetPasswordRequest(BaseModel):
