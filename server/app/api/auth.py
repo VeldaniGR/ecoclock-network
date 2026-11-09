@@ -166,9 +166,26 @@ def _hash_token(token: str) -> str:
 
 @router.post("/forgot-password")
 async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
-    """Solicita reset. Siempre responde igual (no revela si el email existe)."""
-    result = await db.execute(select(User).where(User.email == payload.email))
-    user = result.scalar_one_or_none()
+    """Solicita reset. Siempre responde igual (no revela si el email/usuario existe)."""
+    # Resolver identidad: email | username | email_or_username (APK / GUI)
+    ident = (
+        (payload.email or "").strip()
+        or (payload.username or "").strip()
+        or (payload.email_or_username or "").strip()
+    )
+    user = None
+    if ident:
+        if "@" in ident:
+            result = await db.execute(select(User).where(User.email == ident.lower()))
+            user = result.scalar_one_or_none()
+        if user is None:
+            result = await db.execute(select(User).where(User.username == ident))
+            user = result.scalar_one_or_none()
+        if user is None:
+            # por si el email se guardó con otra capitalización
+            result = await db.execute(select(User).where(User.email == ident))
+            user = result.scalar_one_or_none()
+
     if user:
         raw = secrets.token_urlsafe(32)
         expires = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
@@ -179,19 +196,21 @@ async def forgot_password(payload: ForgotPasswordRequest, db: AsyncSession = Dep
         if body_lang:
             user.preferred_language = body_lang
 
-        db.add(PasswordResetToken(
-            user_id=user.id,
-            token_hash=_hash_token(raw),
-            expires_at=expires,
-        ))
+        db.add(
+            PasswordResetToken(
+                user_id=user.id,
+                token_hash=_hash_token(raw),
+                expires_at=expires,
+            )
+        )
         await db.commit()
         try:
             lang = body_lang or getattr(user, "preferred_language", None) or "es"
             send_password_reset_email(user.email, raw, lang=lang)
-        except Exception:
-            pass
-    return {"detail": "Si el email existe, recibirás instrucciones en breve."}
+        except Exception as e:
+            print(f"[auth] Error enviando reset: {e}")
 
+    return {"detail": "Si el email existe, recibirás instrucciones en breve."}
 
 @router.post("/reset-password")
 async def reset_password(payload: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
