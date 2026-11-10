@@ -1,6 +1,6 @@
 name: build-binaries
 
-"on":
+on:
   push:
     tags:
       - 'v*'
@@ -28,7 +28,7 @@ jobs:
       - name: Inject version into cli.py
         shell: bash
         run: |
-          python - <<PY
+          python - <<'PY'
           import os, pathlib, re
           p = pathlib.Path('client/cli.py')
           s = p.read_text()
@@ -39,38 +39,72 @@ jobs:
         env:
           ECOCLOCK_VERSION: ${{ github.ref_name }}
 
-      - name: Install client + PyInstaller
+      - name: Install client + PyInstaller + GUI deps
         run: |
           python -m pip install --upgrade pip
           pip install -r client/requirements.txt
+          pip install "PyQt6>=6.6" "PyQt6-Qt6>=6.6"
           pip install pyinstaller
 
-      - name: PyInstaller (Linux)
+      # ---------- CLI ----------
+      - name: PyInstaller CLI (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: pyinstaller client/cli.spec
+        run: |
+          cd client
+          pyinstaller cli.spec --noconfirm --clean
 
-      - name: Package Linux (onedir)
+      - name: Package CLI Linux (onedir)
         if: matrix.os == 'ubuntu-latest'
         run: |
           version=${GITHUB_REF_NAME#v}
-          cd dist
+          cd client/dist
           tar -czf "ecoclock-cli-v${version}-linux-x86_64.tar.gz" ecoclock-cli/
 
-      - name: PyInstaller (Windows)
+      - name: PyInstaller CLI (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          pyinstaller client/cli.spec
+          cd client
+          pyinstaller cli.spec --noconfirm --clean
 
-      - name: Package Windows (onedir)
+      - name: Package CLI Windows (onedir)
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          cd dist
+          cd client/dist
           7z a "ecoclock-cli-${GITHUB_REF_NAME}-windows-x86_64.zip" ecoclock-cli/
+
+      # ---------- GUI ----------
+      - name: PyInstaller GUI (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cd client
+          pyinstaller gui.spec --noconfirm --clean
+
+      - name: Package GUI Linux (onedir)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          version=${GITHUB_REF_NAME#v}
+          cd client/dist
+          tar -czf "ecoclock-gui-v${version}-linux-x86_64.tar.gz" ecoclock-gui/
+
+      - name: PyInstaller GUI (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          cd client
+          pyinstaller gui.spec --noconfirm --clean
+
+      - name: Package GUI Windows (onedir)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          cd client/dist
+          7z a "ecoclock-gui-${GITHUB_REF_NAME}-windows-x86_64.zip" ecoclock-gui/
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/ecoclock-cli-*
+            client/dist/ecoclock-cli-*
+            client/dist/ecoclock-gui-*

@@ -24,6 +24,15 @@ from client.gui import services
 
 FRAME_LABELS = {
     "autumn_fungi": "Otoño · Hongos",
+    "arctic_ice": "Ártico · Hielo",
+}
+
+FRAME_STYLES = {
+    "autumn_fungi": "border: 3px solid #C4A35A; border-radius: 14px; padding: 2px;",
+    "arctic_ice": (
+        "border: 3px solid #7EC8E3; border-radius: 14px; padding: 2px;"
+        "background-color: rgba(126, 200, 227, 0.12);"
+    ),
 }
 
 
@@ -184,11 +193,13 @@ class NodesPage(QWidget):
             logo_label.setText("👥")
             logo_label.setStyleSheet("font-size: 32px;")
 
-        if frame == "autumn_fungi":
-            logo_label.setStyleSheet(
-                logo_label.styleSheet()
-                + "border: 3px solid #C4A35A; border-radius: 14px; padding: 2px;"
-            )
+        # antes:
+        # if frame == "autumn_fungi":
+        #     logo_label.setStyleSheet(...)
+
+        style = FRAME_STYLES.get(frame)
+        if style:
+            logo_label.setStyleSheet(logo_label.styleSheet() + style)
 
         self.content_layout.addWidget(logo_label)
 
