@@ -21,11 +21,8 @@ from PyQt6.QtWidgets import (
 )
 
 from client.gui import services
+from client.gui.i18n import t
 
-FRAME_LABELS = {
-    "autumn_fungi": "Otoño · Hongos",
-    "arctic_ice": "Ártico · Hielo",
-}
 
 FRAME_STYLES = {
     "autumn_fungi": "border: 3px solid #C4A35A; border-radius: 14px; padding: 2px;",
@@ -54,11 +51,11 @@ class NodesPage(QWidget):
         root.setSpacing(12)
 
         header = QHBoxLayout()
-        title = QLabel("Nodos Ciudadanos")
-        title.setProperty("class", "brandTitle")
-        header.addWidget(title)
+        self.title_label = QLabel(t("nodes_title"))
+        self.title_label.setProperty("class", "brandTitle")
+        header.addWidget(self.title_label)
         header.addStretch(1)
-        self.back_btn = QPushButton("← Volver")
+        self.back_btn = QPushButton(t("nodes_back"))
         self.back_btn.setProperty("secondary", True)
         self.back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.back_btn.clicked.connect(self.back_requested.emit)
@@ -83,14 +80,14 @@ class NodesPage(QWidget):
         self._token = token
 
     def refresh(self) -> None:
-        self.status_label.setText("Cargando...")
+        self.status_label.setText(t("nodes_loading"))
         try:
             self._my_node = services.get_my_node(self._base_url, self._token)
         except Exception as e:
             self._my_node = None
             self._members = []
             self._join_requests = []
-            self.status_label.setText(f"Error: {e}")
+            self.status_label.setText(f"{t('error')}: {e}")
             self._rebuild_content()
             return
 
@@ -164,12 +161,14 @@ class NodesPage(QWidget):
         )
         try:
             import requests
-
             data = requests.get(full, timeout=10).content
             pix.loadFromData(data)
         except Exception:
             pass
         return pix
+
+    def _frame_label(self, key: str) -> str:
+        return t(f"frame_{key}") if key else t("nodes_frame_none")
 
     def _build_my_node_view(self) -> None:
         node = self._my_node or {}
@@ -193,10 +192,6 @@ class NodesPage(QWidget):
             logo_label.setText("👥")
             logo_label.setStyleSheet("font-size: 32px;")
 
-        # antes:
-        # if frame == "autumn_fungi":
-        #     logo_label.setStyleSheet(...)
-
         style = FRAME_STYLES.get(frame)
         if style:
             logo_label.setStyleSheet(logo_label.styleSheet() + style)
@@ -207,35 +202,34 @@ class NodesPage(QWidget):
         name.setStyleSheet("font-size: 18px; font-weight: 700;")
         self.content_layout.addWidget(name)
 
-        role = QLabel("Administrador" if is_admin else "Miembro")
+        role = QLabel(t("nodes_admin") if is_admin else t("nodes_member"))
         role.setProperty("class", "sectionLabel")
         self.content_layout.addWidget(role)
 
         self.content_layout.addWidget(
-            self._info_row("Miembros", str(node.get("member_count", 0)))
+            self._info_row(t("nodes_members"), str(node.get("member_count", 0)))
         )
 
         if is_admin:
             code = node.get("invite_code") or ""
-            row = self._info_row("Enlace de unión", code)
-            copy_btn = QPushButton("Copiar")
+            row = self._info_row(t("nodes_invite"), code)
+            copy_btn = QPushButton(t("nodes_copy"))
             copy_btn.setProperty("secondary", True)
             copy_btn.clicked.connect(lambda: self._copy(code))
             row.layout().addWidget(copy_btn)
             self.content_layout.addWidget(row)
 
-            # Marco
-            self.content_layout.addWidget(QLabel("Marco del logo"))
+            self.content_layout.addWidget(QLabel(t("nodes_frame")))
             unlocked = self._unlocked_frames(node)
             if not unlocked:
-                hint = QLabel("Completa expediciones para desbloquear marcos.")
+                hint = QLabel(t("nodes_frame_hint"))
                 hint.setProperty("class", "sectionLabel")
                 self.content_layout.addWidget(hint)
             else:
                 combo = QComboBox()
-                combo.addItem("Ninguno", "")
+                combo.addItem(t("nodes_frame_none"), "")
                 for f in unlocked:
-                    combo.addItem(FRAME_LABELS.get(f, f), f)
+                    combo.addItem(self._frame_label(f), f)
                 idx = combo.findData(frame)
                 if idx >= 0:
                     combo.setCurrentIndex(idx)
@@ -244,44 +238,42 @@ class NodesPage(QWidget):
                 )
                 self.content_layout.addWidget(combo)
 
-            logo_btn = QPushButton("Cambiar logo")
+            logo_btn = QPushButton(t("nodes_change_logo"))
             logo_btn.setProperty("secondary", True)
             logo_btn.clicked.connect(self._on_change_logo)
             self.content_layout.addWidget(logo_btn)
 
-            rename_btn = QPushButton("Renombrar nodo")
+            rename_btn = QPushButton(t("nodes_rename"))
             rename_btn.setProperty("secondary", True)
             rename_btn.clicked.connect(self._on_rename)
             self.content_layout.addWidget(rename_btn)
 
-            # Solicitudes
             self.content_layout.addSpacing(8)
-            self.content_layout.addWidget(QLabel("Solicitudes pendientes"))
+            self.content_layout.addWidget(QLabel(t("nodes_requests")))
             if not self._join_requests:
-                empty = QLabel("No hay solicitudes pendientes.")
+                empty = QLabel(t("nodes_no_requests"))
                 empty.setProperty("class", "sectionLabel")
                 self.content_layout.addWidget(empty)
             else:
                 for r in self._join_requests:
                     self.content_layout.addWidget(self._request_row(r))
 
-            del_btn = QPushButton("Eliminar nodo")
+            del_btn = QPushButton(t("nodes_delete"))
             del_btn.setStyleSheet("color: #e05555;")
             del_btn.clicked.connect(self._on_delete)
             self.content_layout.addWidget(del_btn)
 
-        # Miembros
         self.content_layout.addSpacing(8)
-        self.content_layout.addWidget(QLabel("Miembros del nodo"))
+        self.content_layout.addWidget(QLabel(t("nodes_members")))
         if not self._members:
-            empty = QLabel("Sin miembros cargados.")
+            empty = QLabel("—")
             empty.setProperty("class", "sectionLabel")
             self.content_layout.addWidget(empty)
         else:
             for m in self._members:
                 self.content_layout.addWidget(self._member_row(m, is_admin))
 
-        leave_btn = QPushButton("Salir del nodo")
+        leave_btn = QPushButton(t("nodes_leave"))
         leave_btn.setStyleSheet("color: #e0a050;")
         leave_btn.clicked.connect(self._on_leave)
         self.content_layout.addWidget(leave_btn)
@@ -291,12 +283,12 @@ class NodesPage(QWidget):
         frame = QFrame()
         frame.setProperty("class", "statCard")
         lay = QHBoxLayout(frame)
-        lay.addWidget(QLabel(r.get("username") or "Usuario"), stretch=1)
+        lay.addWidget(QLabel(r.get("username") or "—"), stretch=1)
         rid = r.get("id")
-        acc = QPushButton("Aceptar")
+        acc = QPushButton(t("nodes_accept"))
         acc.setProperty("primary", True)
         acc.clicked.connect(lambda: self._on_accept(rid))
-        rej = QPushButton("Rechazar")
+        rej = QPushButton(t("nodes_reject"))
         rej.setProperty("secondary", True)
         rej.clicked.connect(lambda: self._on_reject(rid))
         lay.addWidget(acc)
@@ -310,12 +302,13 @@ class NodesPage(QWidget):
         username = m.get("username") or ""
         role = m.get("role") or "member"
         uid = m.get("user_id")
-        lay.addWidget(QLabel(f"{username} · {'Admin' if role == 'admin' else 'Miembro'}"), stretch=1)
+        role_txt = t("nodes_admin") if role == "admin" else t("nodes_member")
+        lay.addWidget(QLabel(f"{username} · {role_txt}"), stretch=1)
         if is_admin and role != "admin":
-            tr = QPushButton("Transferir")
+            tr = QPushButton(t("nodes_transfer"))
             tr.setProperty("secondary", True)
             tr.clicked.connect(lambda: self._on_transfer(uid, username))
-            kick = QPushButton("Expulsar")
+            kick = QPushButton(t("nodes_kick"))
             kick.setStyleSheet("color: #e05555;")
             kick.clicked.connect(lambda: self._on_kick(uid, username))
             lay.addWidget(tr)
@@ -323,36 +316,34 @@ class NodesPage(QWidget):
         return frame
 
     def _build_no_node_view(self) -> None:
-        intro = QLabel(
-            "Únete a un nodo o crea el tuyo para colaborar con otros ciudadanos."
-        )
+        intro = QLabel(t("nodes_intro"))
         intro.setWordWrap(True)
         intro.setProperty("class", "subtitle")
         self.content_layout.addWidget(intro)
 
-        self.content_layout.addWidget(QLabel("Crear un nodo"))
+        self.content_layout.addWidget(QLabel(t("nodes_create")))
         self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Nombre del nodo")
+        self.name_input.setPlaceholderText(t("nodes_name_ph"))
         self.content_layout.addWidget(self.name_input)
-        create_btn = QPushButton("Crear nodo")
+        create_btn = QPushButton(t("nodes_create_btn"))
         create_btn.setProperty("primary", True)
         create_btn.clicked.connect(self._on_create)
         self.content_layout.addWidget(create_btn)
 
         self.content_layout.addSpacing(12)
-        self.content_layout.addWidget(QLabel("Unirse con enlace de unión"))
+        self.content_layout.addWidget(QLabel(t("nodes_join_code")))
         self.code_input = QLineEdit()
-        self.code_input.setPlaceholderText("Ej: QY8RY5LD")
+        self.code_input.setPlaceholderText(t("nodes_code_ph"))
         self.content_layout.addWidget(self.code_input)
-        join_btn = QPushButton("Unirse al nodo")
+        join_btn = QPushButton(t("nodes_join_btn"))
         join_btn.setProperty("secondary", True)
         join_btn.clicked.connect(self._on_join)
         self.content_layout.addWidget(join_btn)
 
         self.content_layout.addSpacing(12)
-        self.content_layout.addWidget(QLabel("Explorar nodos públicos"))
+        self.content_layout.addWidget(QLabel(t("nodes_explore")))
         if not self._public_nodes:
-            empty = QLabel("No hay nodos públicos todavía.")
+            empty = QLabel(t("nodes_no_public"))
             empty.setProperty("class", "subtitle")
             self.content_layout.addWidget(empty)
         else:
@@ -366,11 +357,11 @@ class NodesPage(QWidget):
         lay = QHBoxLayout(frame)
         info = QVBoxLayout()
         info.addWidget(QLabel(n.get("name", "")))
-        members = QLabel(f"{n.get('member_count', 0)} miembros")
+        members = QLabel(f"{n.get('member_count', 0)} {t('nodes_members').lower()}")
         members.setProperty("class", "sectionLabel")
         info.addWidget(members)
         lay.addLayout(info, stretch=1)
-        req_btn = QPushButton("Solicitar")
+        req_btn = QPushButton(t("nodes_request_join"))
         req_btn.setProperty("secondary", True)
         node_id = n.get("id")
         name = n.get("name", "")
@@ -392,21 +383,23 @@ class NodesPage(QWidget):
 
     def _copy(self, text: str) -> None:
         from PyQt6.QtWidgets import QApplication
-
         QApplication.clipboard().setText(text)
-        self.status_label.setText("Código copiado")
+        self.status_label.setText(t("copied"))
 
+    # ------------------------------------------------------------------
+    # Acciones
+    # ------------------------------------------------------------------
     def _on_create(self) -> None:
         name = self.name_input.text().strip()
         if len(name) < 3:
-            QMessageBox.warning(self, "Nodo", "El nombre debe tener al menos 3 caracteres.")
+            QMessageBox.warning(self, t("error"), "El nombre debe tener al menos 3 caracteres.")
             return
         try:
             self._my_node = services.create_node(self._base_url, name, self._token)
             self.refresh()
             self.status_label.setText("Nodo creado")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_join(self) -> None:
         code = self.code_input.text().strip().upper()
@@ -419,11 +412,11 @@ class NodesPage(QWidget):
             self.refresh()
             self.status_label.setText("Te has unido al nodo")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_leave(self) -> None:
         if (
-            QMessageBox.question(self, "Salir", "¿Salir del nodo?")
+            QMessageBox.question(self, t("nodes_leave"), t("confirm_leave"))
             != QMessageBox.StandardButton.Yes
         ):
             return
@@ -433,15 +426,15 @@ class NodesPage(QWidget):
             self.refresh()
             self.status_label.setText("Has salido del nodo")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_delete(self) -> None:
         node = self._my_node or {}
         if (
             QMessageBox.question(
                 self,
-                "Eliminar",
-                f'¿Eliminar permanentemente "{node.get("name")}"?',
+                t("nodes_delete"),
+                t("confirm_delete"),
             )
             != QMessageBox.StandardButton.Yes
         ):
@@ -452,18 +445,18 @@ class NodesPage(QWidget):
             self.refresh()
             self.status_label.setText("Nodo eliminado")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_request(self, node_id: int, name: str) -> None:
         try:
             services.request_join_node(self._base_url, node_id, self._token)
             self.status_label.setText(f'Solicitud enviada a "{name}"')
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_change_logo(self) -> None:
         path, _ = QFileDialog.getOpenFileName(
-            self, "Elegir logo", "", "Imágenes (*.png *.jpg *.jpeg)"
+            self, t("nodes_change_logo"), "", "Imágenes (*.png *.jpg *.jpeg)"
         )
         if not path:
             return
@@ -476,12 +469,12 @@ class NodesPage(QWidget):
             self._rebuild_content()
             self.status_label.setText("Logo actualizado")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_rename(self) -> None:
         node = self._my_node or {}
         name, ok = QInputDialog.getText(
-            self, "Renombrar nodo", "Nuevo nombre:", text=node.get("name", "")
+            self, t("nodes_rename"), "Nuevo nombre:", text=node.get("name", "")
         )
         if not ok or len(name.strip()) < 3:
             return
@@ -493,7 +486,7 @@ class NodesPage(QWidget):
             self._rebuild_content()
             self.status_label.setText("Nombre actualizado")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_frame_changed(self, frame_id) -> None:
         node = self._my_node or {}
@@ -508,7 +501,7 @@ class NodesPage(QWidget):
             self._rebuild_content()
             self.status_label.setText("Marco actualizado")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_accept(self, request_id: int) -> None:
         node = self._my_node or {}
@@ -519,7 +512,7 @@ class NodesPage(QWidget):
             self.refresh()
             self.status_label.setText("Solicitud aceptada")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_reject(self, request_id: int) -> None:
         node = self._my_node or {}
@@ -530,12 +523,14 @@ class NodesPage(QWidget):
             self.refresh()
             self.status_label.setText("Solicitud rechazada")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_kick(self, user_id: int, username: str) -> None:
         node = self._my_node or {}
         if (
-            QMessageBox.question(self, "Expulsar", f"¿Expulsar a {username}?")
+            QMessageBox.question(
+                self, t("nodes_kick"), t("confirm_kick", user=username)
+            )
             != QMessageBox.StandardButton.Yes
         ):
             return
@@ -544,15 +539,15 @@ class NodesPage(QWidget):
             self.refresh()
             self.status_label.setText(f"{username} expulsado")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))
 
     def _on_transfer(self, user_id: int, username: str) -> None:
         node = self._my_node or {}
         if (
             QMessageBox.question(
                 self,
-                "Transferir",
-                f"¿Ceder administración a {username}?",
+                t("nodes_transfer"),
+                t("confirm_transfer", user=username),
             )
             != QMessageBox.StandardButton.Yes
         ):
@@ -564,4 +559,4 @@ class NodesPage(QWidget):
             self.refresh()
             self.status_label.setText(f"Liderazgo transferido a {username}")
         except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.critical(self, t("error"), str(e))

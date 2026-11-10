@@ -44,6 +44,7 @@ try:
         QVBoxLayout,
         QWidget,
     )
+    from client.gui.i18n import t, set_lang, get_lang, SUPPORTED
 except ImportError:  # pragma: no cover
     QApplication = None  # type: ignore[assignment]
     Qt = QAction = QLabel = QLineEdit = None  # type: ignore[assignment]
@@ -168,122 +169,157 @@ class EcoClockWindow(QMainWindow):
     # ---------------------------------------------------------------------
     # Construcción de páginas
     # ---------------------------------------------------------------------
-    def _build_login_page(self) -> QWidget:
-        """Página de login: logo, brand, subtitle, inputs, botón primario, links."""
-        page = QWidget(self)
-        page.setObjectName("loginPage")
-        layout = QVBoxLayout(page)
-        layout.setContentsMargins(34, 18, 34, 34)
-        layout.setSpacing(0)
+def _build_login_page(self) -> QWidget:
+    """Página de login: logo, brand, subtitle, inputs, selector idioma, botón primario, links."""
+    page = QWidget(self)
+    page.setObjectName("loginPage")
+    layout = QVBoxLayout(page)
+    layout.setContentsMargins(34, 18, 34, 34)
+    layout.setSpacing(0)
 
-        # Hoja animada (esquina superior derecha)
-        from client.gui.leaf_widget import LeafWidget
-        self.leaf_login = LeafWidget(page)
-        self.leaf_login.move(340, 56)  # posición estilo HTML: top:56px, right:26px
-        self.leaf_login.start()
+    # Hoja animada
+    from client.gui.leaf_widget import LeafWidget
+    self.leaf_login = LeafWidget(page)
+    self.leaf_login.move(340, 56)
+    self.leaf_login.start()
 
-        # Brand row: logo + título
-        brand_row = QHBoxLayout()
-        brand_row.setSpacing(10)
+    # Brand row
+    brand_row = QHBoxLayout()
+    brand_row.setSpacing(10)
 
-        # Logo: intenta SVG, fallback a letra "e" con gradiente via QSS
-        self.logo_label = QLabel(page)
-        logo_pixmap = self._load_logo_pixmap(42)
-        if not logo_pixmap.isNull():
-            self.logo_label.setPixmap(logo_pixmap)
-        else:
-            self.logo_label.setText("e")
-            self.logo_label.setProperty("class", "brandLogo")
-            self.logo_label.setFixedSize(42, 42)
-            self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            font = self.logo_label.font()
-            font.setPointSize(20)
-            font.setWeight(700)
-            self.logo_label.setFont(font)
-            self.logo_label.setStyleSheet("color: #fff8e6;")
+    self.logo_label = QLabel(page)
+    logo_pixmap = self._load_logo_pixmap(42)
+    if not logo_pixmap.isNull():
+        self.logo_label.setPixmap(logo_pixmap)
+    else:
+        self.logo_label.setText("e")
+        self.logo_label.setProperty("class", "brandLogo")
+        self.logo_label.setFixedSize(42, 42)
+        self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        font = self.logo_label.font()
+        font.setPointSize(20)
+        font.setWeight(700)
+        self.logo_label.setFont(font)
+        self.logo_label.setStyleSheet("color: #fff8e6;")
 
-        brand_row.addWidget(self.logo_label)
+    brand_row.addWidget(self.logo_label)
 
-        # Título "Eco'clock" con span dorado
-        title_widget = QWidget(page)
-        title_layout = QHBoxLayout(title_widget)
-        title_layout.setContentsMargins(0, 0, 0, 0)
-        title_layout.setSpacing(0)
+    title_widget = QWidget(page)
+    title_layout = QHBoxLayout(title_widget)
+    title_layout.setContentsMargins(0, 0, 0, 0)
+    title_layout.setSpacing(0)
 
-        title_main = QLabel("Eco", title_widget)
-        title_main.setProperty("class", "brandTitle")
-        title_accent = QLabel("'clock", title_widget)
-        title_accent.setProperty("class", "brandTitleAccent")
+    title_main = QLabel("Eco", title_widget)
+    title_main.setProperty("class", "brandTitle")
+    title_accent = QLabel("'clock", title_widget)
+    title_accent.setProperty("class", "brandTitleAccent")
 
-        title_layout.addWidget(title_main)
-        title_layout.addWidget(title_accent)
-        title_layout.addStretch(1)
+    title_layout.addWidget(title_main)
+    title_layout.addWidget(title_accent)
+    title_layout.addStretch(1)
 
-        brand_row.addWidget(title_widget, stretch=1)
-        layout.addLayout(brand_row)
+    brand_row.addWidget(title_widget, stretch=1)
+    layout.addLayout(brand_row)
 
-        # Subtitle
-        self.subtitle_label = QLabel(
-            "Dona tiempo de cómputo. Verifica a dónde va cada gota.", page
-        )
-        self.subtitle_label.setProperty("class", "subtitle")
-        self.subtitle_label.setWordWrap(True)
-        self.subtitle_label.setMaximumWidth(270)
-        layout.addSpacing(14)
-        layout.addWidget(self.subtitle_label)
-        layout.addSpacing(22)
+    # Subtitle
+    self.subtitle_label = QLabel(t("login_subtitle"), page)
+    self.subtitle_label.setProperty("class", "subtitle")
+    self.subtitle_label.setWordWrap(True)
+    self.subtitle_label.setMaximumWidth(270)
+    layout.addSpacing(14)
+    layout.addWidget(self.subtitle_label)
+    layout.addSpacing(18)
 
-        # Inputs
-        user_label = QLabel("Usuario", page)
-        user_label.setProperty("class", "sectionLabel")
-        layout.addWidget(user_label)
+    # --- Selector de idioma ---
+    lang_label = QLabel(t("login_lang"), page)
+    lang_label.setProperty("class", "sectionLabel")
+    layout.addWidget(lang_label)
 
-        self.username_input = QLineEdit(page)
-        self.username_input.setPlaceholderText("tu usuario")
-        self.username_input.setClearButtonEnabled(True)
-        layout.addWidget(self.username_input)
-        layout.addSpacing(10)
+    self.lang_combo = QComboBox(page)
+    for code, name in SUPPORTED:
+        self.lang_combo.addItem(name, code)
+    idx = self.lang_combo.findData(get_lang())
+    if idx >= 0:
+        self.lang_combo.setCurrentIndex(idx)
+    self.lang_combo.currentIndexChanged.connect(self._on_lang_changed)
+    layout.addWidget(self.lang_combo)
+    layout.addSpacing(12)
 
-        pwd_label = QLabel("Contraseña", page)
-        pwd_label.setProperty("class", "sectionLabel")
-        layout.addWidget(pwd_label)
+    # Inputs
+    self.user_label = QLabel(t("login_user"), page)
+    self.user_label.setProperty("class", "sectionLabel")
+    layout.addWidget(self.user_label)
 
-        self.password_input = QLineEdit(page)
-        self.password_input.setPlaceholderText("••••••••")
-        self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.password_input.setClearButtonEnabled(True)
-        layout.addWidget(self.password_input)
-        layout.addSpacing(16)
+    self.username_input = QLineEdit(page)
+    self.username_input.setPlaceholderText("tu usuario")
+    self.username_input.setClearButtonEnabled(True)
+    layout.addWidget(self.username_input)
+    layout.addSpacing(10)
 
-        # Botón Entrar (primario)
-        self.login_button = QPushButton("Entrar", page)
-        self.login_button.setProperty("primary", True)
-        self.login_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.login_button.clicked.connect(self._on_login_clicked)
-        layout.addWidget(self.login_button)
-        layout.addSpacing(14)
+    self.pwd_label = QLabel(t("login_password"), page)
+    self.pwd_label.setProperty("class", "sectionLabel")
+    layout.addWidget(self.pwd_label)
 
-        # Links inferiores
-        links_row = QHBoxLayout()
-        links_row.setContentsMargins(0, 0, 0, 0)
+    self.password_input = QLineEdit(page)
+    self.password_input.setPlaceholderText("••••••••")
+    self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+    self.password_input.setClearButtonEnabled(True)
+    layout.addWidget(self.password_input)
+    layout.addSpacing(16)
 
-        self.forgot_btn = QPushButton("¿Olvidaste tu contraseña?", page)
-        self.forgot_btn.setProperty("secondary", True)
-        self.forgot_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.forgot_btn.clicked.connect(self._on_forgot_password)
+    # Botón Entrar
+    self.login_button = QPushButton(t("login_enter"), page)
+    self.login_button.setProperty("primary", True)
+    self.login_button.setCursor(Qt.CursorShape.PointingHandCursor)
+    self.login_button.clicked.connect(self._on_login_clicked)
+    layout.addWidget(self.login_button)
+    layout.addSpacing(14)
 
-        self.signup_btn = QPushButton("Crear cuenta", page)
-        self.signup_btn.setProperty("secondary", True)
-        self.signup_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.signup_btn.clicked.connect(lambda: self.stack.setCurrentIndex(self.PAGE_REGISTER))
+    # Links
+    links_row = QHBoxLayout()
+    links_row.setContentsMargins(0, 0, 0, 0)
 
-        links_row.addWidget(self.forgot_btn)
-        links_row.addStretch(1)
-        links_row.addWidget(self.signup_btn)
-        layout.addLayout(links_row)
-        layout.addStretch(1)
+    self.forgot_btn = QPushButton(t("login_forgot"), page)
+    self.forgot_btn.setProperty("secondary", True)
+    self.forgot_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+    self.forgot_btn.clicked.connect(self._on_forgot_password)
 
-        return page
+    self.signup_btn = QPushButton(t("login_signup"), page)
+    self.signup_btn.setProperty("secondary", True)
+    self.signup_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+    self.signup_btn.clicked.connect(lambda: self.stack.setCurrentIndex(self.PAGE_REGISTER))
+
+    links_row.addWidget(self.forgot_btn)
+    links_row.addStretch(1)
+    links_row.addWidget(self.signup_btn)
+    layout.addLayout(links_row)
+    layout.addStretch(1)
+
+    return page
+
+    def _on_lang_changed(self, index: int) -> None:
+      code = self.lang_combo.itemData(index)
+      if code:
+        set_lang(code)
+        self._retranslate_ui()
+
+    def _retranslate_ui(self) -> None:
+      """Actualiza los textos visibles según el idioma actual."""
+      # Login
+      if hasattr(self, "subtitle_label"):
+          self.subtitle_label.setText(t("login_subtitle"))
+      if hasattr(self, "user_label"):
+          self.user_label.setText(t("login_user"))
+      if hasattr(self, "pwd_label"):
+          self.pwd_label.setText(t("login_password"))
+      if hasattr(self, "login_button"):
+          self.login_button.setText(t("login_enter"))
+      if hasattr(self, "forgot_btn"):
+          self.forgot_btn.setText(t("login_forgot"))
+      if hasattr(self, "signup_btn"):
+          self.signup_btn.setText(t("login_signup"))
+
+    # Aquí irás añadiendo más widgets del dashboard y de nodos
 
 
     def _load_expedition(self) -> None:
