@@ -43,6 +43,7 @@ try:
         QTextEdit,
         QVBoxLayout,
         QWidget,
+        QComboBox,
     )
     from client.gui.i18n import t, set_lang, get_lang, SUPPORTED
 except ImportError:  # pragma: no cover
@@ -79,6 +80,7 @@ class EcoClockWindow(QMainWindow):
     PAGE_REGISTER = 2
     PAGE_CREDITS = 3
     PAGE_NODES = 4
+    PAGE_SETTINGS = 5
 
     def __init__(self) -> None:
         super().__init__()
@@ -118,14 +120,16 @@ class EcoClockWindow(QMainWindow):
         self.credits_page = self._build_credits_page()
         self.nodes_page = NodesPage(self)
         self.nodes_page.back_requested.connect(lambda: self.stack.setCurrentIndex(self.PAGE_DASHBOARD))
+        self.settings_page = self._build_settings_page()
+
         self._my_node: dict | None = None
 
         self.stack.addWidget(self.login_page)      # index 0
         self.stack.addWidget(self.dashboard_page)  # index 1
         self.stack.addWidget(self.register_page)   # index 2
         self.stack.addWidget(self.credits_page)    # index 3
-        self.stack.addWidget(self.nodes_page)  # index 4
-
+        self.stack.addWidget(self.nodes_page)      # index 4
+        self.stack.addWidget(self.settings_page)   # index 5
 
         self.setCentralWidget(self.stack)
 
@@ -166,136 +170,168 @@ class EcoClockWindow(QMainWindow):
         # Fallback: pixmap vacío (se usará el fallback tipográfico)
         return QPixmap()
 
+    def _center_on_screen(self) -> None:
+      """Centra la ventana en la pantalla principal."""
+      from PyQt6.QtGui import QGuiApplication
+      screen = QGuiApplication.primaryScreen()
+      if screen is None:
+          return
+      geo = screen.availableGeometry()
+      x = (geo.width() - self.width()) // 2
+      y = (geo.height() - self.height()) // 2
+      self.move(x, y)
+
+    def _update_session_stats(self) -> None:
+      """Actualiza el cronómetro y los créditos de la sesión en el dashboard."""
+      if self._session_start_time is None:
+          return
+
+      elapsed = time.time() - self._session_start_time
+      hours = elapsed / 3600.0
+
+      # Actualizar tarjeta de horas de sesión si existe
+      if hasattr(self, "card_session_hours"):
+          # Buscamos el QLabel de valor dentro de la tarjeta
+          labels = self.card_session_hours.findChildren(QLabel)
+          if labels:
+              labels[0].setText(f"{hours:.1f} h")
+
+      # Actualizar tarjeta de créditos de sesión
+      if hasattr(self, "card_session_credits"):
+          labels = self.card_session_credits.findChildren(QLabel)
+          if labels:
+              labels[0].setText(str(self._session_credits))
+
     # ---------------------------------------------------------------------
     # Construcción de páginas
     # ---------------------------------------------------------------------
-def _build_login_page(self) -> QWidget:
-    """Página de login: logo, brand, subtitle, inputs, selector idioma, botón primario, links."""
-    page = QWidget(self)
-    page.setObjectName("loginPage")
-    layout = QVBoxLayout(page)
-    layout.setContentsMargins(34, 18, 34, 34)
-    layout.setSpacing(0)
+    def _build_login_page(self) -> QWidget:
+      """Página de login: logo, brand, subtitle, inputs, selector idioma, botón primario, links."""
+      page = QWidget(self)
+      page.setObjectName("loginPage")
+      layout = QVBoxLayout(page)
+      layout.setContentsMargins(34, 18, 34, 34)
+      layout.setSpacing(0)
 
-    # Hoja animada
-    from client.gui.leaf_widget import LeafWidget
-    self.leaf_login = LeafWidget(page)
-    self.leaf_login.move(340, 56)
-    self.leaf_login.start()
+      # Hoja animada
+      from client.gui.leaf_widget import LeafWidget
+      self.leaf_login = LeafWidget(page)
+      self.leaf_login.move(340, 56)
+      self.leaf_login.start()
 
-    # Brand row
-    brand_row = QHBoxLayout()
-    brand_row.setSpacing(10)
+      # Brand row
+      brand_row = QHBoxLayout()
+      brand_row.setSpacing(10)
 
-    self.logo_label = QLabel(page)
-    logo_pixmap = self._load_logo_pixmap(42)
-    if not logo_pixmap.isNull():
-        self.logo_label.setPixmap(logo_pixmap)
-    else:
-        self.logo_label.setText("e")
-        self.logo_label.setProperty("class", "brandLogo")
-        self.logo_label.setFixedSize(42, 42)
-        self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font = self.logo_label.font()
-        font.setPointSize(20)
-        font.setWeight(700)
-        self.logo_label.setFont(font)
-        self.logo_label.setStyleSheet("color: #fff8e6;")
+      self.logo_label = QLabel(page)
+      logo_pixmap = self._load_logo_pixmap(42)
+      if not logo_pixmap.isNull():
+          self.logo_label.setPixmap(logo_pixmap)
+      else:
+          self.logo_label.setText("e")
+          self.logo_label.setProperty("class", "brandLogo")
+          self.logo_label.setFixedSize(42, 42)
+          self.logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+          font = self.logo_label.font()
+          font.setPointSize(20)
+          font.setWeight(700)
+          self.logo_label.setFont(font)
+          self.logo_label.setStyleSheet("color: #fff8e6;")
 
-    brand_row.addWidget(self.logo_label)
+      brand_row.addWidget(self.logo_label)
 
-    title_widget = QWidget(page)
-    title_layout = QHBoxLayout(title_widget)
-    title_layout.setContentsMargins(0, 0, 0, 0)
-    title_layout.setSpacing(0)
+      title_widget = QWidget(page)
+      title_layout = QHBoxLayout(title_widget)
+      title_layout.setContentsMargins(0, 0, 0, 0)
+      title_layout.setSpacing(0)
 
-    title_main = QLabel("Eco", title_widget)
-    title_main.setProperty("class", "brandTitle")
-    title_accent = QLabel("'clock", title_widget)
-    title_accent.setProperty("class", "brandTitleAccent")
+      title_main = QLabel("Eco", title_widget)
+      title_main.setProperty("class", "brandTitle")
+      title_accent = QLabel("'clock", title_widget)
+      title_accent.setProperty("class", "brandTitleAccent")
 
-    title_layout.addWidget(title_main)
-    title_layout.addWidget(title_accent)
-    title_layout.addStretch(1)
+      title_layout.addWidget(title_main)
+      title_layout.addWidget(title_accent)
+      title_layout.addStretch(1)
 
-    brand_row.addWidget(title_widget, stretch=1)
-    layout.addLayout(brand_row)
+      brand_row.addWidget(title_widget, stretch=1)
+      layout.addLayout(brand_row)
 
-    # Subtitle
-    self.subtitle_label = QLabel(t("login_subtitle"), page)
-    self.subtitle_label.setProperty("class", "subtitle")
-    self.subtitle_label.setWordWrap(True)
-    self.subtitle_label.setMaximumWidth(270)
-    layout.addSpacing(14)
-    layout.addWidget(self.subtitle_label)
-    layout.addSpacing(18)
+      # Subtitle
+      self.subtitle_label = QLabel(t("login_subtitle"), page)
+      self.subtitle_label.setProperty("class", "subtitle")
+      self.subtitle_label.setWordWrap(True)
+      self.subtitle_label.setMaximumWidth(270)
+      layout.addSpacing(14)
+      layout.addWidget(self.subtitle_label)
+      layout.addSpacing(18)
 
-    # --- Selector de idioma ---
-    lang_label = QLabel(t("login_lang"), page)
-    lang_label.setProperty("class", "sectionLabel")
-    layout.addWidget(lang_label)
+      # --- Selector de idioma ---
+      lang_label = QLabel(t("login_lang"), page)
+      lang_label.setProperty("class", "sectionLabel")
+      layout.addWidget(lang_label)
 
-    self.lang_combo = QComboBox(page)
-    for code, name in SUPPORTED:
-        self.lang_combo.addItem(name, code)
-    idx = self.lang_combo.findData(get_lang())
-    if idx >= 0:
-        self.lang_combo.setCurrentIndex(idx)
-    self.lang_combo.currentIndexChanged.connect(self._on_lang_changed)
-    layout.addWidget(self.lang_combo)
-    layout.addSpacing(12)
+      self.lang_combo = QComboBox(page)
+      for code, name in SUPPORTED:
+          self.lang_combo.addItem(name, code)
+      idx = self.lang_combo.findData(get_lang())
+      if idx >= 0:
+          self.lang_combo.setCurrentIndex(idx)
+      self.lang_combo.currentIndexChanged.connect(self._on_lang_changed)
+      layout.addWidget(self.lang_combo)
+      layout.addSpacing(12)
 
-    # Inputs
-    self.user_label = QLabel(t("login_user"), page)
-    self.user_label.setProperty("class", "sectionLabel")
-    layout.addWidget(self.user_label)
+      # Inputs
+      self.user_label = QLabel(t("login_user"), page)
+      self.user_label.setProperty("class", "sectionLabel")
+      layout.addWidget(self.user_label)
 
-    self.username_input = QLineEdit(page)
-    self.username_input.setPlaceholderText("tu usuario")
-    self.username_input.setClearButtonEnabled(True)
-    layout.addWidget(self.username_input)
-    layout.addSpacing(10)
+      self.username_input = QLineEdit(page)
+      self.username_input.setPlaceholderText("tu usuario")
+      self.username_input.setClearButtonEnabled(True)
+      layout.addWidget(self.username_input)
+      layout.addSpacing(10)
 
-    self.pwd_label = QLabel(t("login_password"), page)
-    self.pwd_label.setProperty("class", "sectionLabel")
-    layout.addWidget(self.pwd_label)
+      self.pwd_label = QLabel(t("login_password"), page)
+      self.pwd_label.setProperty("class", "sectionLabel")
+      layout.addWidget(self.pwd_label)
 
-    self.password_input = QLineEdit(page)
-    self.password_input.setPlaceholderText("••••••••")
-    self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
-    self.password_input.setClearButtonEnabled(True)
-    layout.addWidget(self.password_input)
-    layout.addSpacing(16)
+      self.password_input = QLineEdit(page)
+      self.password_input.setPlaceholderText("••••••••")
+      self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+      self.password_input.setClearButtonEnabled(True)
+      layout.addWidget(self.password_input)
+      layout.addSpacing(16)
 
-    # Botón Entrar
-    self.login_button = QPushButton(t("login_enter"), page)
-    self.login_button.setProperty("primary", True)
-    self.login_button.setCursor(Qt.CursorShape.PointingHandCursor)
-    self.login_button.clicked.connect(self._on_login_clicked)
-    layout.addWidget(self.login_button)
-    layout.addSpacing(14)
+      # Botón Entrar
+      self.login_button = QPushButton(t("login_enter"), page)
+      self.login_button.setProperty("primary", True)
+      self.login_button.setCursor(Qt.CursorShape.PointingHandCursor)
+      self.login_button.clicked.connect(self._on_login_clicked)
+      layout.addWidget(self.login_button)
+      layout.addSpacing(14)
 
-    # Links
-    links_row = QHBoxLayout()
-    links_row.setContentsMargins(0, 0, 0, 0)
+      # Links
+      links_row = QHBoxLayout()
+      links_row.setContentsMargins(0, 0, 0, 0)
 
-    self.forgot_btn = QPushButton(t("login_forgot"), page)
-    self.forgot_btn.setProperty("secondary", True)
-    self.forgot_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-    self.forgot_btn.clicked.connect(self._on_forgot_password)
+      self.forgot_btn = QPushButton(t("login_forgot"), page)
+      self.forgot_btn.setProperty("secondary", True)
+      self.forgot_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+      self.forgot_btn.clicked.connect(self._on_forgot_password)
 
-    self.signup_btn = QPushButton(t("login_signup"), page)
-    self.signup_btn.setProperty("secondary", True)
-    self.signup_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-    self.signup_btn.clicked.connect(lambda: self.stack.setCurrentIndex(self.PAGE_REGISTER))
+      self.signup_btn = QPushButton(t("login_signup"), page)
+      self.signup_btn.setProperty("secondary", True)
+      self.signup_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+      self.signup_btn.clicked.connect(lambda: self.stack.setCurrentIndex(self.PAGE_REGISTER))
 
-    links_row.addWidget(self.forgot_btn)
-    links_row.addStretch(1)
-    links_row.addWidget(self.signup_btn)
-    layout.addLayout(links_row)
-    layout.addStretch(1)
+      links_row.addWidget(self.forgot_btn)
+      links_row.addStretch(1)
+      links_row.addWidget(self.signup_btn)
+      layout.addLayout(links_row)
+      layout.addStretch(1)
 
-    return page
+      return page
 
     def _on_lang_changed(self, index: int) -> None:
       code = self.lang_combo.itemData(index)
@@ -304,8 +340,10 @@ def _build_login_page(self) -> QWidget:
         self._retranslate_ui()
 
     def _retranslate_ui(self) -> None:
-      """Actualiza los textos visibles según el idioma actual."""
-      # Login
+      """Actualiza todos los textos visibles según el idioma actual."""
+      # -------------------------------------------------
+      # LOGIN
+      # -------------------------------------------------
       if hasattr(self, "subtitle_label"):
           self.subtitle_label.setText(t("login_subtitle"))
       if hasattr(self, "user_label"):
@@ -318,10 +356,113 @@ def _build_login_page(self) -> QWidget:
           self.forgot_btn.setText(t("login_forgot"))
       if hasattr(self, "signup_btn"):
           self.signup_btn.setText(t("login_signup"))
+            # Stat cards (etiquetas)
+      for card, key in (
+          ("card_session_hours", "dash_session_hours"),
+          ("card_session_credits", "dash_session_credits_label"),
+          ("card_total_hours", "dash_total_hours"),
+          ("card_total_credits", "dash_total_credits_label"),
+      ):
+          w = getattr(self, card, None)
+          if w is not None:
+              lbl = w.findChild(QLabel, "statLabel")
+              if lbl is not None:
+                  lbl.setText(t(key))
 
-    # Aquí irás añadiendo más widgets del dashboard y de nodos
+      if hasattr(self, "manual_task_label"):
+          self.manual_task_label.setText(t("dash_manual_task"))
+      if hasattr(self, "task_label") and not self._current_task:
+          self.task_label.setText(t("dash_no_task_short"))
+
+      if hasattr(self, "status_text") and self._username:
+          self.status_text.setText(t("status_logged_in", user=self._username))
+      
+      self._build_menu()
+
+      # -------------------------------------------------
+      # DASHBOARD
+      # -------------------------------------------------
+      if hasattr(self, "dash_greeting") and self._username:
+          self.dash_greeting.setText(
+              t("dash_welcome", user=self._username).replace(
+                  self._username, f"<span>{self._username}</span>"
+              )
+          )
+          self.dash_greeting.setTextFormat(Qt.TextFormat.RichText)
+
+      if hasattr(self, "node_card_label"):
+          self.node_card_label.setText(t("nodes_member") + " · " + t("dash_nodes"))
+
+      if hasattr(self, "dash_task_label"):
+          self.dash_task_label.setText(t("dash_current_task"))
+
+      # Progreso y tarea manual (siempre, según estado)
+      if hasattr(self, "dash_progress_text"):
+          if self._current_task:
+              self.dash_progress_text.setText(t("dash_progress_ready"))
+          else:
+              self.dash_progress_text.setText(t("dash_no_task"))
+
+      if hasattr(self, "manual_task_label"):
+          self.manual_task_label.setText(t("dash_manual_task"))
+
+      if hasattr(self, "task_label"):
+          if self._current_task:
+              # refrescar con datos de la tarea actual
+              self._update_dashboard_task(self._current_task)
+          else:
+              self.task_label.setText(t("dash_no_task_short"))
+
+      if hasattr(self, "compute_button"):
+          self.compute_button.setText(t("dash_submit"))
+
+      if hasattr(self, "expedition_title") and not getattr(self, "_expedition", None):
+          self.expedition_title.setText(t("dash_expedition"))
+
+      # -------------------------------------------------
+      # CRÉDITOS
+      # -------------------------------------------------
+      if hasattr(self, "credits_title"):
+          self.credits_title.setText(t("dash_credits_history"))
+      if hasattr(self, "credits_back_btn"):
+          self.credits_back_btn.setText(t("nodes_back") + " dashboard")
+
+      # -------------------------------------------------
+      # REGISTER
+      # -------------------------------------------------
+      if hasattr(self, "register_button"):
+          self.register_button.setText(t("register_submit"))
+      if hasattr(self, "login_link_btn"):
+          self.login_link_btn.setText(t("register_back"))
+
+      # -------------------------------------------------
+      # NODES PAGE
+      # -------------------------------------------------
+      if hasattr(self, "nodes_page"):
+          if hasattr(self.nodes_page, "title_label"):
+              self.nodes_page.title_label.setText(t("nodes_title"))
+          if hasattr(self.nodes_page, "back_btn"):
+              self.nodes_page.back_btn.setText(t("nodes_back"))
+          # Si estamos en la página de nodos, reconstruimos el contenido
+          if self.stack.currentIndex() == self.PAGE_NODES:
+              self.nodes_page.refresh()
+
+      #--------------------------------------------------
+      # SETTINGS PAGE
+      #--------------------------------------------------
+
+      if hasattr(self, "settings_title"):
+        self.settings_title.setText(t("settings_title"))
+      if hasattr(self, "settings_back_btn"):
+        self.settings_back_btn.setText(t("settings_back"))
+      if hasattr(self, "settings_lang_label"):
+        self.settings_lang_label.setText(t("settings_language"))
+      if hasattr(self, "settings_lang_hint"):
+        self.settings_lang_hint.setText(t("settings_language_hint"))
 
 
+
+    
     def _load_expedition(self) -> None:
         from client.gui import services
         try:
@@ -408,7 +549,7 @@ def _build_login_page(self) -> QWidget:
 
         brand_row.addWidget(logo_dash)
 
-        # Saludo personalizado (se actualiza en _on_login_clicked)
+        # Saludo personalizado (se actualiza en _on_login_clicked / _retranslate_ui)
         self.dash_greeting = QLabel("Hola, <span>donante</span>", left_widget)
         self.dash_greeting.setProperty("class", "brandTitle")
         self.dash_greeting.setTextFormat(Qt.TextFormat.RichText)
@@ -470,20 +611,20 @@ def _build_login_page(self) -> QWidget:
         cards_grid = QGridLayout()
         cards_grid.setSpacing(10)
 
-        # Tarjeta 1: Horas esta sesión (cronómetro en vivo)
-        self.card_session_hours = self._make_stat_card("0.0 h", "horas esta sesión")
+        # ---- Tarjetas de stats (grid 2x2): Sesión + Total ----
+        cards_grid = QGridLayout()
+        cards_grid.setSpacing(10)
+
+        self.card_session_hours = self._make_stat_card("0.0 h", t("dash_session_hours"))
         cards_grid.addWidget(self.card_session_hours, 0, 0)
 
-        # Tarjeta 2: Créditos esta sesión (contador en vivo)
-        self.card_session_credits = self._make_stat_card("0", "créditos esta sesión")
+        self.card_session_credits = self._make_stat_card("0", t("dash_session_credits_label"))
         cards_grid.addWidget(self.card_session_credits, 0, 1)
 
-        # Tarjeta 3: Horas totales (desde API)
-        self.card_total_hours = self._make_stat_card("—", "horas totales")
+        self.card_total_hours = self._make_stat_card("—", t("dash_total_hours"))
         cards_grid.addWidget(self.card_total_hours, 1, 0)
 
-        # Tarjeta 4: Créditos totales (desde API)
-        self.card_total_credits = self._make_stat_card("—", "créditos totales")
+        self.card_total_credits = self._make_stat_card("—", t("dash_total_credits_label"))
         cards_grid.addWidget(self.card_total_credits, 1, 1)
 
         left_layout.addLayout(cards_grid)
@@ -556,12 +697,12 @@ def _build_login_page(self) -> QWidget:
         layout.setSpacing(12)
 
         # Título sección
-        label = QLabel("Tarea manual", widget)
-        label.setProperty("class", "sectionLabel")
-        layout.addWidget(label)
+        self.manual_task_label = QLabel(t("dash_manual_task"), widget)
+        self.manual_task_label.setProperty("class", "sectionLabel")
+        layout.addWidget(self.manual_task_label)
         layout.addSpacing(6)
 
-        self.task_label = QLabel("(sin tarea)", widget)
+        self.task_label = QLabel(t("dash_no_task_short"), widget)
         self.task_label.setStyleSheet("font-size: 15px; font-weight: 600; color: #3b2d1d;")
         layout.addWidget(self.task_label)
 
@@ -580,7 +721,6 @@ def _build_login_page(self) -> QWidget:
         return widget
 
     def _make_stat_card(self, value: str, label: str) -> QWidget:
-        """Crea una tarjeta de estadística estilo dashboard."""
         card = QWidget()
         card.setProperty("class", "statCard")
         card.setFixedHeight(80)
@@ -590,11 +730,12 @@ def _build_login_page(self) -> QWidget:
 
         val_label = QLabel(value)
         val_label.setProperty("class", "statValue")
-        val_label.setObjectName("statValue")  # Para poder actualizarlo después
+        val_label.setObjectName("statValue")
         layout.addWidget(val_label)
 
         lbl_label = QLabel(label)
         lbl_label.setProperty("class", "statLabel")
+        lbl_label.setObjectName("statLabel")  # ← importante
         layout.addWidget(lbl_label)
 
         return card
@@ -737,18 +878,19 @@ def _build_login_page(self) -> QWidget:
         layout.setContentsMargins(34, 18, 34, 18)
         layout.setSpacing(12)
 
+        
         # Header
         header_row = QHBoxLayout()
-        back_btn = QPushButton("← Volver al dashboard", page)
-        back_btn.setProperty("secondary", True)
-        back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        back_btn.clicked.connect(lambda: self.stack.setCurrentIndex(self.PAGE_DASHBOARD))
-        header_row.addWidget(back_btn)
+        self.credits_back_btn = QPushButton(t("nodes_back") + " dashboard", page)
+        self.credits_back_btn.setProperty("secondary", True)
+        self.credits_back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.credits_back_btn.clicked.connect(lambda: self.stack.setCurrentIndex(self.PAGE_DASHBOARD))
+        header_row.addWidget(self.credits_back_btn)
         header_row.addStretch(1)
 
-        title = QLabel("Historial de créditos", page)
-        title.setStyleSheet("font-size: 18px; font-weight: 600; color: #3b2d1d;")
-        header_row.addWidget(title)
+        self.credits_title = QLabel(t("dash_credits_history"), page)
+        self.credits_title.setStyleSheet("font-size: 18px; font-weight: 600; color: #3b2d1d;")
+        header_row.addWidget(self.credits_title)
         header_row.addStretch(1)
         layout.addLayout(header_row)
 
@@ -776,21 +918,27 @@ def _build_login_page(self) -> QWidget:
         self.menuBar().clear()
 
         # Menú Archivo
-        menu = self.menuBar().addMenu("&Archivo")
+        menu = self.menuBar().addMenu(t("menu_file"))
 
         # Acción: Créditos
-        credits_action = QAction("&Créditos / historial", self)
+        credits_action = QAction(t("menu_credits"), self)
         credits_action.setShortcut("Ctrl+R")
         credits_action.triggered.connect(self._show_credits_page)
         menu.addAction(credits_action)
-        nodes_action = QAction("Nodo / Equipo", self)
+        nodes_action = QAction(t("menu_nodes"), self)
         nodes_action.triggered.connect(self._go_nodes)
         menu.addAction(nodes_action)
 
         menu.addSeparator()
 
+        settings_action = QAction(t("menu_settings"), self)
+        settings_action.triggered.connect(
+          lambda: self.stack.setCurrentIndex(self.PAGE_SETTINGS)
+        )
+        menu.addAction(settings_action)
+
         # Acción: Cerrar sesión
-        logout_action = QAction("&Cerrar sesión", self)
+        logout_action = QAction(t("menu_logout"), self)
         logout_action.setShortcut("Ctrl+L")
         logout_action.triggered.connect(self._logout)
         menu.addAction(logout_action)
@@ -798,7 +946,7 @@ def _build_login_page(self) -> QWidget:
         menu.addSeparator()
 
         # Acción: Salir
-        quit_action = QAction("&Salir", self)
+        quit_action = QAction(t("menu_quit"), self)
         quit_action.setShortcut("Ctrl+Q")
         quit_action.triggered.connect(self.close)
         menu.addAction(quit_action)
@@ -857,8 +1005,9 @@ def _build_login_page(self) -> QWidget:
             return
         self._username = username
         # Actualizar saludo en dashboard
-        self.dash_greeting.setText(f"Hola, <span>{username}</span>")
-        self.status_text.setText(f"Sesión iniciada como {username}")
+        self.dash_greeting.setText(t("dash_welcome", user=username).replace(username, f"<span>{username}</span>"))
+        self.dash_greeting.setTextFormat(Qt.TextFormat.RichText)
+        self.status_text.setText(t("status_logged_in", user=username))
         self._fetch_dashboard_data()
         # Iniciar cronómetro de sesión
         self._session_start_time = time.time()
@@ -869,7 +1018,6 @@ def _build_login_page(self) -> QWidget:
         self._load_my_node()
         self._update_node_card()
         self._load_my_node()
-        self._update_node_card()
         self._load_expedition()
         self.stack.setCurrentIndex(self.PAGE_DASHBOARD)
 
@@ -1002,13 +1150,13 @@ def _build_login_page(self) -> QWidget:
         except (TypeError, ValueError):
             total_txt = str(total)
         # Total label
-        total_label = QLabel(f"Total: {total}")
+        total_label = QLabel(t("credits_total", total=total))
         total_label.setStyleSheet("font-size: 16px; font-weight: 600; color: #3b2d1d; padding: 8px;")
         self.credits_layout.insertWidget(0, total_label)
 
         recent = data.get("recent") or []
         if not recent:
-            empty = QLabel("Sin créditos recientes")
+            empty = QLabel(t("credits_empty"))
             empty.setStyleSheet("color: #8a7556; padding: 16px;")
             self.credits_layout.insertWidget(1, empty)
         else:
@@ -1017,7 +1165,7 @@ def _build_login_page(self) -> QWidget:
                     amount = c.get("amount", "?")
                     task_id = c.get("task_id", "?")
                     granted = c.get("granted_at", "")
-                    row = QLabel(f"· {amount} créditos  —  tarea #{task_id}  —  {granted}")
+                    row = QLabel(t("credits_row", amount=amount, task_id=task_id, granted=granted))
                     row.setStyleSheet("color: #3b2d1d; padding: 8px 0; font-family: monospace; font-size: 13px;")
                     self.credits_layout.insertWidget(self.credits_layout.count() - 1, row)
 
@@ -1055,7 +1203,7 @@ def _build_login_page(self) -> QWidget:
         ttype = payload.get("type", "?") if isinstance(payload, dict) else "?"
         self.dash_task_label.setText(f"Tarea actual: #{tid} {name} [{ttype}]")
         self.dash_progress.setValue(0)
-        self.dash_progress_text.setText("0 % — lista para calcular")
+        self.dash_progress_text.setText(t("dash_progress_ready"))  # nueva clave
 
     def _on_submit_clicked(self) -> None:
         if not self._token or not self._current_task:
@@ -1245,7 +1393,7 @@ def _build_login_page(self) -> QWidget:
             self._my_node = None
 
     def _update_node_card(self) -> None:
-    #Muestra u oculta la card de nodo en el dashboard.
+        #Muestra u oculta la card de nodo en el dashboard.
         if not hasattr(self, "node_card"):
             return
         if self._my_node:
@@ -1253,3 +1401,66 @@ def _build_login_page(self) -> QWidget:
             self.node_card.setVisible(True)
         else:
             self.node_card.setVisible(False)
+
+    def _build_settings_page(self) -> QWidget:
+      """Pestaña de ajustes (idioma, etc.)."""
+      page = QWidget(self)
+      page.setObjectName("settingsPage")
+      layout = QVBoxLayout(page)
+      layout.setContentsMargins(34, 18, 34, 18)
+      layout.setSpacing(14)
+
+      # Header
+      header = QHBoxLayout()
+      self.settings_back_btn = QPushButton(t("settings_back"))
+      self.settings_back_btn.setProperty("secondary", True)
+      self.settings_back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+      self.settings_back_btn.clicked.connect(
+          lambda: self.stack.setCurrentIndex(self.PAGE_DASHBOARD)
+      )
+      header.addWidget(self.settings_back_btn)
+      header.addStretch(1)
+
+      self.settings_title = QLabel(t("settings_title"))
+      self.settings_title.setStyleSheet("font-size: 18px; font-weight: 600; color: #3b2d1d;")
+      header.addWidget(self.settings_title)
+      header.addStretch(1)
+      layout.addLayout(header)
+
+      layout.addSpacing(12)
+
+      # Idioma
+      self.settings_lang_label = QLabel(t("settings_language"))
+      self.settings_lang_label.setProperty("class", "sectionLabel")
+      layout.addWidget(self.settings_lang_label)
+
+      self.settings_lang_combo = QComboBox()
+      for code, name in SUPPORTED:
+          self.settings_lang_combo.addItem(name, code)
+      idx = self.settings_lang_combo.findData(get_lang())
+      if idx >= 0:
+          self.settings_lang_combo.setCurrentIndex(idx)
+      self.settings_lang_combo.currentIndexChanged.connect(self._on_settings_lang_changed)
+      layout.addWidget(self.settings_lang_combo)
+
+      self.settings_lang_hint = QLabel(t("settings_language_hint"))
+      self.settings_lang_hint.setWordWrap(True)
+      self.settings_lang_hint.setProperty("class", "sectionLabel")
+      layout.addWidget(self.settings_lang_hint)
+
+      layout.addStretch(1)
+      return page
+
+    def _on_settings_lang_changed(self, index: int) -> None:
+      code = self.settings_lang_combo.itemData(index)
+      if not code:
+          return
+      set_lang(code)
+      # Sincronizar el combo del login si existe
+      if hasattr(self, "lang_combo"):
+          i = self.lang_combo.findData(code)
+          if i >= 0:
+              self.lang_combo.blockSignals(True)
+              self.lang_combo.setCurrentIndex(i)
+              self.lang_combo.blockSignals(False)
+      self._retranslate_ui()
