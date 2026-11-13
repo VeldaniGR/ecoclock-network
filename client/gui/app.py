@@ -58,6 +58,7 @@ except ImportError:  # pragma: no cover
 from client.gui.nodes_page import NodesPage
 from client.gui.impact_map_widget import ImpactMapWidget
 from client.gui import services
+from client.gui.frames import make_logo_with_frame
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -120,7 +121,10 @@ class EcoClockWindow(QMainWindow):
         self.register_page = self._build_register_page()
         self.credits_page = self._build_credits_page()
         self.nodes_page = NodesPage(self)
-        self.nodes_page.back_requested.connect(lambda: self.stack.setCurrentIndex(self.PAGE_DASHBOARD))
+        self.nodes_page.back_requested.connect(
+            lambda: self.stack.setCurrentIndex(self.PAGE_DASHBOARD)
+        )
+        self.nodes_page.frame_changed.connect(self._on_node_frame_changed)
         self.settings_page = self._build_settings_page()
 
         self._my_node: dict | None = None
@@ -575,9 +579,12 @@ class EcoClockWindow(QMainWindow):
         node_card_layout = QHBoxLayout(self.node_card)
         node_card_layout.setContentsMargins(12, 10, 12, 10)
 
-        self.node_card_icon = QLabel("👥")
-        self.node_card_icon.setFixedWidth(28)
-        node_card_layout.addWidget(self.node_card_icon)
+        self.node_badge_host = QWidget()
+        self.node_badge_host.setFixedSize(48, 48)
+        badge_host_lay = QVBoxLayout(self.node_badge_host)
+        badge_host_lay.setContentsMargins(0, 0, 0, 0)
+        badge_host_lay.setSpacing(0)
+        node_card_layout.insertWidget(0, self.node_badge_host)
 
         node_text = QVBoxLayout()
         self.node_card_label = QLabel("Miembro del Nodo")
@@ -1461,14 +1468,48 @@ class EcoClockWindow(QMainWindow):
             self._my_node = None
 
     def _update_node_card(self) -> None:
-        #Muestra u oculta la card de nodo en el dashboard.
         if not hasattr(self, "node_card"):
             return
-        if self._my_node:
-            self.node_card_name.setText(self._my_node.get("name", ""))
-            self.node_card.setVisible(True)
-        else:
+        if not self._my_node:
             self.node_card.setVisible(False)
+            return
+
+        self.node_card_name.setText(self._my_node.get("name", ""))
+
+        # Logo (si tienes URL) + frame
+        logo_url = self._my_node.get("logo_url")
+        logo_pix = QPixmap()
+        if logo_url:
+            full = (
+                logo_url
+                if str(logo_url).startswith("http")
+                else f"{self._base_url.rstrip('/')}{logo_url}"
+            )
+            try:
+                import requests
+                data = requests.get(full, timeout=8).content
+                logo_pix.loadFromData(data)
+            except Exception:
+                pass
+
+        from client.gui.frames import make_logo_with_frame
+
+        # Sustituir contenido del host
+        lay = self.node_badge_host.layout()
+        while lay.count():
+            item = lay.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        badge = make_logo_with_frame(
+            logo_pix,
+            self._my_node.get("logo_frame"),
+            size=48,
+            parent=self.node_badge_host,
+        )
+        lay.addWidget(badge)
+
+        self.node_card.setVisible(True)
 
     def _build_settings_page(self) -> QWidget:
       """Pestaña de ajustes (idioma, etc.)."""
@@ -1557,3 +1598,7 @@ class EcoClockWindow(QMainWindow):
             )
         )
         self.envelope_card.setVisible(True)
+
+    def _on_node_frame_changed(self, node: dict) -> None:
+      self._my_node = node
+      self._update_node_card()

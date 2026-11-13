@@ -4,9 +4,9 @@ from __future__ import annotations
 import json
 
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import (
-    QComboBox,
+    QButtonGroup,
     QFileDialog,
     QFrame,
     QHBoxLayout,
@@ -22,6 +22,8 @@ from PyQt6.QtWidgets import (
 
 from client.gui import services
 from client.gui.i18n import t
+from client.gui.frames import load_frame_pixmap, parse_unlocked_frames
+from client.gui.frames import make_logo_with_frame
 
 
 FRAME_STYLES = {
@@ -30,11 +32,19 @@ FRAME_STYLES = {
         "border: 3px solid #7EC8E3; border-radius: 14px; padding: 2px;"
         "background-color: rgba(126, 200, 227, 0.12);"
     ),
+    "deforestation": "border: 3px solid #6B8F3C; border-radius: 14px; padding: 2px;",
+    "energy": "border: 3px solid #E0A030; border-radius: 14px; padding: 2px;",
+    "environmental_crime": "border: 3px solid #B04040; border-radius: 14px; padding: 2px;",
+    "ozone": "border: 3px solid #5B9EA6; border-radius: 14px; padding: 2px;",
+    "posidonia": "border: 3px solid #2E8B7A; border-radius: 14px; padding: 2px;",
+    "sea_ice": "border: 3px solid #A8D4E6; border-radius: 14px; padding: 2px;",
+    "water": "border: 3px solid #3A7CA5; border-radius: 14px; padding: 2px;",
 }
 
 
 class NodesPage(QWidget):
     back_requested = pyqtSignal()
+    frame_changed = pyqtSignal(dict)  # NodeDetail actualizado → dashboard
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -45,6 +55,7 @@ class NodesPage(QWidget):
         self._public_nodes: list = []
         self._members: list = []
         self._join_requests: list = []
+        self._frame_buttons: list[QPushButton] = []
 
         root = QVBoxLayout(self)
         root.setContentsMargins(24, 18, 24, 18)
@@ -126,6 +137,7 @@ class NodesPage(QWidget):
             w = item.widget()
             if w:
                 w.deleteLater()
+        self._frame_buttons = []
 
     def _rebuild_content(self) -> None:
         self._clear_content()
@@ -135,19 +147,7 @@ class NodesPage(QWidget):
             self._build_no_node_view()
 
     def _unlocked_frames(self, node: dict) -> list[str]:
-        raw = node.get("unlocked_frames")
-        if not raw:
-            return []
-        if isinstance(raw, list):
-            return [str(x) for x in raw]
-        if isinstance(raw, str):
-            try:
-                data = json.loads(raw)
-                if isinstance(data, list):
-                    return [str(x) for x in data]
-            except Exception:
-                pass
-        return []
+        return parse_unlocked_frames(node.get("unlocked_frames"))
 
     def _load_logo_pixmap(self, logo_url: str | None) -> QPixmap:
         pix = QPixmap(64, 64)
@@ -161,6 +161,7 @@ class NodesPage(QWidget):
         )
         try:
             import requests
+
             data = requests.get(full, timeout=10).content
             pix.loadFromData(data)
         except Exception:
@@ -168,35 +169,24 @@ class NodesPage(QWidget):
         return pix
 
     def _frame_label(self, key: str) -> str:
-        return t(f"frame_{key}") if key else t("nodes_frame_none")
+        if not key:
+            return t("nodes_frame_none")
+        # fallback al id si no hay clave i18n
+        translated = t(f"frame_{key}")
+        if translated == f"frame_{key}":
+            return key.replace("_", " ").title()
+        return translated
 
     def _build_my_node_view(self) -> None:
         node = self._my_node or {}
         is_admin = node.get("my_role") == "admin"
         frame = node.get("logo_frame") or ""
 
-        logo_label = QLabel()
-        logo_label.setFixedSize(70, 70)
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        from client.gui.frames import make_logo_with_frame
+
         pix = self._load_logo_pixmap(node.get("logo_url"))
-        if not pix.isNull() and pix.width() > 1:
-            logo_label.setPixmap(
-                pix.scaled(
-                    64,
-                    64,
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation,
-                )
-            )
-        else:
-            logo_label.setText("👥")
-            logo_label.setStyleSheet("font-size: 32px;")
-
-        style = FRAME_STYLES.get(frame)
-        if style:
-            logo_label.setStyleSheet(logo_label.styleSheet() + style)
-
-        self.content_layout.addWidget(logo_label)
+        badge = make_logo_with_frame(pix, frame, size=72)
+        self.content_layout.addWidget(badge)
 
         name = QLabel(node.get("name", ""))
         name.setStyleSheet("font-size: 18px; font-weight: 700;")
@@ -219,6 +209,7 @@ class NodesPage(QWidget):
             row.layout().addWidget(copy_btn)
             self.content_layout.addWidget(row)
 
+            # Selector de frames (botones con icono)
             self.content_layout.addWidget(QLabel(t("nodes_frame")))
             unlocked = self._unlocked_frames(node)
             if not unlocked:
@@ -226,17 +217,45 @@ class NodesPage(QWidget):
                 hint.setProperty("class", "sectionLabel")
                 self.content_layout.addWidget(hint)
             else:
-                combo = QComboBox()
-                combo.addItem(t("nodes_frame_none"), "")
-                for f in unlocked:
-                    combo.addItem(self._frame_label(f), f)
-                idx = combo.findData(frame)
-                if idx >= 0:
-                    combo.setCurrentIndex(idx)
-                combo.currentIndexChanged.connect(
-                    lambda _i, c=combo: self._on_frame_changed(c.currentData())
-                )
-                self.content_layout.addWidget(combo)
+                frames_wrap = QWidget()
+                frames_lay = QHBoxLayout(frames_wrap)
+                frames_lay.setContentsMargins(0, 0, 0, 0)
+                frames_lay.setSpacing(8)
+
+                group = QButtonGroup(self)
+                group.setExclusive(True)
+
+                none_btn = QPushButton(t("nodes_frame_none"))
+                none_btn.setCheckable(True)
+                none_btn.setChecked(not frame)
+                none_btn.setProperty("frameId", "")
+                none_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                group.addButton(none_btn)
+                none_btn.clicked.connect(lambda: self._on_frame_changed(None))
+                frames_lay.addWidget(none_btn)
+                self._frame_buttons.append(none_btn)
+
+                for fid in unlocked:
+                    btn = QPushButton()
+                    btn.setCheckable(True)
+                    btn.setChecked(fid == frame)
+                    btn.setFixedSize(64, 64)
+                    btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                    btn.setProperty("frameId", fid)
+                    btn.setToolTip(self._frame_label(fid))
+                    ipix = load_frame_pixmap(fid, 56)
+                    if not ipix.isNull():
+                        btn.setIcon(QIcon(ipix))
+                        btn.setIconSize(ipix.size())
+                    else:
+                        btn.setText(fid[:8])
+                    group.addButton(btn)
+                    btn.clicked.connect(lambda _=False, f=fid: self._on_frame_changed(f))
+                    frames_lay.addWidget(btn)
+                    self._frame_buttons.append(btn)
+
+                frames_lay.addStretch(1)
+                self.content_layout.addWidget(frames_wrap)
 
             logo_btn = QPushButton(t("nodes_change_logo"))
             logo_btn.setProperty("secondary", True)
@@ -383,6 +402,7 @@ class NodesPage(QWidget):
 
     def _copy(self, text: str) -> None:
         from PyQt6.QtWidgets import QApplication
+
         QApplication.clipboard().setText(text)
         self.status_label.setText(t("copied"))
 
@@ -392,7 +412,9 @@ class NodesPage(QWidget):
     def _on_create(self) -> None:
         name = self.name_input.text().strip()
         if len(name) < 3:
-            QMessageBox.warning(self, t("error"), "El nombre debe tener al menos 3 caracteres.")
+            QMessageBox.warning(
+                self, t("error"), "El nombre debe tener al menos 3 caracteres."
+            )
             return
         try:
             self._my_node = services.create_node(self._base_url, name, self._token)
@@ -431,11 +453,7 @@ class NodesPage(QWidget):
     def _on_delete(self) -> None:
         node = self._my_node or {}
         if (
-            QMessageBox.question(
-                self,
-                t("nodes_delete"),
-                t("confirm_delete"),
-            )
+            QMessageBox.question(self, t("nodes_delete"), t("confirm_delete"))
             != QMessageBox.StandardButton.Yes
         ):
             return
@@ -500,6 +518,7 @@ class NodesPage(QWidget):
             self._my_node = {**node, **updated}
             self._rebuild_content()
             self.status_label.setText("Marco actualizado")
+            self.frame_changed.emit(self._my_node)
         except Exception as e:
             QMessageBox.critical(self, t("error"), str(e))
 
