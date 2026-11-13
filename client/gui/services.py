@@ -327,3 +327,9 @@ def get_me_impact(base_url: str, token: str | None = None) -> dict:
     r = cli.authenticated_get(base_url, "/me/impact", token=token)
     r.raise_for_status()
     return r.json()
+
+def get_navigator_envelope(base_url: str, token: str | None = None) -> dict:
+    """GET /me/impact/navigator-envelope"""
+    r = cli.authenticated_get(base_url, "/me/impact/navigator-envelope", token=token)
+    r.raise_for_status()
+    return r.json()

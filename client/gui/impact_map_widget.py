@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
+from PyQt6.QtWidgets import QButtonGroup, QHBoxLayout, QPushButton
 from client.gui.i18n import t
 
 COLS = 10
@@ -191,6 +191,7 @@ class ImpactMapWidget(QFrame):
         root.setContentsMargins(14, 12, 14, 12)
         root.setSpacing(10)
 
+        # Header: título + contador
         header = QHBoxLayout()
         self.title_label = QLabel(t("impact_map_title"))
         self.title_label.setStyleSheet("font-weight: 700; font-size: 14px;")
@@ -200,6 +201,33 @@ class ImpactMapWidget(QFrame):
         self.count_label.setStyleSheet("font-weight: 700; font-size: 14px; color: #c48a2b;")
         header.addWidget(self.count_label)
         root.addLayout(header)
+
+        # Tabs de scope
+        tabs_row = QHBoxLayout()
+        tabs_row.setSpacing(6)
+        self._scope = "me"
+        self._scope_group = QButtonGroup(self)
+        self._scope_group.setExclusive(True)
+
+        self.tab_me = QPushButton(t("impact_tab_me"))
+        self.tab_node = QPushButton(t("impact_tab_node"))
+        self.tab_network = QPushButton(t("impact_tab_network"))
+        for i, btn in enumerate((self.tab_me, self.tab_node, self.tab_network)):
+            btn.setCheckable(True)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.setProperty("scopeTab", True)
+            self._scope_group.addButton(btn, i)
+            tabs_row.addWidget(btn)
+        tabs_row.addStretch(1)
+        self.tab_me.setChecked(True)
+        self._scope_group.idClicked.connect(self._on_scope_changed)
+        root.addLayout(tabs_row)
+
+        self.scope_msg = QLabel("")
+        self.scope_msg.setWordWrap(True)
+        self.scope_msg.setStyleSheet("color: #8a7a66; font-size: 12px;")
+        self.scope_msg.setVisible(False)
+        root.addWidget(self.scope_msg)
 
         self.hint_label = QLabel(t("impact_arctic_hint"))
         self.hint_label.setStyleSheet("color: #8a7a66; font-size: 11px;")
@@ -258,3 +286,34 @@ class ImpactMapWidget(QFrame):
         self.hint_label.setText(t("impact_arctic_hint"))
         self.empty_label.setText(t("impact_no_hexes"))
         self.center_btn.setText(t("impact_center"))
+
+        
+    def _on_scope_changed(self, idx: int) -> None:
+        self._scope = ("me", "node", "network")[idx]
+        self._apply_scope_ui()
+
+    def _apply_scope_ui(self) -> None:
+        is_me = self._scope == "me"
+        self.canvas.setVisible(is_me)
+        self.center_btn.setVisible(is_me)
+        self.hint_label.setVisible(is_me)
+        self.empty_label.setVisible(is_me and len(self.canvas._unlocked) == 0)
+
+        if self._scope == "node":
+            self.scope_msg.setText(t("impact_scope_node_soon"))
+            self.scope_msg.setVisible(True)
+        elif self._scope == "network":
+            self.scope_msg.setText(t("impact_scope_network_soon"))
+            self.scope_msg.setVisible(True)
+        else:
+            self.scope_msg.setVisible(False)
+
+    def retranslate(self) -> None:
+        self.title_label.setText(t("impact_map_title"))
+        self.hint_label.setText(t("impact_arctic_hint"))
+        self.empty_label.setText(t("impact_no_hexes"))
+        self.center_btn.setText(t("impact_center"))
+        self.tab_me.setText(t("impact_tab_me"))
+        self.tab_node.setText(t("impact_tab_node"))
+        self.tab_network.setText(t("impact_tab_network"))
+        self._apply_scope_ui()

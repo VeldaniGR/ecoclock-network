@@ -381,6 +381,11 @@ class EcoClockWindow(QMainWindow):
 
       if hasattr(self, "impact_map"):
           self.impact_map.retranslate()
+
+      if hasattr(self, "envelope_title"):
+          self.envelope_title.setText(t("envelope_title"))
+      if getattr(self, "_envelope_data", None):
+          self._update_envelope_card(self._envelope_data)
       
       self._build_menu()
 
@@ -614,6 +619,20 @@ class EcoClockWindow(QMainWindow):
         # Mapa de impacto
         self.impact_map = ImpactMapWidget(left_widget)
         left_layout.addWidget(self.impact_map)
+
+        # Sobre del Navegante
+        self.envelope_card = QFrame(left_widget)
+        self.envelope_card.setObjectName("envelopeCard")
+        env_lay = QVBoxLayout(self.envelope_card)
+        self.envelope_title = QLabel(t("envelope_title"))
+        self.envelope_title.setStyleSheet("font-weight: 700;")
+        env_lay.addWidget(self.envelope_title)
+        self.envelope_status = QLabel("—")
+        env_lay.addWidget(self.envelope_status)
+        self.envelope_progress = QLabel("")
+        self.envelope_progress.setProperty("class", "sectionLabel")
+        env_lay.addWidget(self.envelope_progress)
+        left_layout.addWidget(self.envelope_card)
 
         # ---- Tarjetas de stats ...
         cards_grid = QGridLayout()
@@ -1101,6 +1120,12 @@ class EcoClockWindow(QMainWindow):
                 self.impact_map.set_impact(None)
 
         try:
+            env = services.get_navigator_envelope(self._base_url, self._token)
+            self._update_envelope_card(env)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[envelope] error: {exc}", file=sys.stderr)
+
+        try:
             task = services.next_task(self._base_url, self._token)
             self._current_task = task
             self._update_dashboard_task(task)
@@ -1409,6 +1434,10 @@ class EcoClockWindow(QMainWindow):
         if hasattr(self, "impact_map"):
             self.impact_map.set_impact(None)
 
+        self._envelope_data = None
+        if hasattr(self, "envelope_card"):
+            self.envelope_card.setVisible(False)
+
         self.stack.setCurrentIndex(self.PAGE_LOGIN)
         self.status_text.setText(t("status_logged_out") if False else "Sesión cerrada")
 
@@ -1503,3 +1532,28 @@ class EcoClockWindow(QMainWindow):
               self.lang_combo.setCurrentIndex(i)
               self.lang_combo.blockSignals(False)
       self._retranslate_ui()
+
+    def _update_envelope_card(self, data: dict | None) -> None:
+        if not hasattr(self, "envelope_card"):
+            return
+        if not data:
+            self.envelope_card.setVisible(False)
+            return
+        status = (data.get("status") or "locked").lower()
+        status_key = {
+            "locked": "envelope_locked",
+            "ready": "envelope_ready",
+            "sent": "envelope_sent",
+            "validated": "envelope_validated",
+        }.get(status, "envelope_locked")
+        self.envelope_status.setText(t(status_key))
+        self.envelope_progress.setText(
+            t(
+                "envelope_progress",
+                hexes=data.get("hex_count", 0),
+                hex_th=data.get("hex_threshold", 5),
+                tasks=data.get("personal_task_count", 0),
+                task_th=data.get("task_threshold", 25),
+            )
+        )
+        self.envelope_card.setVisible(True)

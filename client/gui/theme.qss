@@ -358,3 +358,30 @@ QWidget#registerPage {
 /* Toggle switch - handled in Python paintEvent */
 
 /* Leaf widget - handled in Python paintEvent */
+
+QProgressBar {
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    background-color: #2a2a2a;
+    text-align: center;
+    color: #e0e0e0;
+    height: 12px;
+}
+
+QProgressBar::chunk {
+    background-color: #c4a35a;
+    border-radius: 5px;
+}
+
+QPushButton[scopeTab="true"] {
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #d4c4a8;
+  background: transparent;
+  color: #5a4a32;
+}
+QPushButton[scopeTab="true"]:checked {
+  background: #c48a2b;
+  color: white;
+  border-color: #c48a2b;
+}
