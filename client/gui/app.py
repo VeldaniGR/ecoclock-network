@@ -56,6 +56,7 @@ except ImportError:  # pragma: no cover
     QDesktopServices = QPixmap = QSvgRenderer = object  # type: ignore[assignment]
 
 from client.gui.nodes_page import NodesPage
+from client.gui.impact_map_widget import ImpactMapWidget
 from client.gui import services
 
 
@@ -123,6 +124,7 @@ class EcoClockWindow(QMainWindow):
         self.settings_page = self._build_settings_page()
 
         self._my_node: dict | None = None
+        self._impact_data: dict | None = None
 
         self.stack.addWidget(self.login_page)      # index 0
         self.stack.addWidget(self.dashboard_page)  # index 1
@@ -376,6 +378,9 @@ class EcoClockWindow(QMainWindow):
 
       if hasattr(self, "status_text") and self._username:
           self.status_text.setText(t("status_logged_in", user=self._username))
+
+      if hasattr(self, "impact_map"):
+          self.impact_map.retranslate()
       
       self._build_menu()
 
@@ -605,7 +610,15 @@ class EcoClockWindow(QMainWindow):
         self.expedition_bar.setFixedHeight(8)
         exp_lay.addWidget(self.expedition_bar)
         left_layout.addWidget(self.expedition_card)
+
+        # Mapa de impacto
+        self.impact_map = ImpactMapWidget(left_widget)
+        left_layout.addWidget(self.impact_map)
+
+        # ---- Tarjetas de stats ...
+        cards_grid = QGridLayout()
         left_layout.addSpacing(12)
+
 
         # ---- Tarjetas de stats (grid 2x2): Sesión + Total ----
         cards_grid = QGridLayout()
@@ -654,7 +667,16 @@ class EcoClockWindow(QMainWindow):
         left_layout.addWidget(self.manual_task_widget)
         left_layout.addStretch(1)
 
-        main_layout.addWidget(left_widget, stretch=1)
+        left_layout.addStretch(1)
+
+        left_scroll = QScrollArea()
+        left_scroll.setWidgetResizable(True)
+        left_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        left_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        left_scroll.setWidget(left_widget)
+        left_scroll.setMinimumWidth(320)
+
+        main_layout.addWidget(left_scroll, stretch=1)
 
         # ============================================================
         # PANEL DERECHO: Sonar widget + Toggle integrado
@@ -1054,23 +1076,30 @@ class EcoClockWindow(QMainWindow):
         self.stack.setCurrentIndex(self.PAGE_LOGIN)
 
     def _fetch_dashboard_data(self) -> None:
-        """Obtiene datos reales para el dashboard: créditos totales, tarea actual, etc."""
+        """Obtiene datos reales para el dashboard: créditos, impacto, tarea actual."""
         if not self._token:
             return
         from client.gui import services
 
         try:
-            # Créditos totales + recientes
-            credits = services.me(self._base_url, self._token)  # usa /me/credits
-            # Actualizar tarjetas de totales
+            credits = services.me(self._base_url, self._token)
             total_credits = credits.get("total", credits.get("totalCredits", 0))
-            # Asumimos que la API devuelve también horas totales o lo calculamos
-            total_hours = credits.get("totalHours", total_credits * 0.01)  # estimación
+            total_hours = credits.get("totalHours", total_credits * 0.01)
             self._update_total_stats_cards(total_hours, total_credits)
         except Exception:
             pass
 
-        # Obtener tarea actual
+        try:
+            self._impact_data = services.get_me_impact(self._base_url, self._token)
+            n = self._impact_data.get("total_hexes")
+            n_hex = sum(len(t.get("hexes") or []) for t in (self._impact_data.get("tiles") or []))
+            if hasattr(self, "impact_map"):
+                self.impact_map.set_impact(self._impact_data)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[impact] error: {exc}", file=sys.stderr)
+            if hasattr(self, "impact_map"):
+                self.impact_map.set_impact(None)
+
         try:
             task = services.next_task(self._base_url, self._token)
             self._current_task = task
@@ -1367,13 +1396,23 @@ class EcoClockWindow(QMainWindow):
         self._session_start_time = None
         self.username_input.clear()
         self.password_input.clear()
+
         # Resetear saludo
         self.dash_greeting.setText("Hola, <span>donante</span>")
+
         # Resetear tarjetas de sesión
         self.card_session_hours.findChild(QLabel, "statValue").setText("0.0 h")
         self.card_session_credits.findChild(QLabel, "statValue").setText("0")
+
+        # Mapa de impacto
+        self._impact_data = None
+        if hasattr(self, "impact_map"):
+            self.impact_map.set_impact(None)
+
         self.stack.setCurrentIndex(self.PAGE_LOGIN)
-        self.status_text.setText("Sesión cerrada")
+        self.status_text.setText(t("status_logged_out") if False else "Sesión cerrada")
+
+
 
     def closeEvent(self, event) -> None:
         self._stop_auto()

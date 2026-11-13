@@ -317,3 +317,13 @@ def transfer_leadership(
                 url, headers=auth_headers(new_tok), json=body, timeout=TIMEOUT
             )
     r.raise_for_status()
+
+# ──────────────────────────────────────────────────────────────
+# Mapa de impacto
+# ──────────────────────────────────────────────────────────────
+
+def get_me_impact(base_url: str, token: str | None = None) -> dict:
+    """GET /me/impact — hexágonos desbloqueados del usuario."""
+    r = cli.authenticated_get(base_url, "/me/impact", token=token)
+    r.raise_for_status()
+    return r.json()

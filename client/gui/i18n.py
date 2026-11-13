@@ -149,6 +149,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "dash_no_task_short": "(sin tarea)",
         "status_ready": "Listo",
         "status_logged_in": "Sesión iniciada como {user}",
+
+        "impact_map_title": "Mapa de impacto",
+        "impact_arctic_hint": "Ártico · arrastra para mover",
+        "impact_no_hexes": "Aún no has desbloqueado hexágonos. Completa tareas de la expedición.",
+        "impact_center": "Centrar",
     },
     "en": {
         "login_subtitle": "Donate idle compute. Verify where every drop goes.",
@@ -277,6 +282,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "dash_no_task_short": "(no task)",
         "status_ready": "Ready",
         "status_logged_in": "Signed in as {user}",
+
+        "impact_map_title": "Impact Map",
+        "impact_arctic_hint": "Arctic · drag to move",
+        "impact_no_hexes": "You haven't unlocked any hexes yet. Complete expedition tasks.",
+        "impact_center": "Center",
     },
     "ca": {
         "login_subtitle": "Dona temps de còmput. Verifica on va cada gota.",
@@ -381,6 +391,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "confirm_leave": "Segur que vols sortir del node?",
         "confirm_kick": "Expulsar a {user}?",
         "confirm_transfer": "Transferir el lideratge a {user}?",
+
+        "impact_map_title": "Mapa d'impacte",
+        "impact_arctic_hint": "Àrtic · arrossega per moure",
+        "impact_no_hexes": "Encara no has desbloquejat hexàgons. Completa tasques de l'expedició.",
+        "impact_center": "Centre",
     },
     "eu": {
         "login_subtitle": "Eman konputazio-denbora. Egiaztatu non doan tanta bakoitza.",
@@ -485,6 +500,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "confirm_leave": "Ziur zaude nodotik irten nahi duzula?",
         "confirm_kick": "{user} kanporatu?",
         "confirm_transfer": "Lidertza {user}-ri transferitu?",
+
+        "impact_map_title": "Inpaktu Mapa",
+        "impact_arctic_hint": "Artikoa · arrastatu mugitzeko",
+        "impact_no_hexes": "Ez duzu hexagonorik desblokeatu oraindik. Osatu espedizio zereginak.",
+        "impact_center": "Erdibidea",
     },
     "fr": {
         "login_subtitle": "Donnez du temps de calcul. Vérifiez où va chaque goutte.",
@@ -589,6 +609,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "confirm_leave": "Voulez-vous vraiment quitter le nœud ?",
         "confirm_kick": "Expulser {user} ?",
         "confirm_transfer": "Transférer le leadership à {user} ?",
+
+        "impact_map_title": "Carte d'impact",
+        "impact_arctic_hint": "Arctique · faites glisser pour déplacer",
+        "impact_no_hexes": "Vous n'avez pas encore débloqué d'hexagones. Accomplissez des tâches de l'expédition.",
+        "impact_center": "Centrer",
     },
     "de": {
         "login_subtitle": "Spende Rechenzeit. Prüfe, wohin jeder Tropfen fließt.",
@@ -693,6 +718,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "confirm_leave": "Möchtest du den Knoten wirklich verlassen?",
         "confirm_kick": "{user} entfernen?",
         "confirm_transfer": "Führung an {user} übertragen?",
+
+        "impact_map_title": "Auswirkungskarte",
+        "impact_arctic_hint": "Arktis · zum Verschieben ziehen",
+        "impact_no_hexes": "Du hast noch keine Hexfelder freigeschaltet. Schließe Expeditionsaufgaben ab.",
+        "impact_center": "Zentrieren",
     },
     "pt": {
         "login_subtitle": "Doa tempo de computação. Verifica para onde vai cada gota.",
@@ -797,6 +827,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "confirm_leave": "Tem a certeza de que quer sair do nó?",
         "confirm_kick": "Expulsar {user}?",
         "confirm_transfer": "Transferir a liderança para {user}?",
+
+        "impact_map_title": "Mapa de impacto",
+        "impact_arctic_hint": "Ártico · arraste para mover",
+        "impact_no_hexes": "Você ainda não desbloqueou hexágonos. Conclua tarefas da expedição.",
+        "impact_center": "Centralizar",
     },
     "it": {
         "login_subtitle": "Dona tempo di calcolo. Verifica dove va ogni goccia.",
@@ -901,6 +936,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "confirm_leave": "Sei sicuro di voler uscire dal nodo?",
         "confirm_kick": "Espellere {user}?",
         "confirm_transfer": "Trasferire la leadership a {user}?",
+
+        "impact_map_title": "Mappa d'impatto",
+        "impact_arctic_hint": "Artico · trascina per spostare",
+        "impact_no_hexes": "Non hai ancora sbloccato nessun esagono. Completa le attività della spedizione.",
+        "impact_center": "Centro",
     },
     "ja": {
         "login_subtitle": "計算時間を提供。すべての貢献の行き先を確認。",
@@ -1005,6 +1045,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "confirm_leave": "本当にノードを退出しますか？",
         "confirm_kick": "{user} を追放しますか？",
         "confirm_transfer": "{user} にリーダーシップを譲渡しますか？",
+
+        "impact_map_title": "インパクトマップ",
+        "impact_arctic_hint": "北極 · ドラッグして移動",
+        "impact_no_hexes": "まだヘックスがアンロックされていません。探検タスクを完了してください。",
+        "impact_center": "中心",
     },
     "zh": {
         "login_subtitle": "捐赠计算时间。核实每一滴的去向。",
@@ -1109,6 +1154,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "confirm_leave": "确定要离开该节点吗？",
         "confirm_kick": "踢出 {user}？",
         "confirm_transfer": "将领导权转让给 {user}？",
+
+        "impact_map_title": "影響地圖",
+        "impact_arctic_hint": "北極 · 拖曳移動",
+        "impact_no_hexes": "您尚未解鎖任何六邊形。完成探險任務。",
+        "impact_center": "中心",
     },
     "ru": {
         "login_subtitle": "Пожертвуйте вычислительное время. Проверьте, куда уходит каждая капля.",
@@ -1213,6 +1263,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "confirm_leave": "Вы уверены, что хотите покинуть узел?",
         "confirm_kick": "Исключить {user}?",
         "confirm_transfer": "Передать лидерство {user}?",
+
+        "impact_map_title": "Карта воздействия",
+        "impact_arctic_hint": "Арктика · перетащите для перемещения",
+        "impact_no_hexes": "Вы еще не разблокировали ни одного гекса. Выполните задания экспедиции.",
+        "impact_center": "Центр",
     },
     "ar": {
         "login_subtitle": "تبرّع بوقت الحوسبة. تحقق إلى أين تذهب كل قطرة.",
@@ -1317,6 +1372,11 @@ _STRINGS: dict[str, dict[str, str]] = {
         "confirm_leave": "هل أنت متأكد أنك تريد مغادرة العقدة؟",
         "confirm_kick": "طرد {user}؟",
         "confirm_transfer": "نقل القيادة إلى {user}؟",
+
+        "impact_map_title": "خريطة التأثير",
+        "impact_arctic_hint": "القطب الشمالي · اسحب للتحريك",
+        "impact_no_hexes": "لم تفتح أي مسدسات بعد. أكمل مهام الاستكشاف.",
+        "impact_center": "المركز",
     },
 }
 
