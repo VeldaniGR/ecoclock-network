@@ -5,6 +5,7 @@ import json
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtWidgets import QButtonGroup
 from PyQt6.QtWidgets import (
     QButtonGroup,
     QFileDialog,
@@ -182,40 +183,23 @@ class NodesPage(QWidget):
         is_admin = node.get("my_role") == "admin"
         frame = node.get("logo_frame") or ""
 
-        from client.gui.frames import make_logo_with_frame
+        columns = QHBoxLayout()
+        columns.setSpacing(24)
 
-        pix = self._load_logo_pixmap(node.get("logo_url"))
-        badge = make_logo_with_frame(pix, frame, size=72)
-        self.content_layout.addWidget(badge)
-
-        name = QLabel(node.get("name", ""))
-        name.setStyleSheet("font-size: 18px; font-weight: 700;")
-        self.content_layout.addWidget(name)
-
-        role = QLabel(t("nodes_admin") if is_admin else t("nodes_member"))
-        role.setProperty("class", "sectionLabel")
-        self.content_layout.addWidget(role)
-
-        self.content_layout.addWidget(
-            self._info_row(t("nodes_members"), str(node.get("member_count", 0)))
-        )
+        # ══════════════════════════════════════════
+        # IZQUIERDA — gestión
+        # ══════════════════════════════════════════
+        left = QVBoxLayout()
+        left.setSpacing(12)
 
         if is_admin:
-            code = node.get("invite_code") or ""
-            row = self._info_row(t("nodes_invite"), code)
-            copy_btn = QPushButton(t("nodes_copy"))
-            copy_btn.setProperty("secondary", True)
-            copy_btn.clicked.connect(lambda: self._copy(code))
-            row.layout().addWidget(copy_btn)
-            self.content_layout.addWidget(row)
-
-            # Selector de frames (botones con icono)
-            self.content_layout.addWidget(QLabel(t("nodes_frame")))
+            # Marco del logo
+            left.addWidget(QLabel(t("nodes_frame")))
             unlocked = self._unlocked_frames(node)
             if not unlocked:
                 hint = QLabel(t("nodes_frame_hint"))
                 hint.setProperty("class", "sectionLabel")
-                self.content_layout.addWidget(hint)
+                left.addWidget(hint)
             else:
                 frames_wrap = QWidget()
                 frames_lay = QHBoxLayout(frames_wrap)
@@ -255,48 +239,113 @@ class NodesPage(QWidget):
                     self._frame_buttons.append(btn)
 
                 frames_lay.addStretch(1)
-                self.content_layout.addWidget(frames_wrap)
+                left.addWidget(frames_wrap)
 
+            # Acciones de admin
+            actions = QHBoxLayout()
             logo_btn = QPushButton(t("nodes_change_logo"))
             logo_btn.setProperty("secondary", True)
             logo_btn.clicked.connect(self._on_change_logo)
-            self.content_layout.addWidget(logo_btn)
+            actions.addWidget(logo_btn)
 
             rename_btn = QPushButton(t("nodes_rename"))
             rename_btn.setProperty("secondary", True)
             rename_btn.clicked.connect(self._on_rename)
-            self.content_layout.addWidget(rename_btn)
+            actions.addWidget(rename_btn)
+            actions.addStretch(1)
+            left.addLayout(actions)
 
-            self.content_layout.addSpacing(8)
-            self.content_layout.addWidget(QLabel(t("nodes_requests")))
+            # Enlace de unión
+            code = node.get("invite_code") or ""
+            row = self._info_row(t("nodes_invite"), code)
+            copy_btn = QPushButton(t("nodes_copy"))
+            copy_btn.setProperty("secondary", True)
+            copy_btn.clicked.connect(lambda: self._copy(code))
+            row.layout().addWidget(copy_btn)
+            left.addWidget(row)
+
+            # Solicitudes
+            left.addSpacing(6)
+            left.addWidget(QLabel(t("nodes_requests")))
             if not self._join_requests:
                 empty = QLabel(t("nodes_no_requests"))
                 empty.setProperty("class", "sectionLabel")
-                self.content_layout.addWidget(empty)
+                left.addWidget(empty)
             else:
                 for r in self._join_requests:
-                    self.content_layout.addWidget(self._request_row(r))
+                    left.addWidget(self._request_row(r))
 
-            del_btn = QPushButton(t("nodes_delete"))
-            del_btn.setStyleSheet("color: #e05555;")
-            del_btn.clicked.connect(self._on_delete)
-            self.content_layout.addWidget(del_btn)
-
-        self.content_layout.addSpacing(8)
-        self.content_layout.addWidget(QLabel(t("nodes_members")))
+        # Miembros (todos)
+        left.addSpacing(6)
+        left.addWidget(
+            QLabel(f"{t('nodes_members')} ({node.get('member_count', 0)})")
+        )
         if not self._members:
             empty = QLabel("—")
             empty.setProperty("class", "sectionLabel")
-            self.content_layout.addWidget(empty)
+            left.addWidget(empty)
         else:
             for m in self._members:
-                self.content_layout.addWidget(self._member_row(m, is_admin))
+                left.addWidget(self._member_row(m, is_admin))
 
+        # Salir / eliminar
+        left.addSpacing(8)
         leave_btn = QPushButton(t("nodes_leave"))
         leave_btn.setStyleSheet("color: #e0a050;")
         leave_btn.clicked.connect(self._on_leave)
-        self.content_layout.addWidget(leave_btn)
-        self.content_layout.addStretch(1)
+        left.addWidget(leave_btn)
+
+        if is_admin:
+            del_btn = QPushButton(t("nodes_delete"))
+            del_btn.setStyleSheet("color: #e05555;")
+            del_btn.clicked.connect(self._on_delete)
+            left.addWidget(del_btn)
+
+        left.addStretch(1)
+        left_w = QWidget()
+        left_w.setLayout(left)
+
+        # ══════════════════════════════════════════
+        # DERECHA — identidad
+        # ══════════════════════════════════════════
+        right = QVBoxLayout()
+        right.setSpacing(12)
+        right.setAlignment(
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter
+        )
+
+        from client.gui.frames import make_logo_with_frame
+
+        pix = self._load_logo_pixmap(node.get("logo_url"))
+        badge = make_logo_with_frame(pix, frame, size=120)
+        right.addWidget(badge, alignment=Qt.AlignmentFlag.AlignHCenter)
+
+        name = QLabel(node.get("name", ""))
+        name.setStyleSheet("font-size: 20px; font-weight: 700;")
+        name.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        right.addWidget(name)
+
+        role = QLabel(t("nodes_admin") if is_admin else t("nodes_member"))
+        role.setProperty("class", "sectionLabel")
+        role.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        right.addWidget(role)
+
+        # Placeholder hasta backend description
+        desc = QLabel("Descripción del nodo (próximamente)")
+        desc.setWordWrap(True)
+        desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        desc.setStyleSheet("color: #8a7a66; font-size: 12px;")
+        desc.setMaximumWidth(220)
+        right.addWidget(desc, alignment=Qt.AlignmentFlag.AlignHCenter)
+
+        right.addStretch(1)
+        right_w = QWidget()
+        right_w.setLayout(right)
+        right_w.setMinimumWidth(260)
+
+        columns.addWidget(left_w, stretch=3)
+        columns.addWidget(right_w, stretch=2)
+        self.content_layout.addLayout(columns)
 
     def _request_row(self, r: dict) -> QWidget:
         frame = QFrame()
