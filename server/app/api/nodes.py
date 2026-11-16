@@ -11,7 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from app.api.auth import get_current_user
 from app.db.database import get_db
-from app.db.models import User, Node, NodeMember, NodeJoinRequest
+from app.db.models import User, Node, NodeMember, NodeJoinRequest, Credit, Result, Task
 from app.schemas.node import (
     NodeUpdate,
     NodeCreate,
@@ -538,26 +538,57 @@ async def list_members(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Lista miembros del nodo (solo miembros del mismo nodo)."""
     membership = await _get_user_node(db, current_user.id)
     if not membership or membership.node_id != node_id:
         raise HTTPException(status_code=403, detail="No perteneces a este nodo")
+
+    is_admin = membership.role == "admin"
 
     result = await db.execute(
         select(NodeMember, User)
         .join(User, User.id == NodeMember.user_id)
         .where(NodeMember.node_id == node_id)
-        .order_by(NodeMember.role.desc(), NodeMember.joined_at)
+        .order_by(NodeMember.joined_at.asc())
     )
     rows = result.all()
-    out = []
+
+    # Última actividad: max(crédito, resultado) por usuario
+    last_active: dict[int, datetime] = {}
+    if is_admin and rows:
+        user_ids = [u.id for _, u in rows]
+
+        cred = await db.execute(
+            select(Credit.user_id, func.max(Credit.granted_at))
+            .where(Credit.user_id.in_(user_ids))
+            .group_by(Credit.user_id)
+        )
+        for uid, ts in cred.all():
+            if ts:
+                last_active[uid] = ts
+
+        res = await db.execute(
+            select(Task.user_id, func.max(Result.created_at))
+            .join(Result, Result.task_id == Task.id)
+            .where(Task.user_id.in_(user_ids))
+            .group_by(Task.user_id)
+        )
+        # Si Result no tiene created_at, usa el campo de tiempo que tengáis
+        for uid, ts in res.all():
+            if not ts:
+                continue
+            prev = last_active.get(uid)
+            if prev is None or ts > prev:
+                last_active[uid] = ts
+
+    out: list[NodeMemberOut] = []
     for mem, user in rows:
         out.append(
             NodeMemberOut(
                 user_id=user.id,
                 username=user.username,
                 role=mem.role,
-                joined_at=mem.joined_at or mem.created_at if hasattr(mem, "created_at") else mem.joined_at,
+                joined_at=mem.joined_at,
+                last_active_at=last_active.get(user.id) if is_admin else None,
             )
         )
     return out

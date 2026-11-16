@@ -31,6 +31,7 @@ class NodeMemberOut(BaseModel):
     username: str
     role: str
     joined_at: datetime
+    last_active_at: datetime | None = None
 
     class Config:
         from_attributes = True

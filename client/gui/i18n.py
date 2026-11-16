@@ -170,6 +170,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "Breve descripción del nodo (máx. 500 caracteres)",
         "nodes_description_too_long": "Máximo 500 caracteres",
         "nodes_description_saved": "Descripción actualizada",
+        "nodes_last_active": "Última actividad: {when}",
+        "nodes_last_active_never": "Sin actividad registrada",
     },
     "en": {
         "login_subtitle": "Donate idle compute. Verify where every drop goes.",
@@ -319,6 +321,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "Brief description of the node (max. 500 characters)",
         "nodes_description_too_long": "Maximum 500 characters",
         "nodes_description_saved": "Updated description",
+        "nodes_last_active": "Last activity: {when}",
+        "nodes_last_active_never": "No activity recorded",
     },
     "ca": {
         "login_subtitle": "Dona temps de còmput. Verifica on va cada gota.",
@@ -444,6 +448,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "Breu descripció del node (màx. 500 caràcters)",
         "nodes_description_too_long": "Màxim 500 caràcters",
         "nodes_description_saved": "Descripció actualitzada",
+        "nodes_last_active": "Darrera activitat:  {when}",
+        "nodes_last_active_never": "Sense activitat registrada",
     },
     "eu": {
         "login_subtitle": "Eman konputazio-denbora. Egiaztatu non doan tanta bakoitza.",
@@ -569,6 +575,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "Nodoaren deskribapen laburra (gehienez 500 karaktere)",
         "nodes_description_too_long": "Gehienez 500 karaktere",
         "nodes_description_saved": "Deskribapena eguneratu da",
+        "nodes_last_active": "Azken jarduera: {when}",
+        "nodes_last_active_never": "Ez da jarduerarik erregistratu",
     },
     "fr": {
         "login_subtitle": "Donnez du temps de calcul. Vérifiez où va chaque goutte.",
@@ -694,6 +702,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "Brève description du nœud (500 caractères maximum)",
         "nodes_description_too_long": "500 caractères maximum",
         "nodes_description_saved": "Description mise à jour",
+        "nodes_last_active": "Dernière activité : {when}",
+        "nodes_last_active_never": "Aucune activité enregistrée",
     },
     "de": {
         "login_subtitle": "Spende Rechenzeit. Prüfe, wohin jeder Tropfen fließt.",
@@ -819,6 +829,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "Kurze Beschreibung des Knotens (max. 500 Zeichen)",
         "nodes_description_too_long": "Maximal 500 Zeichen",
         "nodes_description_saved": "Beschreibung aktualisiert",
+        "nodes_last_active": "Letzte Aktivität: {when}",
+        "nodes_last_active_never": "Keine Aktivität verzeichnet",
     },
     "pt": {
         "login_subtitle": "Doa tempo de computação. Verifica para onde vai cada gota.",
@@ -944,6 +956,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "Breve descrição do nó (máx. 500 caracteres)",
         "nodes_description_too_long": "Máximo de 500 caracteres",
         "nodes_description_saved": "Descrição atualizada",
+        "nodes_last_active": "Última atividade: {when}",
+        "nodes_last_active_never": "Nenhuma atividade registrada",
     },
     "it": {
         "login_subtitle": "Dona tempo di calcolo. Verifica dove va ogni goccia.",
@@ -1069,6 +1083,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "Breve descrizione del nodo (max. 500 caratteri)",
         "nodes_description_too_long": "Massimo 500 caratteri",
         "nodes_description_saved": "Descrizione aggiornata",
+        "nodes_last_active": "Ultima attività: {when}",
+        "nodes_last_active_never": "Nessuna attività registrata",
     },
     "ja": {
         "login_subtitle": "計算時間を提供。すべての貢献の行き先を確認。",
@@ -1194,6 +1210,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "ノードの簡単な説明（最大500文字）",
         "nodes_description_too_long": "最大500文字まで",
         "nodes_description_saved": "説明を更新しました",
+        "nodes_last_active": "最終アクティビティ: {when}",
+        "nodes_last_active_never": "アクティビティの記録なし",
     },
     "zh": {
         "login_subtitle": "捐赠计算时间。核实每一滴的去向。",
@@ -1319,6 +1337,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "節點的簡要描述（最多 500 個字元）",
         "nodes_description_too_long": "最多 500 個字元",
         "nodes_description_saved": "描述已更新",
+        "nodes_last_active": "最後活動時間: {when}",
+        "nodes_last_active_never": "未記錄到活動",
     },
     "ru": {
         "login_subtitle": "Пожертвуйте вычислительное время. Проверьте, куда уходит каждая капля.",
@@ -1444,6 +1464,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "Краткое описание узла (макс. 500 символов)",
         "nodes_description_too_long": "Максимум 500 символов",
         "nodes_description_saved": "Описание обновлено",
+        "nodes_last_active": "Последняя активность: {when}",
+        "nodes_last_active_never": "Активность не зафиксирована",
     },
     "ar": {
         "login_subtitle": "تبرّع بوقت الحوسبة. تحقق إلى أين تذهب كل قطرة.",
@@ -1569,6 +1591,8 @@ _STRINGS: dict[str, dict[str, str]] = {
         "nodes_description_hint": "وصف موجز للعقدة (بحد أقصى 500 حرف)",
         "nodes_description_too_long": "500 حرف كحد أقصى",
         "nodes_description_saved": "وصف مُحدَّث",
+        "nodes_last_active": "آخر نشاط: {when}",
+        "nodes_last_active_never": "لم يُسجَّل أي نشاط،",
     },
 }
 
