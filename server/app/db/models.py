@@ -89,6 +89,7 @@ class Node(Base):
     logo_url = Column(String, nullable=True)
     logo_frame = Column(String(40), nullable=True)
     unlocked_frames = Column(Text, nullable=True)  # JSON list
+    description = Column(Text, nullable=True)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=utcnow)
     member_count = Column(Integer, default=1, nullable=False)

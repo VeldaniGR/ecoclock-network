@@ -54,3 +54,17 @@ class TransferLeadership(BaseModel):
 class NodeUpdate(BaseModel):
     name: str | None = Field(None, min_length=3, max_length=80)
     logo_frame: str | None = None
+
+class NodeDetail(NodePublic):
+    invite_code: str
+    created_at: datetime
+    my_role: str  # "admin" | "member"
+    logo_frame: str | None = None
+    unlocked_frames: str | None = None
+    description: str | None = None
+
+
+class NodeUpdate(BaseModel):
+    name: str | None = Field(None, min_length=3, max_length=80)
+    logo_frame: str | None = None
+    description: str | None = Field(None, max_length=500)

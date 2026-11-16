@@ -89,6 +89,7 @@ async def create_node(
         invite_code=node.invite_code,
         created_at=node.created_at,
         my_role="admin",
+        description=getattr(node, "description", None),
     )
 
 
@@ -113,6 +114,7 @@ async def get_my_node(
         invite_code=node.invite_code if membership.role == "admin" else "",  # solo admin ve el código
         created_at=node.created_at,
         my_role=membership.role,
+        description=getattr(node, "description", None),
     )
 
 
@@ -180,6 +182,7 @@ async def join_by_code(
         invite_code="",
         created_at=node.created_at,
         my_role="member",
+        description=getattr(node, "description", None),
     )
 
 
@@ -599,6 +602,12 @@ async def update_node(
         else:
             node.logo_frame = None
 
+    if payload.description is not None:
+        text = (payload.description or "").strip()
+        if len(text) > 500:
+            raise HTTPException(status_code=400, detail="Descripción demasiado larga (máx. 500)")
+        node.description = text or None
+
     await db.commit()
     await db.refresh(node)
 
@@ -613,5 +622,6 @@ async def update_node(
         invite_code=node.invite_code if membership.role == "admin" else "",
         created_at=node.created_at,
         my_role=membership.role,
+        description=getattr(node, "description", None),
     )
 
