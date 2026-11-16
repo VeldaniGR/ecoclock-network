@@ -330,22 +330,23 @@ class NodesPage(QWidget):
         role.setAlignment(Qt.AlignmentFlag.AlignCenter)
         right.addWidget(role)
 
-        # Placeholder hasta backend description
-        desc = QLabel("Descripción del nodo (próximamente)")
-        desc.setWordWrap(True)
-        desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        desc.setStyleSheet("color: #8a7a66; font-size: 12px;")
-        desc.setMaximumWidth(220)
-        right.addWidget(desc, alignment=Qt.AlignmentFlag.AlignHCenter)
+        # Descripción
+        desc_text = (node.get("description") or "").strip()
+        self.desc_label = QLabel(desc_text if desc_text else t("nodes_no_description"))
+        self.desc_label.setWordWrap(True)
+        self.desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.desc_label.setStyleSheet("color: #5a4a32; font-size: 13px;")
+        self.desc_label.setMaximumWidth(240)
+        if not desc_text:
+            self.desc_label.setStyleSheet("color: #8a7a66; font-size: 12px; font-style: italic;")
+        right.addWidget(self.desc_label, alignment=Qt.AlignmentFlag.AlignHCenter)
 
-        right.addStretch(1)
-        right_w = QWidget()
-        right_w.setLayout(right)
-        right_w.setMinimumWidth(260)
-
-        columns.addWidget(left_w, stretch=3)
-        columns.addWidget(right_w, stretch=2)
-        self.content_layout.addLayout(columns)
+        if is_admin:
+            edit_desc_btn = QPushButton(t("nodes_edit_description"))
+            edit_desc_btn.setProperty("secondary", True)
+            edit_desc_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            edit_desc_btn.clicked.connect(self._on_edit_description)
+            right.addWidget(edit_desc_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
     def _request_row(self, r: dict) -> QWidget:
         frame = QFrame()
@@ -626,5 +627,33 @@ class NodesPage(QWidget):
             )
             self.refresh()
             self.status_label.setText(f"Liderazgo transferido a {username}")
+        except Exception as e:
+            QMessageBox.critical(self, t("error"), str(e))
+
+    def _on_edit_description(self) -> None:
+        node = self._my_node or {}
+        current = (node.get("description") or "").strip()
+        text, ok = QInputDialog.getMultiLineText(
+            self,
+            t("nodes_edit_description"),
+            t("nodes_description_hint"),
+            current,
+        )
+        if not ok:
+            return
+        text = text.strip()
+        if len(text) > 500:
+            QMessageBox.warning(self, t("error"), t("nodes_description_too_long"))
+            return
+        try:
+            updated = services.update_node(
+                self._base_url,
+                node["id"],
+                self._token,
+                description=text,  # "" borra si el backend guarda None al vacío
+            )
+            self._my_node = {**node, **updated}
+            self._rebuild_content()
+            self.status_label.setText(t("nodes_description_saved"))
         except Exception as e:
             QMessageBox.critical(self, t("error"), str(e))

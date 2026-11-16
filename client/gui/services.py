@@ -224,13 +224,7 @@ def get_current_expedition(base_url: str, token: str | None = None) -> dict | No
     return data if data else None
 
 
-def update_node(
-    base_url: str,
-    node_id: int,
-    token: str | None = None,
-    name: str | None = None,
-    logo_frame: str | None = None,
-) -> dict:
+def update_node(base_url, node_id, token, *, name=None, logo_frame=None, description=None):
     """PATCH /nodes/{id}"""
     import requests
     from client.cli import load_token, auth_headers, try_refresh, _url, TIMEOUT
@@ -240,6 +234,8 @@ def update_node(
         body["name"] = name
     if logo_frame is not None:
         body["logo_frame"] = logo_frame
+    if description is not None:
+        body["description"] = description
 
     tok = token or load_token()
     url = _url(base_url, f"/nodes/{node_id}")
@@ -331,5 +327,23 @@ def get_me_impact(base_url: str, token: str | None = None) -> dict:
 def get_navigator_envelope(base_url: str, token: str | None = None) -> dict:
     """GET /me/impact/navigator-envelope"""
     r = cli.authenticated_get(base_url, "/me/impact/navigator-envelope", token=token)
+    r.raise_for_status()
+    return r.json()
+
+# ──────────────────────────────────────────────────────────────
+# PATCH FRAMES
+# ──────────────────────────────────────────────────────────────
+def update_node_frame(base_url: str, token: str, node_id: int, logo_frame: str | None) -> dict:
+    """PATCH /nodes/{node_id} con logo_frame (admin)."""
+    body = {"logo_frame": logo_frame if logo_frame else "none"}
+    r = cli.authenticated_request(
+        "PATCH",
+        base_url,
+        f"/nodes/{node_id}",
+        token=token,
+        json=body,
+    )
+    # Si no tienes authenticated_request genérico:
+    # r = cli.authenticated_patch(base_url, f"/nodes/{node_id}", token=token, json=body)
     r.raise_for_status()
     return r.json()
