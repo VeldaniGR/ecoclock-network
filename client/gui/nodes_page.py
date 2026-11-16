@@ -406,7 +406,23 @@ class NodesPage(QWidget):
         role = m.get("role") or "member"
         uid = m.get("user_id")
         role_txt = t("nodes_admin") if role == "admin" else t("nodes_member")
-        lay.addWidget(QLabel(f"{username} · {role_txt}"), stretch=1)
+
+        col = QVBoxLayout()
+        col.setSpacing(2)
+        col.addWidget(QLabel(f"{username} · {role_txt}"))
+
+        if is_admin:
+            last = m.get("last_active_at")
+            if last:
+                last_s = str(last).replace("T", " ")[:16]
+                act = QLabel(t("nodes_last_active", when=last_s))
+            else:
+                act = QLabel(t("nodes_last_active_never"))
+            act.setProperty("class", "sectionLabel")
+            col.addWidget(act)
+
+        lay.addLayout(col, stretch=1)
+
         if is_admin and role != "admin":
             tr = QPushButton(t("nodes_transfer"))
             tr.setProperty("secondary", True)
