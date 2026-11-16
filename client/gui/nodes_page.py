@@ -100,7 +100,12 @@ class NodesPage(QWidget):
             self._members = []
             self._join_requests = []
             self.status_label.setText(f"{t('error')}: {e}")
-            self._rebuild_content()
+            try:
+                self._rebuild_content()
+            except Exception as e2:
+                import traceback
+                traceback.print_exc()
+                self.status_label.setText(f"UI error: {e2}")
             return
 
         try:
@@ -129,8 +134,13 @@ class NodesPage(QWidget):
                 except Exception:
                     self._join_requests = []
 
-        self._rebuild_content()
-        self.status_label.setText("")
+        try:
+            self._rebuild_content()
+            self.status_label.setText("")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            self.status_label.setText(f"UI error: {e}")
 
     def _clear_content(self) -> None:
         while self.content_layout.count():
@@ -332,13 +342,26 @@ class NodesPage(QWidget):
 
         # Descripción
         desc_text = (node.get("description") or "").strip()
-        self.desc_label = QLabel(desc_text if desc_text else t("nodes_no_description"))
+        self.desc_label = QLabel()
         self.desc_label.setWordWrap(True)
-        self.desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.desc_label.setStyleSheet("color: #5a4a32; font-size: 13px;")
-        self.desc_label.setMaximumWidth(240)
-        if not desc_text:
-            self.desc_label.setStyleSheet("color: #8a7a66; font-size: 12px; font-style: italic;")
+        self.desc_label.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop
+        )
+        self.desc_label.setMinimumWidth(220)
+        self.desc_label.setMaximumWidth(280)
+        self.desc_label.setMinimumHeight(48)
+        self.desc_label.setTextFormat(Qt.TextFormat.PlainText)
+        if desc_text:
+            self.desc_label.setText(desc_text)
+            self.desc_label.setStyleSheet(
+                "color: #5a4a32; font-size: 13px; background: transparent;"
+            )
+        else:
+            self.desc_label.setText(t("nodes_no_description"))
+            self.desc_label.setStyleSheet(
+                "color: #8a7a66; font-size: 12px; font-style: italic; "
+                "background: transparent;"
+            )
         right.addWidget(self.desc_label, alignment=Qt.AlignmentFlag.AlignHCenter)
 
         if is_admin:
@@ -346,7 +369,18 @@ class NodesPage(QWidget):
             edit_desc_btn.setProperty("secondary", True)
             edit_desc_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             edit_desc_btn.clicked.connect(self._on_edit_description)
-            right.addWidget(edit_desc_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+            right.addWidget(
+                edit_desc_btn, alignment=Qt.AlignmentFlag.AlignHCenter
+            )
+
+        right.addStretch(1)
+        right_w = QWidget()
+        right_w.setLayout(right)
+        right_w.setMinimumWidth(260)
+
+        columns.addWidget(left_w, stretch=3)
+        columns.addWidget(right_w, stretch=2)
+        self.content_layout.addLayout(columns)
 
     def _request_row(self, r: dict) -> QWidget:
         frame = QFrame()
