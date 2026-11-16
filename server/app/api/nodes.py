@@ -2,9 +2,10 @@ import json
 """Endpoints de Nodos Ciudadanos."""
 import secrets
 import string
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from app.services.email import send_node_notify_email, ALLOWED_NODE_TEMPLATES
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -20,8 +21,10 @@ from app.schemas.node import (
     NodeMemberOut,
     JoinRequestOut,
     TransferLeadership,
+    NodeNotifyIn, 
+    NodeNotifyOut
 )
-
+_last_bulk_notify: dict[int, datetime] = {}
 router = APIRouter()
 
 
@@ -656,3 +659,63 @@ async def update_node(
         description=getattr(node, "description", None),
     )
 
+@router.post("/{node_id}/notify", response_model=NodeNotifyOut)
+async def notify_members(
+    node_id: int,
+    payload: NodeNotifyIn,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    membership = await _get_user_node(db, current_user.id)
+    if not membership or membership.node_id != node_id or membership.role != "admin":
+        raise HTTPException(status_code=403, detail="Solo el admin puede notificar")
+
+    if payload.template not in ALLOWED_NODE_TEMPLATES:
+        raise HTTPException(status_code=400, detail="Plantilla no válida")
+
+    is_bulk = not payload.user_ids
+    if is_bulk:
+        now = datetime.now(timezone.utc)
+        last = _last_bulk_notify.get(node_id)
+        if last and now - last < timedelta(hours=1):
+            raise HTTPException(
+                status_code=429,
+                detail="Solo un envío masivo por nodo cada hora",
+            )
+
+    result = await db.execute(
+        select(NodeMember, User)
+        .join(User, User.id == NodeMember.user_id)
+        .where(NodeMember.node_id == node_id)
+    )
+    rows = result.all()
+    node = membership.node
+
+    targets = []
+    id_set = set(payload.user_ids or [])
+    for mem, user in rows:
+        if payload.user_ids is not None and user.id not in id_set:
+            continue
+        targets.append(user)
+
+    if payload.user_ids is not None and len(targets) != len(id_set):
+        raise HTTPException(status_code=400, detail="Algún user_id no pertenece al nodo")
+
+    sent = failed = 0
+    for user in targets:
+        try:
+            send_node_notify_email(
+                to_email=user.email,
+                username=user.username,
+                node_name=node.name,
+                template=payload.template,
+                lang=getattr(user, "preferred_language", None) or "es",
+            )
+            sent += 1
+        except Exception:
+            failed += 1
+
+    if is_bulk and sent:
+        _last_bulk_notify[node_id] = datetime.now(timezone.utc)
+
+    return NodeNotifyOut(sent=sent, failed=failed, template=payload.template)

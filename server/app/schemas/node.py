@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Literal
 from pydantic import BaseModel, Field
 
 
@@ -69,3 +69,13 @@ class NodeUpdate(BaseModel):
     name: str | None = Field(None, min_length=3, max_length=80)
     logo_frame: str | None = None
     description: str | None = Field(None, max_length=500)
+
+class NodeNotifyIn(BaseModel):
+    template: Literal["compute_nudge", "expedition_push"]
+    user_ids: list[int] | None = None  # None = todos los miembros
+
+
+class NodeNotifyOut(BaseModel):
+    sent: int
+    failed: int
+    template: str

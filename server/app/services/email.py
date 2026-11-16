@@ -384,3 +384,268 @@ def send_navigator_envelope_email(
             }
         ],
     })
+
+_NODE_NOTIFY = {
+    "compute_nudge": {
+        "es": {
+            "subject": "Eco'clock — tu nodo te necesita calculando",
+            "body": (
+                "Hola, {name}.\n\n"
+                "El nodo «{node}» te anima a contribuir con tareas de cómputo.\n"
+                "Abre la app o el cliente y deja el modo automático un rato.\n\n"
+                "Gracias por sumar a la red.\n"
+                "— Eco'clock"
+            ),
+        },
+        "en": {
+            "subject": "Eco'clock — your node needs compute",
+            "body": (
+                "Hi, {name}.\n\n"
+                "Node «{node}» is asking members to run compute tasks.\n"
+                "Open the app or desktop client and leave auto mode on for a while.\n\n"
+                "Thanks for helping the network.\n"
+                "— Eco'clock"
+            ),
+        },
+        "ca": {
+            "subject": "Eco'clock — el vostre node necessita càlcul",
+            "body": (
+                "Hola, {name}.\n\n"
+                "El node «{node}» demana als membres que executin tasques de càlcul.\n"
+                "Obriu l'aplicació o el client d'escriptori i deixeu el mode automàtic activat durant un temps.\n\n"
+                "Gràcies per ajudar la xarxa.\n"
+                "— Eco'clock"
+            ),
+        },
+        "eu": {
+            "subject": "Eco'clock — zure nodoak konputazioa behar du",
+            "body": (
+                "Kaixo, {name}.\n\n"
+                "«{node}» nodoak kideei konputazio-zereginak exekutatzeko eskatzen die.\n"
+                "Ireki aplikazioa edo mahaigaineko bezeroa eta utzi modu automatikoa piztuta denbora batez.\n\n"
+                "Eskerrik asko sarea laguntzeagatik.\n"
+                "— Eco'clock"
+            ),
+        },
+        "fr": {
+            "subject": "Eco'clock — votre nœud a besoin de puissance de calcul",
+            "body": (
+                "Bonjour {name}.\n\n"
+                "Le nœud «{node}» demande à ses membres d'exécuter des tâches de calcul.\n"
+                "Ouvrez l'application ou le client de bureau et laissez le mode automatique activé pendant un moment.\n\n"
+                "Merci de contribuer au réseau.\n"
+                "— Eco'clock"
+            ),
+        },
+        "pt": {
+            "subject": "Eco'clock — seu nó precisa de computação",
+            "body": (
+                "Olá, {name}.\n\n"
+                "O nó «{node}» está solicitando que os membros executem tarefas de computação.\n"
+                "Abra o aplicativo ou o cliente de desktop e deixe o modo automático ativado por um tempo.\n\n"
+                "Obrigado por ajudar a rede.\n"
+                "— Eco'clock"
+            ),
+        },
+        "it": {
+            "subject": "Eco'clock — il tuo nodo ha bisogno di potenza di calcolo",
+            "body": (
+                "Ciao, {name}.\n\n"
+                "Il nodo «{node}» sta chiedendo ai membri di eseguire attività di calcolo.\n"
+                "Apri l'app o il client desktop e lascia la modalità automatica attiva per un po'.\n\n"
+                "Grazie per il tuo aiuto alla rete.\n"
+                "— Eco'clock"
+            ),
+        },
+        "de": {
+            "subject": "Eco'clock — Ihr Knoten benötigt Rechenleistung",
+            "body": (
+                "Hallo, {name}.\n\n"
+                "Knoten «{node}» bittet Mitglieder, Rechenaufgaben auszuführen.\n"
+                "Öffnen Sie die App oder den Desktop-Client und lassen Sie den Automatikmodus eine Weile aktiviert.\n\n"
+                "Vielen Dank für Ihre Unterstützung des Netzwerks.\n"
+                "— Eco'clock"
+            ),
+        },
+        "zh": {
+            "subject": "Eco'clock — 您的節點需要計算資源",
+            "body": (
+                "您好，{name}。\n\n"
+                "節點 «{node}» 請求成員執行運算任務。\n"
+                "開啟應用程式或桌面用戶端，並將自動模式保持開啟一段時間。\n\n"
+                "感謝您為網絡做出貢獻。\n"
+                "— Eco'clock"
+            ),
+        },
+        "ja": {
+            "subject": "Eco'clock — ノードが計算処理を必要としています",
+            "body": (
+                "こんにちは、{name}さん。\n\n"
+                "ノード「{node}」がメンバーに計算処理タスクの実行を依頼しています。\n"
+                "アプリまたはデスクトップクライアントを開き、自動モードをしばらくオンにしておいてください。\n\n"
+                "ネットワークへのご協力ありがとうございます。\n"
+                "— Eco'clock"
+            ),
+        },
+        "ru": {
+            "subject": "Eco'clock — вашему узлу нужны вычислительные ресурсы",
+            "body": (
+                "Привет, {name}.\n\n"
+                "Узел «{node}» запрашивает у участников выполнение вычислительных задач.\n"
+                "Откройте приложение или настольный клиент и оставьте автоматический режим включенным на некоторое время.\n\n"
+                "Спасибо за помощь сети.\n"
+                "— Eco'clock"
+            ),
+        },
+        "ar": {
+            "subject": "تحتاج عقدتك إلى حساب — Eco'clock",
+            "body": (
+                "مرحبًا، {name}.\n\n"
+                "تطلب العقدة «{node}» من الأعضاء تنفيذ مهام حوسبية.\n"
+                "افتح التطبيق أو برنامج سطح المكتب واترك وضع التشغيل التلقائي مفعلاً لبعض الوقت.\n\n"
+                "شكراً لمساعدتك الشبكة.\n"
+                "— Eco'clock"
+            ),
+        },
+    
+    },
+    "expedition_push": {
+        "es": {
+            "subject": "Eco'clock — expedición en curso",
+            "body": (
+                "Hola, {name}.\n\n"
+                "El nodo «{node}» te invita a participar en la expedición activa.\n"
+                "Cada tarea cuenta para el objetivo colectivo.\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "en": {
+            "subject": "Eco'clock — expedition in progress",
+            "body": (
+                "Hi, {name}.\n\n"
+                "Node «{node}» invites you to join the active expedition.\n"
+                "Every task counts toward the collective goal.\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "ca": {
+            "subject": "Eco'clock — expedició en curs",
+            "body": (
+                "Hola, {name}.\n\n"
+                "El node «{node}» t'invita a unir-te a l'expedició activa.\n"
+                "Cada tasca compta per a l'objectiu col·lectiu.\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "eu": {
+            "subject": "Eco'clock — espedizioa martxan",
+            "body": (
+                "Kaixo, {name}.\n\n"
+                "«{nodo}» nodoak espedizio aktiboan parte hartzera gonbidatzen zaitu.\n"
+                "Zeregin guztiek balio dute helburu kolektiborako.\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "fr": {
+            "subject": "Eco'clock — expédition en cours",
+            "body": (
+                "Salut {name}.\n\n"
+                "Le nœud «{node}» vous invite à rejoindre l'expédition active.\n"
+                "Chaque tâche contribue à l'objectif collectif.\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "pt": {
+            "subject": "Eco'clock — expedição em andamento",
+            "body": (
+                "Olá, {name}.\n\n"
+                "O nó «{node}» convida você a participar da expedição ativa.\n"
+                "Cada tarefa contribui para o objetivo coletivo.\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "it": {
+            "subject": "Eco'clock — spedizione in corso",
+            "body": (
+                "Ciao, {name}.\n\n"
+                "Il nodo «{node}» ti invita a unirti alla spedizione in corso.\n"
+                "Ogni compito contribuisce all'obiettivo collettivo.\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "de": {
+            "subject": "Eco'clock — Expedition läuft",
+            "body": (
+                "Hallo, {name}.\n\n"
+                "Der Knoten «{node}» lädt dich ein, an der aktiven Expedition teilzunehmen.\n"
+                "Jede Aufgabe trägt zum gemeinsamen Ziel bei.\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "zh": {
+            "subject": "Eco'clock — 探險進行中",
+            "body": (
+                "你好，{name}。\n\n"
+                "節點 «{node}» 邀請您加入正在進行的探險。\n"
+                "每一項任務都對集體目標至關重要。\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "ja": {
+            "subject": "Eco'clock — 探検進行中",
+            "body": (
+                "こんにちは、{name}さん。\n\n"
+                "ノード «{node}» が、進行中の探検への参加を呼びかけています。\n"
+                "すべてのタスクが、集団目標達成に貢献します。\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "ru": {
+            "subject": "Eco'clock — экспедиция в процессе",
+            "body": (
+                "Привет, {name}.\n\n"
+                "Узел «{node}» приглашает вас присоединиться к активной экспедиции.\n"
+                "Каждая задача вносит вклад в общую цель.\n\n"
+                "— Eco'clock"
+            ),
+        },
+        "ar": {
+            "subject": "بعثة جارية — Eco'clock",
+            "body": (
+                "مرحبًا، {name}.\n\n"
+                "تدعوك العقدة «{node}» للانضمام إلى البعثة النشطة.\n"
+                "تُسهم كل مهمة في تحقيق الهدف الجماعي.\n\n"
+                "— Eco'clock"
+            ),
+        },
+    },
+}
+
+ALLOWED_NODE_TEMPLATES = frozenset(_NODE_NOTIFY.keys())
+
+
+def send_node_notify_email(
+    *,
+    to_email: str,
+    username: str,
+    node_name: str,
+    template: str,
+    lang: str | None = "es",
+) -> None:
+    if not settings.RESEND_API_KEY:
+        raise RuntimeError("RESEND_API_KEY no configurada")
+    if template not in ALLOWED_NODE_TEMPLATES:
+        raise ValueError(f"Plantilla no válida: {template}")
+
+    resend.api_key = settings.RESEND_API_KEY
+    code = (lang or "es").lower()[:2]
+    pack = _NODE_NOTIFY[template]
+    t = pack.get(code) or pack.get("en") or pack["es"]
+    body = t["body"].format(name=username, node=node_name)
+
+    resend.Emails.send({
+        "from": settings.RESEND_FROM_EMAIL,
+        "to": [to_email],
+        "subject": t["subject"],
+        "text": body,
+    })
