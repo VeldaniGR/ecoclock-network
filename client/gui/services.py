@@ -68,69 +68,6 @@ def register(base_url: str, username: str, email: str, password: str) -> dict[st
 # ──────────────────────────────────────────────────────────────
 
 def get_my_node(base_url: str, token: str | None = None) -> dict[str, Any] | None:
-    """GET /nodes/me. Devuelve None si 404."""
-    r = cli.authenticated_get(base_url, "/nodes/me", token=token)
-    if r.status_code == 404:
-        return None
-    r.raise_for_status()
-    return r.json()
-
-
-def list_public_nodes(base_url: str, token: str | None = None) -> list[dict[str, Any]]:
-    """GET /nodes"""
-    r = cli.authenticated_get(base_url, "/nodes", token=token)
-    r.raise_for_status()
-    return r.json()
-
-
-def create_node(base_url: str, name: str, token: str | None = None) -> dict[str, Any]:
-    """POST /nodes"""
-    r = cli.authenticated_post(
-        base_url, "/nodes", token=token, json={"name": name}
-    )
-    r.raise_for_status()
-    return r.json()
-
-
-def join_node_by_code(base_url: str, code: str, token: str | None = None) -> dict[str, Any]:
-    """POST /nodes/join/{code}"""
-    r = cli.authenticated_post(
-        base_url, f"/nodes/join/{code}", token=token
-    )
-    r.raise_for_status()
-    return r.json()
-
-
-def leave_node(base_url: str, token: str | None = None) -> dict[str, Any]:
-    """POST /nodes/leave"""
-    r = cli.authenticated_post(base_url, "/nodes/leave", token=token)
-    r.raise_for_status()
-    return r.json() if r.content else {"detail": "ok"}
-
-
-def delete_node(base_url: str, node_id: int, token: str | None = None) -> dict[str, Any]:
-    """DELETE /nodes/{id}"""
-    r = cli.authenticated_request(
-        "DELETE", base_url, f"/nodes/{node_id}", token=token
-    )
-    r.raise_for_status()
-    return r.json() if r.content else {"detail": "ok"}
-
-
-def request_join_node(base_url: str, node_id: int, token: str | None = None) -> dict[str, Any]:
-    """POST /nodes/{id}/request"""
-    r = cli.authenticated_post(
-        base_url, f"/nodes/{node_id}/request", token=token
-    )
-    r.raise_for_status()
-    return r.json() if r.content else {"detail": "ok"}
-
-
-# ──────────────────────────────────────────────────────────────
-# Nodos Ciudadanos
-# ──────────────────────────────────────────────────────────────
-
-def get_my_node(base_url: str, token: str | None = None) -> dict[str, Any] | None:
     r = cli.authenticated_get(base_url, "/nodes/me", token=token)
     if r.status_code == 404:
         return None
@@ -313,6 +250,33 @@ def transfer_leadership(
                 url, headers=auth_headers(new_tok), json=body, timeout=TIMEOUT
             )
     r.raise_for_status()
+
+def notify_node_members(
+    base_url: str,
+    node_id: int,
+    token: str | None,
+    template: str,
+    user_ids: list[int] | None = None,
+) -> dict:
+    """POST /nodes/{id}/notify"""
+    import requests
+    from client.cli import load_token, auth_headers, try_refresh, _url, TIMEOUT
+
+    body: dict = {"template": template}
+    if user_ids is not None:
+        body["user_ids"] = user_ids
+
+    tok = token or load_token()
+    url = _url(base_url, f"/nodes/{node_id}/notify")
+    r = requests.post(url, headers=auth_headers(tok), json=body, timeout=TIMEOUT)
+    if r.status_code == 401:
+        new_tok = try_refresh(base_url)
+        if new_tok:
+            r = requests.post(
+                url, headers=auth_headers(new_tok), json=body, timeout=TIMEOUT
+            )
+    r.raise_for_status()
+    return r.json()
 
 # ──────────────────────────────────────────────────────────────
 # Mapa de impacto

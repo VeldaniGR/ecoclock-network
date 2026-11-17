@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
     QScrollArea,
     QVBoxLayout,
     QWidget,
+    QComboBox,
 )
 
 from client.gui import services
@@ -285,6 +286,19 @@ class NodesPage(QWidget):
                 for r in self._join_requests:
                     left.addWidget(self._request_row(r))
 
+        if is_admin:
+            left.addSpacing(8)
+            left.addWidget(QLabel(t("nodes_notify_template")))
+            self.notify_combo = QComboBox()
+            self.notify_combo.addItem(t("nodes_notify_compute"), "compute_nudge")
+            self.notify_combo.addItem(t("nodes_notify_expedition"), "expedition_push")
+            left.addWidget(self.notify_combo)
+
+            notify_all_btn = QPushButton(t("nodes_notify_all"))
+            notify_all_btn.setProperty("secondary", True)
+            notify_all_btn.clicked.connect(self._on_notify_all)
+            left.addWidget(notify_all_btn)
+
         # Miembros (todos)
         left.addSpacing(6)
         left.addWidget(
@@ -427,11 +441,21 @@ class NodesPage(QWidget):
             tr = QPushButton(t("nodes_transfer"))
             tr.setProperty("secondary", True)
             tr.clicked.connect(lambda: self._on_transfer(uid, username))
+
             kick = QPushButton(t("nodes_kick"))
             kick.setStyleSheet("color: #e05555;")
             kick.clicked.connect(lambda: self._on_kick(uid, username))
+
+            notify_btn = QPushButton(t("nodes_notify"))
+            notify_btn.setProperty("secondary", True)
+            notify_btn.clicked.connect(
+                lambda checked=False, u=uid, n=username: self._on_notify_one(u, n)
+            )
+
             lay.addWidget(tr)
             lay.addWidget(kick)
+            lay.addWidget(notify_btn)
+
         return frame
 
     def _build_no_node_view(self) -> None:
@@ -705,5 +729,58 @@ class NodesPage(QWidget):
             self._my_node = {**node, **updated}
             self._rebuild_content()
             self.status_label.setText(t("nodes_description_saved"))
+        except Exception as e:
+            QMessageBox.critical(self, t("error"), str(e))
+
+    def _selected_template(self) -> str:
+        if hasattr(self, "notify_combo"):
+            return self.notify_combo.currentData() or "compute_nudge"
+        return "compute_nudge"
+
+    def _on_notify_all(self) -> None:
+        node = self._my_node or {}
+        if (
+            QMessageBox.question(
+                self, t("nodes_notify_all"), t("nodes_notify_confirm_all")
+            )
+            != QMessageBox.StandardButton.Yes
+        ):
+            return
+        try:
+            res = services.notify_node_members(
+                self._base_url,
+                node["id"],
+                self._token,
+                self._selected_template(),
+                user_ids=None,
+            )
+            self.status_label.setText(
+                t("nodes_notify_ok", sent=res.get("sent", 0), failed=res.get("failed", 0))
+            )
+        except Exception as e:
+            QMessageBox.critical(self, t("error"), str(e))
+
+    def _on_notify_one(self, user_id: int, username: str) -> None:
+        node = self._my_node or {}
+        if (
+            QMessageBox.question(
+                self,
+                t("nodes_notify"),
+                t("nodes_notify_confirm_one", user=username),
+            )
+            != QMessageBox.StandardButton.Yes
+        ):
+            return
+        try:
+            res = services.notify_node_members(
+                self._base_url,
+                node["id"],
+                self._token,
+                self._selected_template(),
+                user_ids=[user_id],
+            )
+            self.status_label.setText(
+                t("nodes_notify_ok", sent=res.get("sent", 0), failed=res.get("failed", 0))
+            )
         except Exception as e:
             QMessageBox.critical(self, t("error"), str(e))
