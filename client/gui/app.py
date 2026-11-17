@@ -161,6 +161,8 @@ class EcoClockWindow(QMainWindow):
 
 
         self._setup_tray()
+        # Restaurar sesión si hay token guardado
+        self._try_restore_session()
 
     # ---------------------------------------------------------------------
     # Estilos y assets
@@ -1069,8 +1071,15 @@ class EcoClockWindow(QMainWindow):
             return
         self._token = data.get("access_token") if isinstance(data, dict) else None
         if not self._token:
-            QMessageBox.critical(self, "Login", "Respuesta sin access_token.")
-            return
+          QMessageBox.critical(self, "Login", "Respuesta sin access_token.")
+          return
+
+        # Guardar tokens para que --auto pueda restaurar la sesión
+        from client.cli import save_tokens
+        save_tokens(
+          self._token,
+          data.get("refresh_token") if isinstance(data, dict) else None,
+        )
         self._username = username
         # Actualizar saludo en dashboard
         self.dash_greeting.setText(t("dash_welcome", user=username).replace(username, f"<span>{username}</span>"))
@@ -1673,3 +1682,46 @@ class EcoClockWindow(QMainWindow):
             self.hide()
         else:
             self._tray_show()
+
+    def _try_restore_session(self) -> None:
+      """Intenta restaurar la sesión desde el token guardado."""
+      from client.cli import load_token, load_tokens
+
+      token = load_token()
+      if not token:
+          return
+
+      self._token = token
+
+      # Intentar obtener el username (opcional pero útil)
+      try:
+          from client.gui import services
+          me = services.me(self._base_url, self._token)
+          self._username = me.get("username") or me.get("name") or "donante"
+      except Exception:
+          self._username = "donante"
+
+      # Ir al dashboard
+      if hasattr(self, "dash_greeting"):
+          self.dash_greeting.setText(
+              t("dash_welcome", user=self._username).replace(
+                  self._username, f"<span>{self._username}</span>"
+              )
+          )
+          self.dash_greeting.setTextFormat(Qt.TextFormat.RichText)
+
+      self.stack.setCurrentIndex(self.PAGE_DASHBOARD)
+      self.status_text.setText(t("status_logged_in", user=self._username))
+
+      # Cargar datos del dashboard
+      try:
+          self._fetch_dashboard_data()
+          self._load_my_node()
+          self._update_node_card()
+      except Exception:
+          pass
+
+      # Si se lanzó con --auto → arrancar el worker automáticamente
+      if self._auto_start:
+          # Pequeño delay para que la UI termine de construirse
+          QTimer.singleShot(500, self._start_auto)
