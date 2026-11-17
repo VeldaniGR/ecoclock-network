@@ -25,7 +25,7 @@ from pathlib import Path
 # importable; el error se lanza solo al ejecutar la GUI.
 try:
     from PyQt6.QtCore import Qt, QUrl, QTimer
-    from PyQt6.QtGui import QAction, QDesktopServices, QPixmap
+    from PyQt6.QtGui import QAction, QDesktopServices, QPixmap, QIcon
     from PyQt6.QtSvg import QSvgRenderer
     from PyQt6.QtWidgets import (
         QApplication,
@@ -44,6 +44,8 @@ try:
         QVBoxLayout,
         QWidget,
         QComboBox,
+        QSystemTrayIcon,
+        QMenu,
     )
     from client.gui.i18n import t, set_lang, get_lang, SUPPORTED
 except ImportError:  # pragma: no cover
@@ -68,9 +70,23 @@ def main(argv: list[str] | None = None) -> int:
             "pip install -r client/requirements-gui.txt"
         )
 
-    app = QApplication(argv if argv is not None else sys.argv)
-    window = EcoClockWindow()
-    window.show()
+    args = list(argv if argv is not None else sys.argv)
+    auto_mode = "--auto" in args
+    args = [a for a in args if a != "--auto"]
+
+    app = QApplication(args)
+    app.setQuitOnLastWindowClosed(not auto_mode)
+
+    window = EcoClockWindow(auto_start=auto_mode)
+
+    if auto_mode:
+        print("Eco'clock iniciado en modo --auto (segundo plano)")
+        print("PID:", app.applicationPid())
+        print("Para detenerlo: kill", app.applicationPid())
+        window.hide()
+    else:
+        window.show()
+
     return app.exec()
 
 
@@ -84,8 +100,9 @@ class EcoClockWindow(QMainWindow):
     PAGE_NODES = 4
     PAGE_SETTINGS = 5
 
-    def __init__(self) -> None:
+    def __init__(self, auto_start: bool = False) -> None:
         super().__init__()
+        self._auto_start = auto_start
         self.setWindowTitle("Eco'clock")
         self.resize(700, 500)  # Layout horizontal
         self.setMinimumSize(600, 450)
@@ -141,6 +158,9 @@ class EcoClockWindow(QMainWindow):
 
         self._build_menu()
         self._build_status_bar()
+
+
+        self._setup_tray()
 
     # ---------------------------------------------------------------------
     # Estilos y assets
@@ -1453,8 +1473,8 @@ class EcoClockWindow(QMainWindow):
     def closeEvent(self, event) -> None:
         self._stop_auto()
         if self._auto_worker is not None and self._auto_worker.isRunning():
-            self._auto_worker.wait(3000)
-        super().closeEvent(event)
+          self._auto_worker.wait(2000)
+        event.accept()
 
     def _go_nodes(self) -> None:
         self.nodes_page.configure(self._base_url, self._token)
@@ -1602,3 +1622,44 @@ class EcoClockWindow(QMainWindow):
     def _on_node_frame_changed(self, node: dict) -> None:
       self._my_node = node
       self._update_node_card()
+
+    def _setup_tray(self) -> None:
+      if not QSystemTrayIcon.isSystemTrayAvailable():
+          return
+
+      self.tray = QSystemTrayIcon(self)
+      # Usa el icono de la aplicación si lo tienes, o uno por defecto
+      self.tray.setIcon(self.windowIcon() if not self.windowIcon().isNull()
+                      else QIcon.fromTheme("applications-system"))
+      self.tray.setToolTip("Eco'clock")
+
+      menu = QMenu()
+      show_action = QAction("Mostrar Eco'clock", self)
+      show_action.triggered.connect(self._tray_show)
+      menu.addAction(show_action)
+
+      quit_action = QAction("Salir", self)
+      quit_action.triggered.connect(self._tray_quit)
+      menu.addAction(quit_action)
+
+      self.tray.setContextMenu(menu)
+      self.tray.activated.connect(self._on_tray_activated)
+      self.tray.show()
+
+    def _tray_show(self) -> None:
+      self.showNormal()
+      self.raise_()
+      self.activateWindow()
+
+    def _tray_quit(self) -> None:
+      self._stop_auto()
+      if self._auto_worker is not None and self._auto_worker.isRunning():
+          self._auto_worker.wait(3000)
+      QApplication.instance().quit()
+
+    def _on_tray_activated(self, reason) -> None:
+      if reason == QSystemTrayIcon.ActivationReason.Trigger:  # clic izquierdo
+        if self.isVisible():
+            self.hide()
+        else:
+            self._tray_show()
