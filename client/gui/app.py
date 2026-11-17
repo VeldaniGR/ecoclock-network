@@ -1624,27 +1624,37 @@ class EcoClockWindow(QMainWindow):
       self._update_node_card()
 
     def _setup_tray(self) -> None:
-      if not QSystemTrayIcon.isSystemTrayAvailable():
+        if not QSystemTrayIcon.isSystemTrayAvailable():
           return
 
-      self.tray = QSystemTrayIcon(self)
-      # Usa el icono de la aplicación si lo tienes, o uno por defecto
-      self.tray.setIcon(self.windowIcon() if not self.windowIcon().isNull()
-                      else QIcon.fromTheme("applications-system"))
-      self.tray.setToolTip("Eco'clock")
+        self.tray = QSystemTrayIcon(self)
 
-      menu = QMenu()
-      show_action = QAction("Mostrar Eco'clock", self)
-      show_action.triggered.connect(self._tray_show)
-      menu.addAction(show_action)
+        # Icono del proyecto
+        from pathlib import Path
+        logo_path = Path(__file__).parent / "assets" / "logo.svg"
+        if logo_path.exists():
+          self.tray.setIcon(QIcon(str(logo_path)))
+        else:
+          # Fallback
+          self.tray.setIcon(
+              self.windowIcon() if not self.windowIcon().isNull()
+              else QIcon.fromTheme("applications-system")
+          )
 
-      quit_action = QAction("Salir", self)
-      quit_action.triggered.connect(self._tray_quit)
-      menu.addAction(quit_action)
+        self.tray.setToolTip("Eco'clock")
 
-      self.tray.setContextMenu(menu)
-      self.tray.activated.connect(self._on_tray_activated)
-      self.tray.show()
+        menu = QMenu()
+        show_action = QAction("Mostrar Eco'clock", self)
+        show_action.triggered.connect(self._tray_show)
+        menu.addAction(show_action)
+
+        quit_action = QAction("Salir", self)
+        quit_action.triggered.connect(self._tray_quit)
+        menu.addAction(quit_action)
+
+        self.tray.setContextMenu(menu)
+        self.tray.activated.connect(self._on_tray_activated)
+        self.tray.show()
 
     def _tray_show(self) -> None:
       self.showNormal()
