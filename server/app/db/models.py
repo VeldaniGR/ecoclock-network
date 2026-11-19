@@ -18,6 +18,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     preferred_language = Column(String(10), nullable=True, default="es")
     created_at = Column(DateTime, default=utcnow)
+    is_superadmin = Column(Boolean, nullable=False, default=False, server_default="false")
     tasks = relationship("Task", back_populates="user")
     credits = relationship("Credit", back_populates="user")
 
@@ -176,7 +177,6 @@ class UserImpactHex(Base):
     lon = Column(Float, nullable=True)
     unlocked_at = Column(DateTime, default=utcnow, nullable=False)
     validated_at = Column(DateTime, nullable=True)                  # cuando se valida la foto exterior
-
     user = relationship("User")
 
     __table_args__ = (

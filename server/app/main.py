@@ -6,11 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import expeditions
 from app.api import auth, me, tasks, nodes
 from app.api import impact
+from app.api import admin
 from app.db.database import engine, Base
 
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,7 +41,7 @@ def health_check():
 # Crear carpeta si no existe
 Path("uploads").mkdir(exist_ok=True)
 
-
+# Routers (después de crear app)
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(me.router, prefix="/me", tags=["me"])
 app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
@@ -49,3 +49,4 @@ app.include_router(expeditions.router, prefix="/expeditions", tags=["expeditions
 app.include_router(nodes.router, prefix="/nodes", tags=["nodes"])
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.include_router(impact.router)
+app.include_router(admin.router)

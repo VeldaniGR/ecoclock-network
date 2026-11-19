@@ -46,6 +46,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         raise HTTPException(status_code=401, detail="Usuario no encontrado")
     return user
 
+async def require_superadmin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if not getattr(current_user, "is_superadmin", False):
+        raise HTTPException(status_code=403, detail="Se requiere superadmin")
+    return current_user
+
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
