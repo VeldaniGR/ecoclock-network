@@ -84,6 +84,7 @@ def main(argv: list[str] | None = None) -> int:
         print("PID:", app.applicationPid())
         print("Para detenerlo: kill", app.applicationPid())
         window.hide()
+        QTimer.singleShot(0, window.hide)
     else:
         window.show()
 
@@ -1459,6 +1460,15 @@ class EcoClockWindow(QMainWindow):
         self.username_input.clear()
         self.password_input.clear()
 
+        # Borrar token guardado para que --auto no restaure esta sesión
+        try:
+          from client.cli import _token_path
+          p = _token_path()
+          if p.exists():
+              p.unlink()
+        except Exception:
+          pass
+
         # Resetear saludo
         self.dash_greeting.setText("Hola, <span>donante</span>")
 
@@ -1724,8 +1734,8 @@ class EcoClockWindow(QMainWindow):
 
       # Si se lanzó con --auto → arrancar el worker automáticamente
       if self._auto_start:
-          # Pequeño delay para que la UI termine de construirse
-          QTimer.singleShot(500, self._start_auto)
+          self.hide()
+          QTimer.singleShot(800, self._start_auto_from_restore)
 
     def _get_idle_ms(self) -> int | None:
         """Devuelve milisegundos de inactividad del sistema (GNOME/Wayland) o None."""

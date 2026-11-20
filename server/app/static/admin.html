@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Eco'clock — Admin</title>
+  <style>
+    :root {
+      --petrol: #0f3a45;
+      --petrol-deep: #0a2a33;
+      --ocre: #d9a441;
+      --ocre-soft: #ecc57a;
+      --crema: #f7f0e0;
+      --crema-deep: #eadfc6;
+      --paper: #fffaf0;
+      --ink: #1d2b2e;
+      --ink-soft: #5b6a6c;
+      --leaf: #3ddc84;
+      --leaf-deep: #1f9d57;
+      --danger: #b3261e;
+      --radius: 18px;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: var(--ink);
+      /* Crepúsculo: del azul petróleo de la noche al ocre del horizonte y la crema del día */
+      background:
+        linear-gradient(180deg,
+          var(--petrol-deep) 0,
+          var(--petrol) 150px,
+          #6b6a4e 290px,
+          var(--ocre) 400px,
+          var(--crema) 520px) no-repeat,
+        var(--crema);
+      overflow-x: hidden;
+    }
+
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; position: relative; z-index: 1; }
+
+    /* Cabecera */
+    .brand { display: flex; align-items: center; gap: 0.85rem; color: var(--crema); margin-bottom: 2.25rem; }
+    .brand svg { width: 46px; height: 46px; flex: none; }
+    .brand h1 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 1.7rem; letter-spacing: 0.01em; line-height: 1.1; }
+    .brand p { margin: 0.15rem 0 0; font-size: 0.85rem; color: var(--ocre-soft); }
+
+    /* Hoja flotante discreta */
+    .leaf {
+      position: fixed; right: 6%; top: 90px; width: 34px; height: 34px; z-index: 0;
+      opacity: 0.55; pointer-events: none;
+      animation: float 9s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(-8deg); }
+      50% { transform: translateY(18px) rotate(10deg); }
+    }
+    @media (prefers-reduced-motion: reduce) { .leaf { animation: none; } }
+
+    /* Paneles */
+    .panel {
+      background: var(--paper);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(10, 42, 51, 0.18);
+      margin-bottom: 1.25rem;
+    }
+
+    #loginPanel { max-width: 420px; margin: 1rem auto 0; }
+    #loginPanel .lead { margin: 0 0 0.5rem; font-family: var(--serif); font-size: 1.25rem; color: var(--petrol); }
+    #loginPanel .hint { margin: 0 0 1rem; font-size: 0.88rem; color: var(--ink-soft); }
+
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--petrol); margin-top: 0.85rem; }
+    input {
+      width: 100%; padding: 0.65rem 0.8rem; margin-top: 0.3rem;
+      font: inherit; color: var(--ink);
+      background: #fff; border: 1.5px solid var(--crema-deep); border-radius: 12px;
+    }
+    input:focus-visible { outline: 3px solid rgba(61, 220, 132, 0.45); border-color: var(--leaf-deep); }
+
+    button {
+      margin-top: 1.1rem; padding: 0.65rem 1.3rem; cursor: pointer;
+      font: inherit; font-weight: 600;
+      border-radius: 999px; border: 1.5px solid var(--petrol);
+      background: var(--petrol); color: var(--crema);
+      transition: background 0.15s, transform 0.15s;
+    }
+    button:hover { background: var(--petrol-deep); }
+    button:active { transform: translateY(1px); }
+    button:focus-visible { outline: 3px solid var(--leaf); outline-offset: 2px; }
+    button.secondary { margin-top: 0; background: transparent; color: var(--petrol); }
+    button.secondary:hover { background: var(--crema-deep); }
+
+    .err { color: var(--danger); font-size: 0.9rem; min-height: 1.2em; margin: 0.75rem 0 0; }
+    .ok { color: var(--leaf-deep); }
+
+    #dashboard { display: none; }
+
+    .session { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding: 0.9rem 1.25rem; }
+    #who { display: flex; align-items: center; gap: 0.6rem; font-size: 0.92rem; color: var(--ink-soft); }
+    #who::before {
+      content: ""; width: 10px; height: 10px; border-radius: 50%;
+      background: var(--leaf); box-shadow: 0 0 0 4px rgba(61, 220, 132, 0.25);
+    }
+
+    /* Tarjetas de estadísticas */
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.9rem; margin: 1.25rem 0; }
+    .card {
+      background: var(--paper); border-radius: var(--radius); padding: 1.1rem 1.25rem;
+      box-shadow: 0 6px 18px rgba(10, 42, 51, 0.12);
+      border-top: 4px solid var(--ocre);
+    }
+    .card.live { border-top-color: var(--leaf); }
+    .card b { display: block; font-family: var(--serif); font-size: 2.1rem; font-weight: 600; color: var(--petrol); line-height: 1.1; }
+    .card span { font-size: 0.82rem; color: var(--ink-soft); }
+
+    /* Tabla */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); box-shadow: 0 6px 18px rgba(10, 42, 51, 0.12); background: var(--paper); }
+    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    th, td { text-align: left; padding: 0.75rem 0.9rem; font-size: 0.9rem; border-bottom: 1px solid var(--crema-deep); }
+    th { background: var(--petrol); color: var(--crema); font-weight: 600; font-size: 0.82rem; white-space: nowrap; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fbf3df; }
+    td.num { font-variant-numeric: tabular-nums; }
+
+    .badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600; background: var(--crema-deep); color: var(--petrol); }
+    .badge.super { background: var(--ocre); color: var(--petrol-deep); }
+    .muted { color: #9aa5a6; }
+
+    #dashMsg { margin: 0.9rem 0 0; font-size: 0.9rem; }
+
+    @media (max-width: 520px) {
+      .brand h1 { font-size: 1.4rem; }
+      .leaf { right: 4%; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="leaf" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M20 4C10 4 4 9.5 4 16c0 1.4.3 2.7.8 3.8C6 15 9 11.5 14 9c-3 2.8-5 6-5.9 10.4.6.2 1.3.3 1.9.3 6.5 0 10-6 10-15.7Z" fill="#3ddc84"/>
+  </svg>
+
+  <div class="wrap">
+    <header class="brand">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="21" fill="none" stroke="#ecc57a" stroke-width="2.5"/>
+        <path d="M24 9v15l9 6" fill="none" stroke="#f7f0e0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M38 5c-8 0-13 4.4-13 9.6 0 1.1.2 2.100.6 3C26.600 14 29 11.200 33 9.200c-2.400 2.200-4 4.800-4.700 8.300.5.100 1 .2 1.500.2 5.200 0 8.200-4.800 8.200-12.700Z" fill="#3ddc84"/>
+      </svg>
+      <div>
+        <h1>Eco'clock Network</h1>
+        <p>Panel de administración</p>
+      </div>
+    </header>
+
+    <section class="panel" id="loginPanel">
+      <p class="lead">Acceso superadmin</p>
+      <p class="hint">Solo para el equipo del proyecto.</p>
+      <label for="username">Usuario</label>
+      <input id="username" type="text" autocomplete="username" />
+      <label for="password">Contraseña</label>
+      <input id="password" type="password" autocomplete="current-password" />
+      <div>
+        <button id="loginBtn" type="button">Entrar</button>
+      </div>
+      <p id="loginMsg" class="err" role="alert"></p>
+    </section>
+
+    <main id="dashboard">
+      <div class="panel session">
+        <span id="who"></span>
+        <button class="secondary" id="logoutBtn" type="button">Cerrar sesión</button>
+      </div>
+      <div class="row" id="cards"></div>
+      <div class="table-wrap">
+        <table id="users">
+          <thead>
+            <tr>
+              <th>ID</th><th>Usuario</th><th>Superadmin</th><th>Nodo</th>
+              <th>Rol</th><th>Créditos</th><th>Alta</th><th>Última act.</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="dashMsg" role="status"></p>
+    </main>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+    const KEY = "ecoclock_admin_token";
+    const USER_KEY = "ecoclock_admin_user";
+
+    function token() { return sessionStorage.getItem(KEY) || ""; }
+
+    // Escapa texto de la API antes de insertarlo como HTML
+    function esc(v) {
+      return String(v ?? "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+
+    async function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("loginMsg");
+      msg.textContent = "";
+      if (!username || !password) {
+        msg.textContent = "Usuario y contraseña obligatorios";
+        return;
+      }
+      try {
+        const res = await fetch(API + "/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || ("HTTP " + res.status));
+        if (!data.access_token) throw new Error("Respuesta sin access_token");
+        sessionStorage.setItem(KEY, data.access_token);
+        sessionStorage.setItem(USER_KEY, username);
+        document.getElementById("password").value = "";
+        await showDashboard();
+      } catch (e) {
+        msg.textContent = String(e.message || e);
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem(KEY);
+      sessionStorage.removeItem(USER_KEY);
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("loginPanel").style.display = "block";
+      document.getElementById("loginMsg").textContent = "";
+    }
+
+    async function showDashboard() {
+      const t = token();
+      if (!t) {
+        logout();
+        return;
+      }
+      document.getElementById("loginPanel").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+      document.getElementById("who").textContent =
+        "Sesión: " + (sessionStorage.getItem(USER_KEY) || "");
+
+      const headers = { Authorization: "Bearer " + t };
+      const dashMsg = document.getElementById("dashMsg");
+      dashMsg.textContent = "";
+      dashMsg.className = "";
+
+      try {
+        const [sRes, uRes] = await Promise.all([
+          fetch(API + "/admin/summary", { headers }),
+          fetch(API + "/admin/users", { headers }),
+        ]);
+        if (sRes.status === 403 || uRes.status === 403) {
+          throw new Error("No eres superadmin (403)");
+        }
+        if (!sRes.ok) throw new Error("summary " + sRes.status);
+        if (!uRes.ok) throw new Error("users " + uRes.status);
+
+        const summary = await sRes.json();
+        const users = await uRes.json();
+
+        const items = [
+          ["Usuarios", summary.total_users, false],
+          ["Nodos", summary.total_nodes, false],
+          ["En nodo", summary.users_in_node, false],
+          ["Activos 24h", summary.active_users_24h, true],
+          ["Tareas 24h", summary.tasks_completed_24h, true],
+          ["Auto 24h", summary.auto_results_24h, true],
+        ];
+        document.getElementById("cards").innerHTML = items.map(([k, v, live]) =>
+          `<div class="card${live ? " live" : ""}"><b>${esc(v)}</b><span>${esc(k)}</span></div>`
+        ).join("");
+
+        document.querySelector("#users tbody").innerHTML = (users.users || []).map(u =>
+          `<tr>
+            <td class="num">${esc(u.id)}</td>
+            <td>${esc(u.username)}</td>
+            <td>${u.is_superadmin ? '<span class="badge super">sí</span>' : ""}</td>
+            <td>${u.node_name ? esc(u.node_name) : '<span class="muted">—</span>'}</td>
+            <td>${u.node_role ? '<span class="badge">' + esc(u.node_role) + "</span>" : '<span class="muted">—</span>'}</td>
+            <td class="num">${esc(u.credits)}</td>
+            <td class="num">${esc((u.created_at || "").slice(0, 10))}</td>
+            <td class="num">${u.last_active_at ? esc(u.last_active_at.slice(0, 16).replace("T", " ")) : '<span class="muted">—</span>'}</td>
+          </tr>`
+        ).join("");
+
+        dashMsg.textContent = users.total + " usuarios";
+        dashMsg.className = "ok";
+      } catch (e) {
+        dashMsg.textContent = String(e.message || e);
+        dashMsg.className = "err";
+        if (String(e.message || e).includes("403")) logout();
+      }
+    }
+
+    document.getElementById("loginBtn").onclick = login;
+    document.getElementById("logoutBtn").onclick = logout;
+    document.getElementById("password").addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter") login();
+    });
+
+    if (token()) showDashboard();
+  </script>
+</body>
+</html>
