@@ -1,3 +1,0 @@
-[console_scripts]
-ecoclock = client.cli:main
-ecoclock-gui = client.gui.app:main

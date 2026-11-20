@@ -97,3 +97,5 @@ server/.env
 .venv/
 __pycache__/
 *.pyc
+backup_*.sql
+*.egg-info/
