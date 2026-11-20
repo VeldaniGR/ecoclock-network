@@ -8,15 +8,12 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api import admin, auth, expeditions, impact, me, nodes, tasks
-from app.db.database import Base, engine
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 ADMIN_HTML = STATIC_DIR / "admin.html"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
     yield
 
 
