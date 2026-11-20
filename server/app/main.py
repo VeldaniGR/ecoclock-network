@@ -10,8 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from app.api import admin, auth, expeditions, impact, me, nodes, tasks
 from app.db.database import Base, engine
 
-
-ADMIN_HTML = Path(__file__).parent / "static" / "admin.html"
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+ADMIN_HTML = STATIC_DIR / "admin.html"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -60,6 +60,7 @@ if STATIC_DIR.is_dir():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
-@app.get("/admin", include_in_schema=False)
-async def admin_page():
-    return FileResponse(ADMIN_HTML, media_type="text/html")
+@app.get("/admin")
+def admin_page():
+    """Panel web de administración (solo superadmin; la API valida el token)."""
+    return FileResponse(STATIC_DIR / "admin.html")
