@@ -122,6 +122,7 @@ class EcoClockWindow(QMainWindow):
         self._username: str | None = None  # Username loggeado para saludo personalizado
         self._current_task: dict | None = None
         self._auto_worker = None
+        self._auto_started_by_idle = False
 
         # Sesión: cronómetro y créditos ganados en esta sesión
         self._session_start_time: float | None = None
@@ -745,6 +746,7 @@ class EcoClockWindow(QMainWindow):
         self.auto_switch = ToggleSwitch("OFF Auto ON", right_widget)
         self.auto_switch.setMinimumWidth(180)
         self.auto_switch.toggled.connect(self._on_auto_toggled)
+        self._auto_started_by_idle = False
         header_row.addWidget(self.auto_switch)
 
         right_layout.addLayout(header_row)
@@ -1840,28 +1842,31 @@ class EcoClockWindow(QMainWindow):
       self._idle_timer.start()
 
     def _check_idle(self) -> None:
-      if not self._token:
-          return  # sin sesión no tiene sentido
+        if not self._token:
+            return
 
-      idle_ms = self._get_idle_ms()
-      if idle_ms is None:
-          return
+        idle_ms = self._get_idle_ms()
+        if idle_ms is None:
+            return
 
-      is_idle = idle_ms >= self._idle_threshold_ms
-      worker_running = (
-          self._auto_worker is not None and self._auto_worker.isRunning()
-      )
+        is_idle = idle_ms >= self._idle_threshold_ms
+        worker_running = (
+            self._auto_worker is not None and self._auto_worker.isRunning()
+        )
 
-      if is_idle and not worker_running:
-          # Ordenador idle → arrancar automático
-          self._start_auto()
-          if hasattr(self, "auto_switch"):
-              self.auto_switch.setChecked(True, animate=False)
-          self.status_text.setText(
-              f"Modo automático (idle {idle_ms // 60000} min)"
-          )
-      elif not is_idle and worker_running:
-          # Usuario volvió → parar automático
-          self._stop_auto()
-          if hasattr(self, "auto_switch"):
-              self.auto_switch.setChecked(False, animate=False)
+        # Solo arrancamos automáticamente si está idle y no hay worker
+        if is_idle and not worker_running:
+            self._auto_started_by_idle = True
+            self._start_auto()
+            if hasattr(self, "auto_switch"):
+                self.auto_switch.setChecked(True, animate=False)
+            self.status_text.setText(
+                f"Modo automático (idle {idle_ms // 60000} min)"
+            )
+
+        # Solo paramos automáticamente si fue el idle quien lo arrancó
+        elif not is_idle and worker_running and getattr(self, "_auto_started_by_idle", False):
+            self._auto_started_by_idle = False
+            self._stop_auto()
+            if hasattr(self, "auto_switch"):
+                self.auto_switch.setChecked(False, animate=False)
