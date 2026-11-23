@@ -206,3 +206,34 @@ class NavigatorEnvelope(Base):
             "user_id", "expedition_slug", name="uq_user_expedition_envelope"
         ),
     )
+
+class ContactThread(Base):
+    """Conversación del buzón de contacto (un hilo por remitente y asunto)."""
+    __tablename__ = "contact_threads"
+
+    id = Column(Integer, primary_key=True, index=True)
+    subject = Column(String(300), nullable=False)
+    contact_email = Column(String(320), nullable=False, index=True)
+    contact_name = Column(String(200), nullable=True)
+    status = Column(String(12), nullable=False, default="open", server_default="open", index=True)
+    is_read = Column(Boolean, nullable=False, default=False, server_default="false")
+    created_at = Column(DateTime, nullable=False, default=utcnow)
+    last_message_at = Column(DateTime, nullable=False, default=utcnow, index=True)
+
+
+class ContactMessage(Base):
+    __tablename__ = "contact_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    thread_id = Column(Integer, ForeignKey("contact_threads.id"), nullable=False, index=True)
+    direction = Column(String(8), nullable=False)  # in | out | note
+    resend_email_id = Column(String(64), nullable=True, unique=True, index=True)
+    message_id = Column(String(500), nullable=True, index=True)
+    in_reply_to = Column(String(500), nullable=True)
+    from_addr = Column(String(320), nullable=False)
+    to_addr = Column(String(320), nullable=True)
+    subject = Column(String(300), nullable=True)
+    body_text = Column(Text, nullable=True)
+    auth_summary = Column(String(80), nullable=True)
+    sent_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, nullable=False, default=utcnow)

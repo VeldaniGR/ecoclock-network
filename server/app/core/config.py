@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     CREDITS_PER_COMPUTE_SEC: float = 0.1
     CREDITS_COMPUTE_CAP_SEC: float = 60.0
     RESEND_API_KEY: str = ""
+    RESEND_WEBHOOK_SECRET: str = ""
+    CONTACT_EMAIL: str = "contact@ecoclock.org"
+    CONTACT_NOTIFY_EMAIL: str = ""
     RESEND_FROM_EMAIL: str = "noreply@ecoclock.org"
     PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
     CDSE_USERNAME: str = ""
