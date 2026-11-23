@@ -5,7 +5,7 @@ import logging
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -101,6 +101,184 @@ async def _get_thread_or_404(db: AsyncSession, thread_id: int) -> ContactThread:
     return thread
 
 
+async def _send_in_thread(
+    db: AsyncSession,
+    thread: ContactThread,
+    body: str,
+    admin: User,
+    subject: str | None = None,
+) -> None:
+    """Envía un correo dentro del hilo y lo guarda.
+
+    Hace commit. Si el envío falla, deshace lo pendiente (por ejemplo, un hilo
+    nuevo recién creado) y responde 502.
+    """
+    thread_id = thread.id
+    to_email = thread.contact_email
+    base_subject = thread.subject
+    admin_id = admin.id
+
+    messages = (
+        await db.execute(
+            select(ContactMessage)
+            .where(ContactMessage.thread_id == thread_id)
+            .order_by(ContactMessage.created_at.asc(), ContactMessage.id.asc())
+        )
+    ).scalars().all()
+    ids = [m.message_id for m in messages if m.message_id and m.direction in ("in", "out")]
+    in_reply_to = ids[-1] if ids else None
+    references = " ".join(ids[-10:]) or None
+    if subject is None:
+        subject = base_subject if base_subject.lower().startswith("re:") else f"Re: {base_subject}"
+
+    try:
+        email_id, message_id = await asyncio.to_thread(
+            contact_service.send_reply,
+            to_email=to_email,
+            subject=subject,
+            body=body,
+            in_reply_to=in_reply_to,
+            references=references,
+        )
+    except Exception:
+        await db.rollback()
+        logger.exception("Fallo al enviar el correo del hilo %s", thread_id)
+        raise HTTPException(status_code=502, detail="No se pudo enviar el correo")
+
+    db.add(
+        ContactMessage(
+            thread_id=thread_id,
+            direction="out",
+            resend_email_id=email_id,
+            message_id=message_id,
+            in_reply_to=in_reply_to,
+            from_addr=settings.CONTACT_EMAIL,
+            to_addr=to_email,
+            subject=subject,
+            body_text=body,
+            sent_by=admin_id,
+        )
+    )
+    thread.last_message_at = utcnow()
+    thread.is_read = True
+    await db.commit()
+
+
+# Las rutas fijas (/threads/new, /contacts) van antes que las de /threads/{id}
+
+class NewThreadIn(BaseModel):
+    to_email: EmailStr
+    subject: str = Field(min_length=1, max_length=200)
+    body: str = Field(min_length=1, max_length=10000)
+
+
+@admin_router.post("/threads/new")
+async def create_outgoing_thread(
+    payload: NewThreadIn,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_superadmin),
+):
+    """Abre una conversación saliente sin consulta previa."""
+    addr = str(payload.to_email).lower()
+    if addr in contact_service.own_addresses():
+        raise HTTPException(status_code=400, detail="No puedes escribir a una dirección del propio buzón")
+    subject = payload.subject.strip()
+    if not subject:
+        raise HTTPException(status_code=400, detail="El asunto no puede estar vacío")
+
+    known = (
+        await db.execute(
+            select(User.username).where(func.lower(User.email) == addr).limit(1)
+        )
+    ).first()
+
+    now = utcnow()
+    thread = ContactThread(
+        subject=subject,
+        contact_email=addr,
+        contact_name=known[0] if known else None,
+        status="open",
+        is_read=True,
+        created_at=now,
+        last_message_at=now,
+    )
+    db.add(thread)
+    await db.flush()
+    thread_id = thread.id
+
+    await _send_in_thread(db, thread, payload.body, admin, subject=subject)
+    return {"ok": True, "thread_id": thread_id}
+
+
+@admin_router.get("/contacts")
+async def list_contacts(
+    q: str = Query("", max_length=100),
+    limit: int = Query(100, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_superadmin),
+):
+    """Usuarios registrados y remitentes externos, con su actividad en el buzón."""
+    users = (
+        await db.execute(select(User.id, User.username, User.email))
+    ).all()
+    stats_rows = (
+        await db.execute(
+            select(
+                ContactThread.contact_email,
+                func.count(ContactThread.id),
+                func.max(ContactThread.last_message_at),
+                func.max(ContactThread.contact_name),
+            ).group_by(ContactThread.contact_email)
+        )
+    ).all()
+    stats = {
+        (email or "").lower(): (count, last, name)
+        for email, count, last, name in stats_rows
+    }
+
+    contacts = []
+    user_emails = set()
+    for user_id, username, email in users:
+        key = (email or "").lower()
+        user_emails.add(key)
+        count, last, _name = stats.get(key, (0, None, None))
+        contacts.append({
+            "kind": "user",
+            "user_id": user_id,
+            "name": username,
+            "email": email,
+            "thread_count": count,
+            "last_message_at": last.isoformat() if last else None,
+        })
+    for key, (count, last, name) in stats.items():
+        if key not in user_emails:
+            contacts.append({
+                "kind": "external",
+                "user_id": None,
+                "name": name,
+                "email": key,
+                "thread_count": count,
+                "last_message_at": last.isoformat() if last else None,
+            })
+
+    needle = q.strip().lower()
+    if needle:
+        contacts = [
+            c for c in contacts
+            if needle in f"{c['email'] or ''} {c['name'] or ''}".lower()
+        ]
+
+    # Primero los que tienen actividad reciente; el resto, por nombre
+    contacts.sort(key=lambda c: (c["name"] or c["email"] or "").lower())
+    contacts.sort(key=lambda c: c["last_message_at"] or "", reverse=True)
+
+    return {
+        "contacts": contacts[offset: offset + limit],
+        "total": len(contacts),
+    }
+
+
 @admin_router.get("/threads")
 async def list_threads(
     status: Literal["open", "closed", "all"] = "open",
@@ -167,52 +345,7 @@ async def reply_to_thread(
     admin: User = Depends(require_superadmin),
 ):
     thread = await _get_thread_or_404(db, thread_id)
-    to_email = thread.contact_email
-    base_subject = thread.subject
-    admin_id = admin.id
-
-    messages = (
-        await db.execute(
-            select(ContactMessage)
-            .where(ContactMessage.thread_id == thread_id)
-            .order_by(ContactMessage.created_at.asc(), ContactMessage.id.asc())
-        )
-    ).scalars().all()
-    ids = [m.message_id for m in messages if m.message_id and m.direction in ("in", "out")]
-    in_reply_to = ids[-1] if ids else None
-    references = " ".join(ids[-10:]) or None
-    subject = base_subject if base_subject.lower().startswith("re:") else f"Re: {base_subject}"
-
-    try:
-        email_id, message_id = await asyncio.to_thread(
-            contact_service.send_reply,
-            to_email=to_email,
-            subject=subject,
-            body=payload.body,
-            in_reply_to=in_reply_to,
-            references=references,
-        )
-    except Exception:
-        logger.exception("Fallo al enviar la respuesta del hilo %s", thread_id)
-        raise HTTPException(status_code=502, detail="No se pudo enviar la respuesta")
-
-    db.add(
-        ContactMessage(
-            thread_id=thread_id,
-            direction="out",
-            resend_email_id=email_id,
-            message_id=message_id,
-            in_reply_to=in_reply_to,
-            from_addr=settings.CONTACT_EMAIL,
-            to_addr=to_email,
-            subject=subject,
-            body_text=payload.body,
-            sent_by=admin_id,
-        )
-    )
-    thread.last_message_at = utcnow()
-    thread.is_read = True
-    await db.commit()
+    await _send_in_thread(db, thread, payload.body, admin)
     return {"ok": True}
 
 

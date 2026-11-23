@@ -90,7 +90,7 @@ def normalize_subject(subject: str) -> str:
     return _PREFIX.sub("", subject or "").strip().lower()
 
 
-def _own_addresses() -> set[str]:
+def own_addresses() -> set[str]:
     return {
         settings.CONTACT_EMAIL.lower(),
         parseaddr(settings.RESEND_FROM_EMAIL or "")[1].lower(),
@@ -117,7 +117,7 @@ async def ingest_received(db: AsyncSession, email_id: str) -> tuple[ContactMessa
 
     name, addr = parseaddr(data.get("from") or "")
     addr = addr.lower()
-    if not addr or addr in _own_addresses():
+    if not addr or addr in own_addresses():
         return None, False
 
     headers = data.get("headers") or {}

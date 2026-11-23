@@ -123,7 +123,7 @@
 
     /* Tabla */
     .table-wrap { overflow-x: auto; border-radius: var(--radius); box-shadow: 0 6px 18px rgba(10, 42, 51, 0.12); background: var(--paper); }
-    table { width: 100%; border-collapse: collapse; min-width: 720px; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
     th, td { text-align: left; padding: 0.75rem 0.9rem; font-size: 0.9rem; border-bottom: 1px solid var(--crema-deep); }
     th { background: var(--petrol); color: var(--crema); font-weight: 600; font-size: 0.82rem; white-space: nowrap; }
     tbody tr:last-child td { border-bottom: 0; }
@@ -181,6 +181,9 @@
     .actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
     .actions button { margin-top: 0.75rem; }
     button:disabled { opacity: 0.6; cursor: default; }
+    #contactSearch { margin: 0 0 0.75rem; }
+    #contactList { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+    .compose-title { margin: 0 0 0.5rem; font-family: var(--serif); font-size: 1.25rem; color: var(--petrol); }
     @media (max-width: 760px) { .inbox { grid-template-columns: 1fr; } }
 
     @media (max-width: 520px) {
@@ -236,7 +239,7 @@
         <table id="users">
           <thead>
             <tr>
-              <th>ID</th><th>Usuario</th><th>Superadmin</th><th>Nodo</th>
+              <th>ID</th><th>Usuario</th><th>Correo</th><th>Superadmin</th><th>Nodo</th>
               <th>Rol</th><th>Créditos</th><th>Alta</th><th>Última act.</th>
             </tr>
           </thead>
@@ -249,13 +252,27 @@
       <section id="tab-inbox" hidden>
         <div class="inbox">
           <aside class="panel">
-            <div class="filters" id="filters">
-              <button type="button" class="chip active" data-status="open">Abiertos</button>
-              <button type="button" class="chip" data-status="closed">Cerrados</button>
-              <button type="button" class="chip" data-status="all">Todos</button>
+            <div class="filters" id="viewSwitch">
+              <button type="button" class="chip active" data-view="threads">Conversaciones</button>
+              <button type="button" class="chip" data-view="contacts">Contactos</button>
+              <button type="button" class="chip" data-action="compose">+ Nuevo mensaje</button>
             </div>
-            <ul id="threadList"></ul>
-            <p id="threadsMsg" class="muted"></p>
+
+            <div id="threadsPane">
+              <div class="filters" id="filters">
+                <button type="button" class="chip active" data-status="open">Abiertos</button>
+                <button type="button" class="chip" data-status="closed">Cerrados</button>
+                <button type="button" class="chip" data-status="all">Todos</button>
+              </div>
+              <ul id="threadList"></ul>
+              <p id="threadsMsg" class="muted"></p>
+            </div>
+
+            <div id="contactsPane" hidden>
+              <input id="contactSearch" type="search" maxlength="100" placeholder="Buscar por nombre o correo" aria-label="Buscar contactos" />
+              <ul id="contactList"></ul>
+              <p id="contactsMsg" class="muted"></p>
+            </div>
           </aside>
           <article class="panel" id="threadView">
             <p class="muted">Selecciona una conversación.</p>
@@ -360,6 +377,7 @@
           `<tr>
             <td class="num">${esc(u.id)}</td>
             <td>${esc(u.username)}</td>
+            <td>${u.email ? esc(u.email) : '<span class="muted">—</span>'}</td>
             <td>${u.is_superadmin ? '<span class="badge super">sí</span>' : ""}</td>
             <td>${u.node_name ? esc(u.node_name) : '<span class="muted">—</span>'}</td>
             <td>${u.node_role ? '<span class="badge">' + esc(u.node_role) + "</span>" : '<span class="muted">—</span>'}</td>
@@ -385,6 +403,9 @@
     let inboxStatus = "open";
     let currentThread = null;
     let currentContact = "";
+    let inboxView = "threads";
+    let lastContacts = [];
+    let contactTimer = null;
 
     async function api(path, opts = {}) {
       const headers = { Authorization: "Bearer " + token() };
@@ -395,7 +416,7 @@
       if (res.status === 401) { logout(); throw new Error("Sesión caducada"); }
       if (!res.ok) {
         const d = data && data.detail;
-        throw new Error(typeof d === "string" ? d : "Error " + res.status);
+        throw new Error(typeof d === "string" ? d : (res.status === 422 ? "Datos no válidos: revisa el correo, el asunto y el texto" : "Error " + res.status));
       }
       return data;
     }
@@ -421,7 +442,7 @@
         b.classList.toggle("active", b.dataset.tab === name));
       $("tab-panel").hidden = name !== "panel";
       $("tab-inbox").hidden = name !== "inbox";
-      if (name === "inbox") loadThreads();
+      if (name === "inbox") { if (inboxView === "contacts") loadContacts(); else loadThreads(); }
     }
 
     async function loadThreads() {
@@ -503,8 +524,9 @@
 
     $("threadView").addEventListener("click", async (ev) => {
       const btn = ev.target.closest("button[data-action]");
-      if (!btn || currentThread === null) return;
+      if (!btn) return;
       const action = btn.dataset.action;
+      if (action !== "send-new" && currentThread === null) return;
       const id = currentThread;
       const note = (text, ok) => {
         const el = $("threadMsg");
@@ -515,6 +537,26 @@
       note("", false);
 
       try {
+        if (action === "send-new") {
+          const to = ($("composeTo").value || "").trim();
+          const subject = ($("composeSubject").value || "").trim();
+          const body = ($("composeBody").value || "").trim();
+          if (!to || !subject || !body) {
+            note("Completa destinatario, asunto y mensaje.", false);
+            return;
+          }
+          if (!confirm("¿Enviar este mensaje a " + to + "?")) return;
+          btn.disabled = true;
+          const created = await api("/admin/contact/threads/new", {
+            method: "POST",
+            body: JSON.stringify({ to_email: to, subject, body }),
+          });
+          setInboxView("threads");
+          await openThread(created.thread_id);
+          note("Mensaje enviado.", true);
+          return;
+        }
+
         if (action === "toggle-status") {
           await api("/admin/contact/threads/" + id, {
             method: "PATCH",
@@ -540,6 +582,80 @@
         note(e.message, false);
         btn.disabled = false;
       }
+    });
+
+    // ------------------------------------------------ Contactos y mensaje nuevo
+    function composeHtml(prefill) {
+      const p = prefill || {};
+      return `
+        <h2 class="compose-title">Nuevo mensaje</h2>
+        <label for="composeTo">Para</label>
+        <input id="composeTo" type="email" maxlength="320" value="${esc(p.email || "")}" placeholder="persona@ejemplo.com" />
+        ${p.name ? `<p class="muted">${esc(p.name)}</p>` : ""}
+        <label for="composeSubject">Asunto</label>
+        <input id="composeSubject" type="text" maxlength="200" />
+        <label for="composeBody">Mensaje</label>
+        <textarea id="composeBody" rows="8" maxlength="10000"></textarea>
+        <div class="actions">
+          <button type="button" data-action="send-new">Enviar</button>
+        </div>
+        <p id="threadMsg" class="err" role="status"></p>`;
+    }
+
+    function setInboxView(view) {
+      inboxView = view;
+      document.querySelectorAll("#viewSwitch .chip[data-view]").forEach(b =>
+        b.classList.toggle("active", b.dataset.view === view));
+      $("threadsPane").hidden = view !== "threads";
+      $("contactsPane").hidden = view !== "contacts";
+      if (view === "contacts") loadContacts(); else loadThreads();
+    }
+
+    async function loadContacts() {
+      const msg = $("contactsMsg");
+      msg.textContent = "";
+      try {
+        const q = $("contactSearch").value.trim();
+        const data = await api("/admin/contact/contacts?limit=100&q=" + encodeURIComponent(q));
+        lastContacts = data.contacts;
+        $("contactList").innerHTML = data.contacts.map((c, i) =>
+          `<li><button type="button" class="thread-item" data-i="${i}">
+            <b>${esc(c.name || c.email)}</b>
+            <span>${esc(c.name ? c.email : "")}</span>
+            <small>${c.kind === "user" ? "Usuario" : "Externo"} · ${esc(c.thread_count)} conv.${c.last_message_at ? " · " + esc(fmt(c.last_message_at)) : ""}</small>
+          </button></li>`
+        ).join("");
+        if (!data.contacts.length) msg.textContent = "Sin resultados.";
+        else if (data.total > data.contacts.length)
+          msg.textContent = "Mostrando " + data.contacts.length + " de " + data.total + ". Afina la búsqueda.";
+      } catch (e) {
+        msg.textContent = e.message;
+      }
+    }
+
+    $("viewSwitch").addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button");
+      if (!btn) return;
+      if (btn.dataset.view) {
+        setInboxView(btn.dataset.view);
+      } else if (btn.dataset.action === "compose") {
+        currentThread = null;
+        $("threadView").innerHTML = composeHtml({});
+      }
+    });
+
+    $("contactList").addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button[data-i]");
+      if (!btn) return;
+      const c = lastContacts[Number(btn.dataset.i)];
+      if (!c) return;
+      currentThread = null;
+      $("threadView").innerHTML = composeHtml({ email: c.email, name: c.name });
+    });
+
+    $("contactSearch").addEventListener("input", () => {
+      clearTimeout(contactTimer);
+      contactTimer = setTimeout(loadContacts, 300);
     });
 
     document.querySelector(".tabs").addEventListener("click", (ev) => {
