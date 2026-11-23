@@ -1745,6 +1745,7 @@ class EcoClockWindow(QMainWindow):
       import subprocess
       import re
       import time
+      import os
 
       # ---------- Windows ----------
       if sys.platform == "win32":
@@ -1781,7 +1782,7 @@ class EcoClockWindow(QMainWindow):
               timeout=1.5,
               stderr=subprocess.DEVNULL,
           )
-          m = re.search(r"(\d+)", out)
+          m = re.search(r"uint64\s+(\d+)", out)
           if m:
               return int(m.group(1))
       except Exception:
@@ -1842,31 +1843,31 @@ class EcoClockWindow(QMainWindow):
       self._idle_timer.start()
 
     def _check_idle(self) -> None:
-        if not self._token:
-            return
 
-        idle_ms = self._get_idle_ms()
-        if idle_ms is None:
-            return
+      if not self._token:
+          return
 
-        is_idle = idle_ms >= self._idle_threshold_ms
-        worker_running = (
-            self._auto_worker is not None and self._auto_worker.isRunning()
-        )
+      idle_ms = self._get_idle_ms()
 
-        # Solo arrancamos automáticamente si está idle y no hay worker
-        if is_idle and not worker_running:
-            self._auto_started_by_idle = True
-            self._start_auto()
-            if hasattr(self, "auto_switch"):
-                self.auto_switch.setChecked(True, animate=False)
-            self.status_text.setText(
-                f"Modo automático (idle {idle_ms // 60000} min)"
-            )
+      if idle_ms is None:
+          return
 
-        # Solo paramos automáticamente si fue el idle quien lo arrancó
-        elif not is_idle and worker_running and getattr(self, "_auto_started_by_idle", False):
-            self._auto_started_by_idle = False
-            self._stop_auto()
-            if hasattr(self, "auto_switch"):
-                self.auto_switch.setChecked(False, animate=False)
+      is_idle = idle_ms >= self._idle_threshold_ms
+      worker_running = (
+          self._auto_worker is not None and self._auto_worker.isRunning()
+      )
+
+
+      if is_idle and not worker_running:
+          self._auto_started_by_idle = True
+          self._start_auto()
+          if hasattr(self, "auto_switch"):
+              self.auto_switch.setChecked(True, animate=False)
+          self.status_text.setText(
+              f"Modo automático (idle {idle_ms // 60000} min)"
+          )
+      elif not is_idle and worker_running and getattr(self, "_auto_started_by_idle", False):
+          self._auto_started_by_idle = False
+          self._stop_auto()
+          if hasattr(self, "auto_switch"):
+              self.auto_switch.setChecked(False, animate=False)
