@@ -136,6 +136,53 @@
 
     #dashMsg { margin: 0.9rem 0 0; font-size: 0.9rem; }
 
+    [hidden] { display: none !important; }
+
+    /* Pestañas */
+    .tabs { display: flex; gap: 0.5rem; margin: 1.25rem 0 0; }
+    button.tab { margin-top: 0; background: rgba(255, 250, 240, 0.75); color: var(--petrol); border-color: transparent; }
+    button.tab:hover { background: var(--paper); }
+    button.tab.active { background: var(--petrol); color: var(--crema); border-color: var(--petrol); }
+    .count { display: inline-block; min-width: 1.4em; padding: 0 0.4em; margin-left: 0.35rem; border-radius: 999px; background: var(--leaf); color: var(--petrol-deep); font-size: 0.78rem; text-align: center; }
+
+    /* Buzón de contacto */
+    .inbox { display: grid; grid-template-columns: minmax(240px, 320px) 1fr; gap: 1rem; margin-top: 1.25rem; align-items: start; }
+    .inbox .panel { margin-bottom: 0; }
+    .filters { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+    button.chip { margin-top: 0; padding: 0.3rem 0.8rem; font-size: 0.82rem; background: transparent; color: var(--petrol); }
+    button.chip.active { background: var(--petrol); color: var(--crema); }
+    #threadList { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+    button.thread-item {
+      margin-top: 0; width: 100%; text-align: left; display: grid; gap: 0.15rem;
+      padding: 0.6rem 0.8rem; border-radius: 12px; background: #fff; color: var(--ink);
+      border: 1.5px solid var(--crema-deep); font-weight: 400;
+    }
+    button.thread-item:hover { background: #fbf3df; }
+    button.thread-item b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    button.thread-item span, button.thread-item small { color: var(--ink-soft); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    button.thread-item.unread { border-left: 5px solid var(--leaf); }
+    button.thread-item.unread b { color: var(--petrol); }
+    button.thread-item.active { border-color: var(--petrol); background: #fbf3df; }
+    .thread-head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+    .thread-head h2 { margin: 0; font-family: var(--serif); font-size: 1.25rem; color: var(--petrol); overflow-wrap: anywhere; }
+    .thread-head p { margin: 0.2rem 0 0; font-size: 0.88rem; }
+    .msgs { display: grid; gap: 0.75rem; margin: 1rem 0; }
+    .msg { border-radius: 14px; padding: 0.7rem 0.9rem; background: #fff; border: 1.5px solid var(--crema-deep); }
+    .msg.out { background: #eef8f1; border-color: #bfe6cd; }
+    .msg.note { background: #fff6dc; border-style: dashed; }
+    .msg-meta { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.8rem; color: var(--ink-soft); margin-bottom: 0.35rem; flex-wrap: wrap; }
+    /* El contenido de los correos es texto no confiable: solo se muestra como texto */
+    .msg-body { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.92rem; }
+    textarea {
+      width: 100%; padding: 0.65rem 0.8rem; margin-top: 0.3rem; font: inherit; color: var(--ink);
+      background: #fff; border: 1.5px solid var(--crema-deep); border-radius: 12px; resize: vertical;
+    }
+    textarea:focus-visible { outline: 3px solid rgba(61, 220, 132, 0.45); border-color: var(--leaf-deep); }
+    .actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .actions button { margin-top: 0.75rem; }
+    button:disabled { opacity: 0.6; cursor: default; }
+    @media (max-width: 760px) { .inbox { grid-template-columns: 1fr; } }
+
     @media (max-width: 520px) {
       .brand h1 { font-size: 1.4rem; }
       .leaf { right: 4%; }
@@ -178,6 +225,12 @@
         <span id="who"></span>
         <button class="secondary" id="logoutBtn" type="button">Cerrar sesión</button>
       </div>
+      <nav class="tabs" aria-label="Secciones">
+        <button type="button" class="tab active" data-tab="panel">Panel</button>
+        <button type="button" class="tab" data-tab="inbox">Buzón<span id="inboxBadge" class="count" hidden></span></button>
+      </nav>
+
+      <section id="tab-panel">
       <div class="row" id="cards"></div>
       <div class="table-wrap">
         <table id="users">
@@ -191,6 +244,24 @@
         </table>
       </div>
       <p id="dashMsg" role="status"></p>
+      </section>
+
+      <section id="tab-inbox" hidden>
+        <div class="inbox">
+          <aside class="panel">
+            <div class="filters" id="filters">
+              <button type="button" class="chip active" data-status="open">Abiertos</button>
+              <button type="button" class="chip" data-status="closed">Cerrados</button>
+              <button type="button" class="chip" data-status="all">Todos</button>
+            </div>
+            <ul id="threadList"></ul>
+            <p id="threadsMsg" class="muted"></p>
+          </aside>
+          <article class="panel" id="threadView">
+            <p class="muted">Selecciona una conversación.</p>
+          </article>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -300,12 +371,183 @@
 
         dashMsg.textContent = users.total + " usuarios";
         dashMsg.className = "ok";
+        showTab("panel");
+        refreshInboxBadge();
       } catch (e) {
         dashMsg.textContent = String(e.message || e);
         dashMsg.className = "err";
         if (String(e.message || e).includes("403")) logout();
       }
     }
+
+    // ---------------------------------------------------------- Buzón
+    const $ = (id) => document.getElementById(id);
+    let inboxStatus = "open";
+    let currentThread = null;
+    let currentContact = "";
+
+    async function api(path, opts = {}) {
+      const headers = { Authorization: "Bearer " + token() };
+      if (opts.body) headers["Content-Type"] = "application/json";
+      const res = await fetch(API + path, { ...opts, headers });
+      let data = null;
+      try { data = await res.json(); } catch (_) {}
+      if (res.status === 401) { logout(); throw new Error("Sesión caducada"); }
+      if (!res.ok) {
+        const d = data && data.detail;
+        throw new Error(typeof d === "string" ? d : "Error " + res.status);
+      }
+      return data;
+    }
+
+    function fmt(iso) { return iso ? iso.slice(0, 16).replace("T", " ") : ""; }
+
+    function updateBadge(n) {
+      const badge = $("inboxBadge");
+      badge.textContent = n;
+      badge.hidden = !n;
+    }
+
+    async function refreshInboxBadge() {
+      if (!token()) return;
+      try {
+        const data = await api("/admin/contact/threads?status=open&limit=1");
+        updateBadge(data.unread);
+      } catch (_) { /* el panel principal sigue funcionando sin el buzón */ }
+    }
+
+    function showTab(name) {
+      document.querySelectorAll("button.tab").forEach(b =>
+        b.classList.toggle("active", b.dataset.tab === name));
+      $("tab-panel").hidden = name !== "panel";
+      $("tab-inbox").hidden = name !== "inbox";
+      if (name === "inbox") loadThreads();
+    }
+
+    async function loadThreads() {
+      const list = $("threadList");
+      const msg = $("threadsMsg");
+      msg.textContent = "";
+      try {
+        const data = await api("/admin/contact/threads?status=" + inboxStatus);
+        updateBadge(data.unread);
+        list.innerHTML = data.threads.map(t =>
+          `<li><button type="button" class="thread-item${t.is_read ? "" : " unread"}${currentThread === t.id ? " active" : ""}" data-id="${esc(t.id)}">
+            <b>${esc(t.subject)}</b>
+            <span>${esc(t.contact_name || t.contact_email)}</span>
+            <small>${esc(fmt(t.last_message_at))} · ${esc(t.message_count)} msg</small>
+          </button></li>`
+        ).join("");
+        if (!data.threads.length) msg.textContent = "No hay conversaciones.";
+      } catch (e) {
+        msg.textContent = e.message;
+      }
+    }
+
+    // El contenido de los correos es no confiable: todo pasa por esc()
+    function msgHtml(m) {
+      const who = m.direction === "in" ? m.from_addr
+        : m.direction === "out" ? "Eco'clock"
+        : "Nota interna · " + m.from_addr;
+      return `<div class="msg ${esc(m.direction)}">
+        <div class="msg-meta"><b>${esc(who)}</b><span>${esc(fmt(m.created_at))}</span></div>
+        <div class="msg-body">${esc(m.body_text || "")}</div>
+        ${m.auth_summary ? `<small class="muted">${esc(m.auth_summary)}</small>` : ""}
+      </div>`;
+    }
+
+    async function openThread(id) {
+      currentThread = id;
+      const view = $("threadView");
+      try {
+        const data = await api("/admin/contact/threads/" + id);
+        const t = data.thread;
+        currentContact = t.contact_email;
+        const closing = t.status === "open";
+        view.innerHTML = `
+          <div class="thread-head">
+            <div>
+              <h2>${esc(t.subject)}</h2>
+              <p class="muted">${esc(t.contact_name ? t.contact_name + " · " : "")}${esc(t.contact_email)}</p>
+            </div>
+            <button type="button" class="secondary" data-action="toggle-status" data-status="${closing ? "closed" : "open"}">${closing ? "Cerrar" : "Reabrir"}</button>
+          </div>
+          <div class="msgs">${data.messages.map(msgHtml).join("")}</div>
+          <label for="replyBody">Tu respuesta (se envía desde la dirección de contacto)</label>
+          <textarea id="replyBody" rows="5" maxlength="10000"></textarea>
+          <div class="actions">
+            <button type="button" data-action="send-reply">Enviar respuesta</button>
+            <button type="button" class="secondary" data-action="add-note">Guardar como nota interna</button>
+          </div>
+          <p id="threadMsg" class="err" role="status"></p>`;
+        loadThreads();
+        refreshInboxBadge();
+      } catch (e) {
+        view.innerHTML = `<p class="err">${esc(e.message)}</p>`;
+      }
+    }
+
+    $("threadList").addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button[data-id]");
+      if (btn) openThread(Number(btn.dataset.id));
+    });
+
+    $("filters").addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button[data-status]");
+      if (!btn) return;
+      inboxStatus = btn.dataset.status;
+      document.querySelectorAll("#filters .chip").forEach(b =>
+        b.classList.toggle("active", b === btn));
+      loadThreads();
+    });
+
+    $("threadView").addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("button[data-action]");
+      if (!btn || currentThread === null) return;
+      const action = btn.dataset.action;
+      const id = currentThread;
+      const note = (text, ok) => {
+        const el = $("threadMsg");
+        if (!el) return;
+        el.className = ok ? "ok" : "err";
+        el.textContent = text;
+      };
+      note("", false);
+
+      try {
+        if (action === "toggle-status") {
+          await api("/admin/contact/threads/" + id, {
+            method: "PATCH",
+            body: JSON.stringify({ status: btn.dataset.status }),
+          });
+          await openThread(id);
+          return;
+        }
+
+        const body = ($("replyBody").value || "").trim();
+        if (!body) { note("Escribe un texto antes de continuar.", false); return; }
+        const isReply = action === "send-reply";
+        if (isReply && !confirm("¿Enviar esta respuesta a " + currentContact + "?")) return;
+
+        btn.disabled = true;
+        await api("/admin/contact/threads/" + id + (isReply ? "/reply" : "/note"), {
+          method: "POST",
+          body: JSON.stringify({ body }),
+        });
+        await openThread(id);
+        note(isReply ? "Respuesta enviada." : "Nota guardada.", true);
+      } catch (e) {
+        note(e.message, false);
+        btn.disabled = false;
+      }
+    });
+
+    document.querySelector(".tabs").addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button[data-tab]");
+      if (btn) showTab(btn.dataset.tab);
+    });
+
+    setInterval(refreshInboxBadge, 60000);
 
     document.getElementById("loginBtn").onclick = login;
     document.getElementById("logoutBtn").onclick = logout;
