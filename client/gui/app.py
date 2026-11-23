@@ -1738,48 +1738,121 @@ class EcoClockWindow(QMainWindow):
           QTimer.singleShot(800, self._start_auto_from_restore)
 
     def _get_idle_ms(self) -> int | None:
-        """Devuelve milisegundos de inactividad del sistema (GNOME/Wayland) o None."""
-        try:
-            import subprocess
-            out = subprocess.check_output(
-                [
-                    "gdbus", "call", "--session",
-                    "--dest", "org.gnome.Mutter.IdleMonitor",
-                    "--object-path", "/org/gnome/Mutter/IdleMonitor/Core",
-                    "--method", "org.gnome.Mutter.IdleMonitor.GetIdletime",
-                ],
-                text=True,
-                timeout=2,
-            )
-            # Formato típico: (uint64 123456,)
-            import re
-            m = re.search(r"(\d+)", out)
-            return int(m.group(1)) if m else None
-        except Exception:
-            return None
+      """Devuelve milisegundos de inactividad del sistema o None si no se puede detectar."""
+      import sys
+      import subprocess
+      import re
+      import time
+
+      # ---------- Windows ----------
+      if sys.platform == "win32":
+          try:
+              import ctypes
+              from ctypes import wintypes
+
+              class LASTINPUTINFO(ctypes.Structure):
+                  _fields_ = [
+                      ("cbSize", wintypes.UINT),
+                      ("dwTime", wintypes.DWORD),
+                  ]
+
+              lastInputInfo = LASTINPUTINFO()
+              lastInputInfo.cbSize = ctypes.sizeof(lastInputInfo)
+              if ctypes.windll.user32.GetLastInputInfo(ctypes.byref(lastInputInfo)):
+                  millis = ctypes.windll.kernel32.GetTickCount() - lastInputInfo.dwTime
+                  return max(0, int(millis))
+          except Exception:
+              pass
+          return None
+
+      # ---------- Linux ----------
+      # 1) GNOME Mutter (mejor opción en Fedora / GNOME Wayland)
+      try:
+          out = subprocess.check_output(
+              [
+                  "gdbus", "call", "--session",
+                  "--dest", "org.gnome.Mutter.IdleMonitor",
+                  "--object-path", "/org/gnome/Mutter/IdleMonitor/Core",
+                  "--method", "org.gnome.Mutter.IdleMonitor.GetIdletime",
+              ],
+              text=True,
+              timeout=1.5,
+              stderr=subprocess.DEVNULL,
+          )
+          m = re.search(r"(\d+)", out)
+          if m:
+              return int(m.group(1))
+      except Exception:
+          pass
+
+      # 2) systemd-logind
+      try:
+          # Buscamos la sesión del usuario actual
+          sessions = subprocess.check_output(
+              ["loginctl", "list-sessions", "--no-legend"],
+              text=True,
+              timeout=1.5,
+              stderr=subprocess.DEVNULL,
+          )
+          for line in sessions.splitlines():
+              parts = line.split()
+              if len(parts) >= 3 and parts[2] == os.environ.get("USER", ""):
+                  session_id = parts[0]
+                  out = subprocess.check_output(
+                      ["loginctl", "show-session", session_id, "-p", "IdleSinceHint"],
+                      text=True,
+                      timeout=1.5,
+                      stderr=subprocess.DEVNULL,
+                  )
+                  # IdleSinceHint=1234567890000000  (microsegundos desde epoch, o 0)
+                  m = re.search(r"IdleSinceHint=(\d+)", out)
+                  if m:
+                      hint = int(m.group(1))
+                      if hint > 0:
+                          # Convertir de microsegundos a milisegundos de idle
+                          now_us = int(time.time() * 1_000_000)
+                          idle_ms = (now_us - hint) // 1000
+                          return max(0, idle_ms)
+                  break
+      except Exception:
+          pass
+
+      # 3) xprintidle (solo útil en X11)
+      try:
+          out = subprocess.check_output(
+              ["xprintidle"],
+              text=True,
+              timeout=1.0,
+              stderr=subprocess.DEVNULL,
+          )
+          return int(out.strip())
+      except Exception:
+          pass
+
+      return None
 
     def _setup_idle_watcher(self, threshold_min: int = 3) -> None:
-        """Vigila la inactividad del sistema y activa/desactiva el modo auto."""
-        self._idle_threshold_ms = threshold_min * 60 * 1000
-        self._idle_timer = QTimer(self)
-        self._idle_timer.setInterval(20_000)  # cada 20 s
-        self._idle_timer.timeout.connect(self._check_idle)
-        self._idle_timer.start()
+      """Vigila la inactividad del sistema y activa/desactiva el modo auto."""
+      self._idle_threshold_ms = threshold_min * 60 * 1000
+      self._idle_timer = QTimer(self)
+      self._idle_timer.setInterval(15_000)  # cada 15 s (un poco más reactivo)
+      self._idle_timer.timeout.connect(self._check_idle)
+      self._idle_timer.start()
 
     def _check_idle(self) -> None:
-        if not self._token:
+      if not self._token:
           return  # sin sesión no tiene sentido
 
-        idle_ms = self._get_idle_ms()
-        if idle_ms is None:
+      idle_ms = self._get_idle_ms()
+      if idle_ms is None:
           return
 
-        is_idle = idle_ms >= self._idle_threshold_ms
-        worker_running = (
+      is_idle = idle_ms >= self._idle_threshold_ms
+      worker_running = (
           self._auto_worker is not None and self._auto_worker.isRunning()
-        )
+      )
 
-        if is_idle and not worker_running:
+      if is_idle and not worker_running:
           # Ordenador idle → arrancar automático
           self._start_auto()
           if hasattr(self, "auto_switch"):
@@ -1787,7 +1860,7 @@ class EcoClockWindow(QMainWindow):
           self.status_text.setText(
               f"Modo automático (idle {idle_ms // 60000} min)"
           )
-        elif not is_idle and worker_running:
+      elif not is_idle and worker_running:
           # Usuario volvió → parar automático
           self._stop_auto()
           if hasattr(self, "auto_switch"):
