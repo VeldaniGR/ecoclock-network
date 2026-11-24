@@ -20,11 +20,13 @@ import os
 import sys
 import time
 from pathlib import Path
+import logging
+import threading
 
 # Import perezoso: si PyQt6 no está instalado, este módulo aún es
 # importable; el error se lanza solo al ejecutar la GUI.
 try:
-    from PyQt6.QtCore import Qt, QUrl, QTimer
+    from PyQt6.QtCore import Qt, QUrl, QTimer, pyqtSignal
     from PyQt6.QtGui import QAction, QDesktopServices, QPixmap, QIcon
     from PyQt6.QtSvg import QSvgRenderer
     from PyQt6.QtWidgets import (
@@ -101,8 +103,14 @@ class EcoClockWindow(QMainWindow):
     PAGE_NODES = 4
     PAGE_SETTINGS = 5
 
+    # Respuestas de los hilos que piden el impacto de nodo y red
+    impact_scope_loaded = pyqtSignal(str, object)
+    impact_scope_failed = pyqtSignal(str)
+
     def __init__(self, auto_start: bool = False) -> None:
         super().__init__()
+        self.impact_scope_loaded.connect(self._on_impact_scope_loaded)
+        self.impact_scope_failed.connect(self._on_impact_scope_failed)
         self._auto_start = auto_start
         self.setWindowTitle("Eco'clock")
         self.resize(700, 500)  # Layout horizontal
@@ -650,6 +658,7 @@ class EcoClockWindow(QMainWindow):
 
         # Mapa de impacto
         self.impact_map = ImpactMapWidget(left_widget)
+        self.impact_map.scope_requested.connect(self._on_impact_scope_requested)
         left_layout.addWidget(self.impact_map)
 
         # Sobre del Navegante
@@ -1871,3 +1880,42 @@ class EcoClockWindow(QMainWindow):
           self._stop_auto()
           if hasattr(self, "auto_switch"):
               self.auto_switch.setChecked(False, animate=False)
+
+    def _on_impact_scope_requested(self, scope: str) -> None:
+      if not self._token:
+          return
+      threading.Thread(
+          target=self._load_impact_scope,
+          args=(scope, self._base_url, self._token),
+          daemon=True,
+      ).start()
+
+    def _load_impact_scope(self, scope: str, base_url: str, token: str) -> None:
+      from client.gui import services
+      try:
+          fetch = services.get_node_impact if scope == "node" else services.get_network_impact
+          data = fetch(base_url, token)
+      except Exception:  # noqa: BLE001
+          logging.getLogger(__name__).warning("No se pudo cargar el impacto %s", scope, exc_info=True)
+          self.impact_scope_failed.emit(scope)
+          return
+      self.impact_scope_loaded.emit(scope, data)
+
+    def work() -> None:
+        from client.gui import services
+        try:
+            fetch = services.get_node_impact if scope == "node" else services.get_network_impact
+            data = fetch(base_url, token)
+        except Exception:  # noqa: BLE001
+            logging.getLogger(__name__).warning("No se pudo cargar el impacto %s", scope, exc_info=True)
+            self.impact_scope_failed.emit(scope)
+            return
+        self.impact_scope_loaded.emit(scope, data)
+
+    threading.Thread(target=work, daemon=True).start()
+
+    def _on_impact_scope_loaded(self, scope: str, data) -> None:
+      self.impact_map.set_scope_data(scope, data)
+
+    def _on_impact_scope_failed(self, scope: str) -> None:
+      self.impact_map.set_scope_error(scope)

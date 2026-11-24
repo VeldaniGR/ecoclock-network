@@ -294,6 +294,19 @@ def get_navigator_envelope(base_url: str, token: str | None = None) -> dict:
     r.raise_for_status()
     return r.json()
 
+def get_node_impact(base_url: str, token: str | None = None) -> dict:
+    """GET /impact/node — hexágonos agregados del nodo del usuario."""
+    r = cli.authenticated_get(base_url, "/impact/node", token=token)
+    r.raise_for_status()
+    return r.json()
+
+
+def get_network_impact(base_url: str, token: str | None = None) -> dict:
+    """GET /impact/network — hexágonos agregados de toda la red."""
+    r = cli.authenticated_get(base_url, "/impact/network", token=token)
+    r.raise_for_status()
+    return r.json()
+
 # ──────────────────────────────────────────────────────────────
 # PATCH FRAMES
 # ──────────────────────────────────────────────────────────────
