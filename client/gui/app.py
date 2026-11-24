@@ -1901,19 +1901,6 @@ class EcoClockWindow(QMainWindow):
           return
       self.impact_scope_loaded.emit(scope, data)
 
-    def work() -> None:
-        from client.gui import services
-        try:
-            fetch = services.get_node_impact if scope == "node" else services.get_network_impact
-            data = fetch(base_url, token)
-        except Exception:  # noqa: BLE001
-            logging.getLogger(__name__).warning("No se pudo cargar el impacto %s", scope, exc_info=True)
-            self.impact_scope_failed.emit(scope)
-            return
-        self.impact_scope_loaded.emit(scope, data)
-
-    threading.Thread(target=work, daemon=True).start()
-
     def _on_impact_scope_loaded(self, scope: str, data) -> None:
       self.impact_map.set_scope_data(scope, data)
 
