@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import admin, auth, contact, expeditions, impact, impact_scope, me, nodes, tasks
+from app.api import admin, auth, contact, expeditions, impact, impact_scope, me, nodes, tasks, admin_validation
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 ADMIN_HTML = STATIC_DIR / "admin.html"
@@ -55,6 +55,7 @@ app.include_router(contact.webhook_router)
 app.include_router(contact.admin_router)
 app.include_router(impact.router)
 app.include_router(impact_scope.router)
+app.include_router(admin_validation.router)
 
 # Estáticos y panel admin
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
