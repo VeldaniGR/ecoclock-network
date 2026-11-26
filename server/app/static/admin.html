@@ -182,6 +182,11 @@
     .actions button { margin-top: 0.75rem; }
     button:disabled { opacity: 0.6; cursor: default; }
     #contactSearch { margin: 0 0 0.75rem; }
+    #valList { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+    .hexmap { display: block; width: 100%; max-width: 440px; margin: 0.75rem 0; background: #0d1b1e; border-radius: 12px; }
+    .hexmap .hx.free { cursor: pointer; }
+    .hexmap .hx.free:hover polygon { stroke: #d9a441; stroke-width: 2.2; }
+    .hexmap text { pointer-events: none; user-select: none; }
     #contactList { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
     .compose-title { margin: 0 0 0.5rem; font-family: var(--serif); font-size: 1.25rem; color: var(--petrol); }
     @media (max-width: 760px) { .inbox { grid-template-columns: 1fr; } }
@@ -231,6 +236,7 @@
       <nav class="tabs" aria-label="Secciones">
         <button type="button" class="tab active" data-tab="panel">Panel</button>
         <button type="button" class="tab" data-tab="inbox">Buzón<span id="inboxBadge" class="count" hidden></span></button>
+        <button type="button" class="tab" data-tab="validation">Validaciones<span id="valBadge" class="count" hidden></span></button>
       </nav>
 
       <section id="tab-panel">
@@ -276,6 +282,23 @@
           </aside>
           <article class="panel" id="threadView">
             <p class="muted">Selecciona una conversación.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="tab-validation" hidden>
+        <div class="inbox">
+          <aside class="panel">
+            <div class="filters" id="valFilters">
+              <button type="button" class="chip active" data-status="pending">Pendientes</button>
+              <button type="button" class="chip" data-status="validated">Validados</button>
+              <button type="button" class="chip" data-status="all">Todos</button>
+            </div>
+            <ul id="valList"></ul>
+            <p id="valMsg" class="muted"></p>
+          </aside>
+          <article class="panel" id="valView">
+            <p class="muted">Selecciona un sobre.</p>
           </article>
         </div>
       </section>
@@ -391,6 +414,7 @@
         dashMsg.className = "ok";
         showTab("panel");
         refreshInboxBadge();
+        refreshValidationBadge();
       } catch (e) {
         dashMsg.textContent = String(e.message || e);
         dashMsg.className = "err";
@@ -442,7 +466,9 @@
         b.classList.toggle("active", b.dataset.tab === name));
       $("tab-panel").hidden = name !== "panel";
       $("tab-inbox").hidden = name !== "inbox";
+      $("tab-validation").hidden = name !== "validation";
       if (name === "inbox") { if (inboxView === "contacts") loadContacts(); else loadThreads(); }
+      if (name === "validation") loadEnvelopes();
     }
 
     async function loadThreads() {
@@ -658,12 +684,185 @@
       contactTimer = setTimeout(loadContacts, 300);
     });
 
+    // ------------------------------------------- Validaciones (hexágono dorado)
+    const HEX = { cols: 10, rows: 10, r: 18 };
+    const HEX_COLORS = { glacier: "#5B9EA6", gold: "#FFB300", forest: "#4CAF50" };
+    let valFilter = "pending";
+    let valEnvelopes = [];
+    let valCurrent = null;   // { env, map }
+    let valSelected = null;  // código elegido para el dorado
+
+    function hexPoints(cx, cy, r) {
+      const pts = [];
+      for (let i = 0; i < 6; i++) {
+        const a = -Math.PI / 6 + i * Math.PI / 3;
+        pts.push((cx + r * Math.cos(a)).toFixed(1) + "," + (cy + r * Math.sin(a)).toFixed(1));
+      }
+      return pts.join(" ");
+    }
+
+    // Misma geometría que la GUI y la APK. Todo lo que se escribe aquí son
+    // constantes o códigos calculados (A1..J10): nada viene de datos externos.
+    function hexMapSvg(hexes, selected, interactive) {
+      const r = HEX.r, horiz = r * Math.sqrt(3), vert = r * 1.5, o = 12 + r;
+      const w = (HEX.cols - 1) * horiz + 2 * r + 24;
+      const h = (HEX.rows - 1) * vert + 2 * r + 24;
+      const owned = {};
+      hexes.forEach(x => { owned[String(x.hex_code).toUpperCase()] = x; });
+      let cells = "";
+      for (let row = 0; row < HEX.rows; row++) {
+        for (let col = 0; col < HEX.cols; col++) {
+          const code = String.fromCharCode(65 + row) + (col + 1);
+          const cx = o + col * horiz + (row % 2 ? horiz / 2 : 0);
+          const cy = o + row * vert;
+          const hit = owned[code];
+          const isSel = code === selected;
+          let cls = "hx", fill = "#1A2F34", stroke = "rgba(91,158,166,0.45)", text = "rgba(255,255,255,0.45)", opacity = 1;
+          if (hit) {
+            const c = HEX_COLORS[hit.color] || HEX_COLORS.glacier;
+            fill = c; stroke = c; text = "#fff"; opacity = 0.85; cls += " owned";
+          } else if (interactive) {
+            cls += " free";
+          }
+          if (isSel) { fill = HEX_COLORS.gold; stroke = "#fff"; text = "#fff"; opacity = 1; cls += " sel"; }
+          cells += `<g class="${cls}" data-code="${code}">` +
+            `<polygon points="${hexPoints(cx, cy, r)}" fill="${fill}" fill-opacity="${opacity}" stroke="${stroke}" stroke-width="${isSel ? 2.6 : 1.4}"/>` +
+            `<text x="${cx.toFixed(1)}" y="${(cy + 3).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="600" fill="${text}">${code}</text></g>`;
+        }
+      }
+      return `<svg class="hexmap" viewBox="0 0 ${w.toFixed(0)} ${h.toFixed(0)}" role="img" aria-label="Mapa de hexágonos">${cells}</svg>`;
+    }
+
+    async function refreshValidationBadge() {
+      if (!token()) return;
+      try {
+        const data = await api("/admin/validation/envelopes?status=pending&limit=200");
+        const n = data.envelopes.length;
+        const badge = $("valBadge");
+        badge.textContent = n;
+        badge.hidden = !n;
+      } catch (_) { /* el resto del panel sigue funcionando */ }
+    }
+
+    function renderEnvelopeList() {
+      $("valList").innerHTML = valEnvelopes.map(e =>
+        `<li><button type="button" class="thread-item${valCurrent && valCurrent.env.id === e.id ? " active" : ""}${e.validated_at ? "" : " unread"}" data-id="${esc(e.id)}">
+          <b>${esc(e.username)}</b>
+          <span>${esc(e.expedition_slug)} · ${esc(e.validated_at ? "validado" : e.status)}</span>
+          <small>${esc(fmt(e.sent_at || e.ready_at))} · ${esc(e.hex_count_at_ready)} hex · ${esc(e.task_count_at_ready)} tareas</small>
+        </button></li>`
+      ).join("");
+    }
+
+    async function loadEnvelopes() {
+      const msg = $("valMsg");
+      msg.textContent = "";
+      try {
+        const data = await api("/admin/validation/envelopes?status=" + valFilter + "&limit=100");
+        valEnvelopes = data.envelopes;
+        renderEnvelopeList();
+        if (!valEnvelopes.length) msg.textContent = "No hay sobres en esta lista.";
+      } catch (e) {
+        msg.textContent = e.message;
+      }
+    }
+
+    function renderEnvelope() {
+      const { env, map } = valCurrent;
+      const done = !!env.validated_at;
+      $("valView").innerHTML = `
+        <div class="thread-head">
+          <div>
+            <h2>${esc(map.user.username)}</h2>
+            <p class="muted">${esc(map.user.email)} · ${esc(env.expedition_slug)}</p>
+          </div>
+          <span class="badge${done ? "" : " super"}">${esc(done ? "Validado" : env.status)}</span>
+        </div>
+        <p class="muted">Listo: ${esc(fmt(env.ready_at))} · Correo enviado: ${esc(env.sent_at ? fmt(env.sent_at) : "—")}${done ? " · Validado: " + esc(fmt(env.validated_at)) : ""}<br>
+          Al completarlo: ${esc(env.hex_count_at_ready)} hexágonos y ${esc(env.task_count_at_ready)} tareas · ahora ${esc(map.total_hexes)} hexágonos</p>
+        ${hexMapSvg(map.hexes, valSelected, !done)}
+        ${done ? "" : `
+          <p class="muted">${valSelected ? "Hexágono dorado en " + esc(valSelected) : "Pulsa una casilla libre para elegir dónde va el hexágono dorado."}</p>
+          <div class="actions">
+            <button type="button" data-action="validate"${valSelected ? "" : " disabled"}>Validar y otorgar dorado${valSelected ? " en " + esc(valSelected) : ""}</button>
+          </div>`}
+        <p id="valNote" class="err" role="status"></p>`;
+    }
+
+    async function openEnvelope(id) {
+      const env = valEnvelopes.find(e => e.id === id);
+      if (!env) return;
+      valCurrent = { env, map: null };
+      valSelected = null;
+      renderEnvelopeList();
+      $("valView").innerHTML = '<p class="muted">Cargando…</p>';
+      try {
+        valCurrent.map = await api(`/admin/validation/users/${env.user_id}/map?tile=${encodeURIComponent(env.tile_slug || "arctic")}`);
+        renderEnvelope();
+      } catch (e) {
+        $("valView").innerHTML = `<p class="err">${esc(e.message)}</p>`;
+      }
+    }
+
+    $("valList").addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button[data-id]");
+      if (btn) openEnvelope(Number(btn.dataset.id));
+    });
+
+    $("valFilters").addEventListener("click", (ev) => {
+      const btn = ev.target.closest("button[data-status]");
+      if (!btn) return;
+      valFilter = btn.dataset.status;
+      document.querySelectorAll("#valFilters .chip").forEach(b => b.classList.toggle("active", b === btn));
+      loadEnvelopes();
+    });
+
+    $("valView").addEventListener("click", async (ev) => {
+      if (!valCurrent || !valCurrent.map) return;
+      const cell = ev.target.closest("g.hx.free");
+      if (cell) {
+        const code = cell.dataset.code;
+        valSelected = valSelected === code ? null : code;
+        renderEnvelope();
+        return;
+      }
+      const btn = ev.target.closest("button[data-action='validate']");
+      if (!btn || !valSelected) return;
+
+      const { env, map } = valCurrent;
+      const note = (text, ok) => {
+        const el = $("valNote");
+        if (el) { el.className = ok ? "ok" : "err"; el.textContent = text; }
+      };
+      if (!confirm("¿Validar el sobre de " + map.user.username + " y otorgar el hexágono dorado en " + valSelected + "?")) return;
+
+      btn.disabled = true;
+      try {
+        await api("/admin/validation/envelopes/" + env.id + "/validate", {
+          method: "POST",
+          body: JSON.stringify({ hex_code: valSelected }),
+        });
+        const code = valSelected;
+        valSelected = null;
+        valCurrent.env = { ...env, status: "validated", validated_at: new Date().toISOString() };
+        valCurrent.map = await api(`/admin/validation/users/${env.user_id}/map?tile=${encodeURIComponent(env.tile_slug || "arctic")}`);
+        renderEnvelope();
+        note("Validado: hexágono dorado en " + code + ".", true);
+        refreshValidationBadge();
+        loadEnvelopes();
+      } catch (e) {
+        note(e.message, false);
+        btn.disabled = false;
+      }
+    });
+
     document.querySelector(".tabs").addEventListener("click", (ev) => {
       const btn = ev.target.closest("button[data-tab]");
       if (btn) showTab(btn.dataset.tab);
     });
 
     setInterval(refreshInboxBadge, 60000);
+    setInterval(refreshValidationBadge, 60000);
 
     document.getElementById("loginBtn").onclick = login;
     document.getElementById("logoutBtn").onclick = logout;
