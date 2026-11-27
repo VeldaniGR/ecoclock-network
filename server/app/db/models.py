@@ -35,6 +35,7 @@ class Task(Base):
     user = relationship("User", back_populates="tasks")
     results = relationship("Result", back_populates="task")
     credits = relationship("Credit", back_populates="task")
+    theme = Column(String(40), nullable=True, index=True)
 
 class Result(Base):
     __tablename__ = "results"
@@ -144,6 +145,8 @@ class Expedition(Base):
     ends_at = Column(DateTime, nullable=False)
     completed_at = Column(DateTime, nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
+    theme = Column(String(40), nullable=True)       # temática de las tareas (arctic, fungi...)
+    tile_slug = Column(String(40), nullable=True)   # loseta del mapa de impacto
 
 class ImpactTile(Base):
     """Loseta geográfica del mapa de impacto (Ártico, Mediterráneo, etc.)."""
@@ -237,3 +240,16 @@ class ContactMessage(Base):
     auth_summary = Column(String(80), nullable=True)
     sent_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, nullable=False, default=utcnow)
+
+class ExpeditionParticipant(Base):
+    """Usuario que participa en una campaña (para repartir y medir la participación)."""
+    __tablename__ = "expedition_participants"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    expedition_id = Column(Integer, ForeignKey("expeditions.id"), nullable=False, index=True)
+    joined_at = Column(DateTime, nullable=False, default=utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "expedition_id", name="uq_user_expedition_participant"),
+    )
